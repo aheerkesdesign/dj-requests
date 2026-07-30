@@ -1,0 +1,488 @@
+export const nl = {
+  // Common
+  'common.cancel': 'Annuleren',
+  'common.close': 'Sluiten',
+  'common.saving': 'Bezig met opslaan...',
+  'common.loading': 'Bezig...',
+  'common.logout': 'Uitloggen',
+  'common.refresh': 'Pagina verversen',
+  'common.yesClearAll': 'Ja, wis alles',
+  'common.copy': 'Kopiëren',
+  'common.copied': 'Kopiëren!',
+  'common.language': 'Taal',
+  'common.switchToEn': 'EN',
+  'common.switchToNl': 'NL',
+
+  // Header
+  'header.backToStart': 'Terug naar startscherm',
+  'header.libraryOf': "{name}'s Bibliotheek",
+  'header.library': 'Bibliotheek',
+  'header.shareTitle': 'Delen met anderen',
+  'header.shareAria': 'Bibliotheek delen',
+  'header.settingsTitle': 'Bibliotheek instellingen',
+  'header.settingsAria': 'Instellingen',
+  'header.accountTitle': 'Account',
+  'header.accountAria': 'Account',
+  'header.tracks': 'Nummers',
+  'header.requests': 'Verzoekjes',
+  'header.djManage': 'DJ Beheer',
+  'header.djManageTitle': 'DJ Dashboard & Export',
+
+  // Start screen
+  'start.welcome': 'Welkom! Vraag direct je favoriete nummer aan',
+  'start.songRequest': 'SONG REQUEST',
+  'start.followSocials': 'Volg mij op mijn socials!',
+
+  // Public page
+  'public.loadingLibrary': 'Muziekbibliotheek laden...',
+  'public.profileNotFound': 'Profiel of bibliotheek niet gevonden',
+  'public.djNotFound': 'DJ niet gevonden',
+  'public.profileMissingHelp':
+    'Je account bestaat, maar er is nog geen profiel/bibliotheek. Voer in Supabase de SQL uit supabase/migrations/20260329140000_ensure_my_profile.sql, ververs daarna deze pagina.',
+  'public.pageMissing': 'Deze pagina bestaat niet of is nog niet geconfigureerd.',
+  'public.filterPlaylists': 'Playlists Filteren',
+  'public.active': 'actief',
+  'public.allPlaylistsVisible': 'Alle afspeellijsten zijn nu zichtbaar in de bibliotheek',
+  'public.playlistsSelected':
+    '{selected} van de {total} afspeellijsten geselecteerd voor bezoekers',
+  'public.filterPlaylistsBtn': 'Playlists filteren',
+  'public.trackNotFound': 'Nummer niet gevonden?',
+  'public.requestNextTime': 'Doe een verzoekje voor de volgende keer!',
+  'public.requestHint': 'Staat je favoriete nummer er niet bij? Dien een verzoek in.',
+  'public.requestTrack': 'Vraag nummer aan',
+  'public.loginToEditProfile': 'Log in op het dashboard om je profiel te wijzigen.',
+  'public.loginToUpload': 'Je moet ingelogd zijn om een bibliotheek te uploaden.',
+
+  // Search
+  'search.placeholder': 'Zoek op titel of artiest...',
+  'search.sortBy': 'Sorteren:',
+  'search.sortTitle': 'Titel',
+  'search.sortArtist': 'Artiest',
+  'search.sortByTitle': 'Sorteren op: Titel',
+  'search.sortByArtist': 'Sorteren op: Artiest',
+
+  // Track list
+  'tracks.noneForQuery': 'Geen nummers gevonden voor "{query}"',
+  'tracks.noneInSelection': 'Geen nummers in deze selectie',
+  'tracks.notOnUsb':
+    'Het nummer staat waarschijnlijk (nog) niet op de USB stick van de DJ. Vraag het hieronder aan voor een volgende keer!',
+  'tracks.requestThis': 'Doe een verzoekje voor dit nummer',
+  'tracks.showMore': 'Meer nummers tonen ({shown} van {total})',
+
+  // Track card
+  'trackCard.requestError': 'Fout bij aanvragen van het nummer.',
+  'trackCard.requested': 'Aangevraagd',
+  'trackCard.requestTitle': 'Vraag nummer aan',
+  'trackCard.request': 'Vraag aan',
+
+  // Request modal
+  'requestModal.title': 'Nummer Aanvragen',
+  'requestModal.subtitle': 'Voeg een nummer toe aan de verzoekjeslijst',
+  'requestModal.titleRequired': 'Vul de titel van het nummer in.',
+  'requestModal.submitError': 'Fout bij het versturen van je verzoek.',
+  'requestModal.titleLabel': 'Titel van het nummer *',
+  'requestModal.titlePlaceholder': 'Titel...',
+  'requestModal.artistLabel': 'Artiest',
+  'requestModal.artistPlaceholder': 'Artiest...',
+  'requestModal.submitting': 'Bezig met versturen...',
+  'requestModal.submit': 'Vraag Aan',
+
+  // Request tab
+  'requests.played': 'Gedraaid',
+  'requests.declined': 'Geweigerd',
+  'requests.pending': 'In afwachting',
+  'requests.all': 'Alle ({count})',
+  'requests.searchPlaceholder': 'Zoek in verzoekjes...',
+  'requests.clearTitle': 'Verzoekjes definitief verwijderen',
+  'requests.clear': 'Verzoekjes verwijderen',
+  'requests.djTip':
+    'DJ Tip: Swipe een nummer naar rechts (➡️) voor Gedraaid of naar links (⬅️) voor Geweigerd.',
+  'requests.emptyCategory': 'Nog geen verzoekjes in deze categorie',
+  'requests.empty': 'Er zijn momenteel geen verzoekjes aanwezig.',
+  'requests.clearConfirmTitle': 'Verzoekjes verwijderen?',
+  'requests.clearConfirmBody':
+    'Weet je zeker dat je alle verzoekjes uit deze lijst wilt verwijderen? Dit kan niet ongedaan worden gemaakt.',
+
+  // DJ dashboard
+  'dj.controlCenter': 'DJ Control Center',
+  'dj.manageFor': 'Beheer Verzoekjes voor {name}',
+  'dj.manageHint':
+    'Exporteer of beheer nummers die gedownload moeten worden voor je USB bibliotheek.',
+  'dj.exportDownloadList': 'Exporteer downloadlijst',
+  'dj.toDownload': 'Te Downloaden Nummers ({count})',
+  'dj.toDownloadHint': 'Aangevraagde nummers die nog niet op je USB stick staan',
+  'dj.clearToDownload': 'Te downloaden nummers wissen',
+  'dj.noneToDownload': 'Geen te downloaden nummers',
+  'dj.noneToDownloadHint':
+    'Alle aangevraagde nummers staan al in je bibliotheek of er zijn nog geen verzoekjes.',
+  'dj.exportTitle': 'Downloadlijst exporteren',
+  'dj.exportHint': 'Kies in welk formaat je de te downloaden nummers wilt exporteren.',
+  'dj.clearToDownloadTitle': 'Te downloaden nummers wissen?',
+  'dj.clearToDownloadBody':
+    'Weet je zeker dat je alle te downloaden nummers uit deze lijst wilt verwijderen?',
+
+  // Account modal
+  'account.title': 'Account',
+  'account.subtitle': 'Beheer DJ-naam, logo, startpagina en socials',
+  'account.invalidImage': 'Selecteer a.u.b. een geldige afbeelding.',
+  'account.readError': 'Fout bij het lezen van het bestand.',
+  'account.loadImageError': 'Kon afbeelding niet laden.',
+  'account.processImageError': 'Kon afbeelding niet verwerken.',
+  'account.loginRequired': 'Log in op het dashboard om je profiel te wijzigen.',
+  'account.nameRequired': 'Voer a.u.b. een geldige DJ-naam in.',
+  'account.slugInvalid': 'Slug mag alleen kleine letters, cijfers en streepjes bevatten.',
+  'account.saveError': 'Kon account niet opslaan.',
+  'account.saveSuccess': 'Account succesvol bijgewerkt!',
+  'account.djName': 'DJ Naam:',
+  'account.djNamePlaceholder': 'bijv. DJ Alex',
+  'account.slug': 'Publieke URL-slug:',
+  'account.slugHint': 'Dit is de unieke link die je publiek deelt met je publiek.',
+  'account.logo': 'DJ Logo (linksboven):',
+  'account.removeLogo': 'Logo verwijderen',
+  'account.changeLogo': 'Logo wijzigen',
+  'account.chooseImage': 'Afbeelding kiezen',
+  'account.logoHint':
+    'Alleen zichtbaar linksboven in de bibliotheek-header. Wordt vierkant gemaakt.',
+  'account.startImage': 'Startpagina-afbeelding:',
+  'account.removeStartImage': 'Afbeelding verwijderen',
+  'account.noStartImage': 'Nog geen startpagina-foto',
+  'account.changePhoto': 'Foto wijzigen',
+  'account.choosePhoto': 'Foto kiezen',
+  'account.startImageHint':
+    'Dit ziet je publiek op de startpagina na het scannen van de QR-code.',
+  'account.socials': 'Socials & Links (voor op het startscherm):',
+  'account.save': 'Account Opslaan',
+
+  // Settings / library
+  'settings.title': 'Bibliotheek',
+  'settings.subtitle': 'Upload je Rekordbox XML',
+  'settings.invalidXml': 'Selecteer a.u.b. een .xml bestand (geëxporteerd uit Rekordbox).',
+  'settings.xmlReadError': 'Fout bij het lezen van Rekordbox XML.',
+  'settings.loginToUpload': 'Log in op het dashboard om een XML te uploaden.',
+  'settings.uploadRequired':
+    'Upload eerst een Rekordbox XML bestand of kies de voorbeeld XML.',
+  'settings.saveError': 'Kon bibliotheek niet opslaan op de server.',
+  'settings.status': 'Huidige Bibliotheek Status:',
+  'settings.tracks': 'Nummers:',
+  'settings.playlists': 'Afspeellijsten:',
+  'settings.howTitle': 'Hoe werkt het uploaden?',
+  'settings.howStep1':
+    '1. Exporteer je verzameling in Rekordbox: Bestand / File ➔ Exporteer verzameling in xml-formaat.',
+  'settings.howStep2': '2. Upload het .xml bestand hieronder.',
+  'settings.howNote':
+    'Let op: Er is altijd 1 actieve bibliotheek. Bij het uploaden worden alle oude nummers vervangen. Je DJ-naam, logo en socials blijven behouden.',
+  'settings.selectFile': 'Selecteer rekordbox.xml van je telefoon of laptop',
+  'settings.supportsXml': 'Ondersteunt alle Rekordbox XML exports (.xml)',
+  'settings.chooseFile': 'Bestand Kiezen',
+  'settings.sampleXml': 'Test met Voorbeeld XML',
+  'settings.xmlParsed': 'XML Geanalyseerd!',
+  'settings.totalTracks': 'Totaal Nummers:',
+  'settings.uploading': 'Bezig met uploaden...',
+  'settings.uploadLibrary': 'Nieuwe Bibliotheek Uploaden',
+
+  // Share modal
+  'share.title': 'Pagina Delen',
+  'share.body':
+    'Laat anderen door je {count} nummers zoeken en verzoekjes doen op hun mobiel!',
+  'share.scan': 'Scan om te openen',
+
+  // Playlist filter
+  'playlist.openFolder': 'Map openen',
+  'playlist.closeFolder': 'Map inklappen',
+  'playlist.activeCount': '{selected} / {total} actief',
+  'playlist.track': 'nummer',
+  'playlist.tracks': 'nummers',
+  'playlist.filterTitle': 'Playlists Filteren',
+  'playlist.filterSubtitle':
+    'Kies welke mappen en afspeellijsten zichtbaar zijn in de bibliotheek',
+  'playlist.deselectAll': 'Alles deselecteren',
+  'playlist.selectAll': 'Alles selecteren',
+  'playlist.searchPlaceholder': 'Zoek in mappen of afspeellijsten...',
+  'playlist.noneInLibrary': 'Geen afspeellijsten gevonden in de bibliotheek.',
+  'playlist.noneForQuery': 'Geen mappen of afspeellijsten gevonden voor "{query}".',
+  'playlist.apply': 'Filter toepassen',
+
+  // Landing
+  'landing.brand': 'DJ Requests',
+  'landing.dashboard': 'Dashboard',
+  'landing.login': 'Inloggen',
+  'landing.signup': 'Account aanmaken',
+  'landing.forDjs': "Voor DJ's",
+  'landing.hero': 'Laat je publiek nummers aanvragen vanuit jouw Rekordbox USB.',
+  'landing.heroBody':
+    'Upload je bibliotheek, deel een unieke link of QR-code, en beheer verzoekjes live tijdens je set. Elke DJ heeft een eigen pagina en account.',
+  'landing.toDashboard': 'Naar dashboard',
+  'landing.viewPublic': 'Bekijk publieke pagina',
+  'landing.startFree': 'Start gratis',
+  'landing.hasAccount': 'Ik heb al een account',
+  'landing.featureXmlTitle': 'Rekordbox XML',
+  'landing.featureXmlBody':
+    'Upload je USB-export en laat gasten door je catalogus zoeken.',
+  'landing.featureLiveTitle': 'Live verzoekjes',
+  'landing.featureLiveBody': 'Nieuwe requests verschijnen realtime op je DJ-dashboard.',
+  'landing.featurePageTitle': 'Eigen pagina',
+  'landing.featurePageBody': 'Elke DJ krijgt een unieke /d/jouw-naam link voor het publiek.',
+
+  // Login / signup
+  'login.title': 'Inloggen',
+  'login.subtitle': 'Beheer je bibliotheek en verzoekjes',
+  'login.email': 'E-mail',
+  'login.password': 'Wachtwoord',
+  'login.submit': 'Inloggen',
+  'login.noAccount': 'Nog geen account?',
+  'login.register': 'Registreer',
+  'signup.title': 'Account aanmaken',
+  'signup.subtitle': 'Maak je eigen request-pagina voor je publiek',
+  'signup.failed': 'Registratie mislukt. Controleer of de database-trigger correct is ingesteld.',
+  'signup.checkEmail':
+    'Check je e-mail om je account te bevestigen, daarna kun je inloggen. (Of zet “Confirm email” uit in Supabase Auth settings voor lokaal testen.)',
+  'signup.noSession':
+    'Registratie gaf geen sessie terug. Zet “Confirm email” uit onder Authentication → Providers → Email, of bevestig je e-mail.',
+  'signup.djName': 'DJ-naam',
+  'signup.publicSlug': 'Publieke slug',
+  'signup.submit': 'Registreren',
+  'signup.hasAccount': 'Al een account?',
+  'signup.login': 'Inloggen',
+
+  // Dashboard
+  'dashboard.profileFailed': 'Profiel laden mislukt',
+  'dashboard.profileHelp':
+    'Voer in de Supabase SQL Editor het bestand 20260329140000_ensure_my_profile.sql uit, ververs daarna deze pagina.',
+} as const;
+
+export const en: { [K in keyof typeof nl]: string } = {
+  'common.cancel': 'Cancel',
+  'common.close': 'Close',
+  'common.saving': 'Saving...',
+  'common.loading': 'Loading...',
+  'common.logout': 'Log out',
+  'common.refresh': 'Refresh page',
+  'common.yesClearAll': 'Yes, clear all',
+  'common.copy': 'Copy',
+  'common.copied': 'Copied!',
+  'common.language': 'Language',
+  'common.switchToEn': 'EN',
+  'common.switchToNl': 'NL',
+
+  'header.backToStart': 'Back to start screen',
+  'header.libraryOf': "{name}'s Library",
+  'header.library': 'Library',
+  'header.shareTitle': 'Share with others',
+  'header.shareAria': 'Share library',
+  'header.settingsTitle': 'Library settings',
+  'header.settingsAria': 'Settings',
+  'header.accountTitle': 'Account',
+  'header.accountAria': 'Account',
+  'header.tracks': 'Tracks',
+  'header.requests': 'Requests',
+  'header.djManage': 'DJ Manage',
+  'header.djManageTitle': 'DJ Dashboard & Export',
+
+  'start.welcome': 'Welcome! Request your favorite track right away',
+  'start.songRequest': 'SONG REQUEST',
+  'start.followSocials': 'Follow me on socials!',
+
+  'public.loadingLibrary': 'Loading music library...',
+  'public.profileNotFound': 'Profile or library not found',
+  'public.djNotFound': 'DJ not found',
+  'public.profileMissingHelp':
+    'Your account exists, but there is no profile/library yet. Run supabase/migrations/20260329140000_ensure_my_profile.sql in Supabase, then refresh this page.',
+  'public.pageMissing': 'This page does not exist or has not been set up yet.',
+  'public.filterPlaylists': 'Filter playlists',
+  'public.active': 'active',
+  'public.allPlaylistsVisible': 'All playlists are now visible in the library',
+  'public.playlistsSelected':
+    '{selected} of {total} playlists selected for visitors',
+  'public.filterPlaylistsBtn': 'Filter playlists',
+  'public.trackNotFound': 'Track not found?',
+  'public.requestNextTime': 'Request it for next time!',
+  'public.requestHint': "Don't see your favorite track? Submit a request.",
+  'public.requestTrack': 'Request track',
+  'public.loginToEditProfile': 'Log in to the dashboard to edit your profile.',
+  'public.loginToUpload': 'You must be logged in to upload a library.',
+
+  'search.placeholder': 'Search by title or artist...',
+  'search.sortBy': 'Sort:',
+  'search.sortTitle': 'Title',
+  'search.sortArtist': 'Artist',
+  'search.sortByTitle': 'Sort by: Title',
+  'search.sortByArtist': 'Sort by: Artist',
+
+  'tracks.noneForQuery': 'No tracks found for "{query}"',
+  'tracks.noneInSelection': 'No tracks in this selection',
+  'tracks.notOnUsb':
+    "This track is probably not on the DJ's USB yet. Request it below for next time!",
+  'tracks.requestThis': 'Request this track',
+  'tracks.showMore': 'Show more tracks ({shown} of {total})',
+
+  'trackCard.requestError': 'Failed to request this track.',
+  'trackCard.requested': 'Requested',
+  'trackCard.requestTitle': 'Request track',
+  'trackCard.request': 'Request',
+
+  'requestModal.title': 'Request a track',
+  'requestModal.subtitle': 'Add a track to the request list',
+  'requestModal.titleRequired': 'Please enter the track title.',
+  'requestModal.submitError': 'Failed to submit your request.',
+  'requestModal.titleLabel': 'Track title *',
+  'requestModal.titlePlaceholder': 'Title...',
+  'requestModal.artistLabel': 'Artist',
+  'requestModal.artistPlaceholder': 'Artist...',
+  'requestModal.submitting': 'Submitting...',
+  'requestModal.submit': 'Submit request',
+
+  'requests.played': 'Played',
+  'requests.declined': 'Declined',
+  'requests.pending': 'Pending',
+  'requests.all': 'All ({count})',
+  'requests.searchPlaceholder': 'Search requests...',
+  'requests.clearTitle': 'Permanently delete requests',
+  'requests.clear': 'Delete requests',
+  'requests.djTip':
+    'DJ tip: Swipe a track right (➡️) for Played or left (⬅️) for Declined.',
+  'requests.emptyCategory': 'No requests in this category yet',
+  'requests.empty': 'There are currently no requests.',
+  'requests.clearConfirmTitle': 'Delete requests?',
+  'requests.clearConfirmBody':
+    'Are you sure you want to delete all requests from this list? This cannot be undone.',
+
+  'dj.controlCenter': 'DJ Control Center',
+  'dj.manageFor': 'Manage requests for {name}',
+  'dj.manageHint':
+    'Export or manage tracks that still need to be downloaded for your USB library.',
+  'dj.exportDownloadList': 'Export download list',
+  'dj.toDownload': 'Tracks to download ({count})',
+  'dj.toDownloadHint': 'Requested tracks that are not on your USB yet',
+  'dj.clearToDownload': 'Clear download list',
+  'dj.noneToDownload': 'No tracks to download',
+  'dj.noneToDownloadHint':
+    'All requested tracks are already in your library, or there are no requests yet.',
+  'dj.exportTitle': 'Export download list',
+  'dj.exportHint': 'Choose which format to export the download list in.',
+  'dj.clearToDownloadTitle': 'Clear download list?',
+  'dj.clearToDownloadBody':
+    'Are you sure you want to remove all tracks from this download list?',
+
+  'account.title': 'Account',
+  'account.subtitle': 'Manage DJ name, logo, start page and socials',
+  'account.invalidImage': 'Please select a valid image.',
+  'account.readError': 'Failed to read the file.',
+  'account.loadImageError': 'Could not load the image.',
+  'account.processImageError': 'Could not process the image.',
+  'account.loginRequired': 'Log in to the dashboard to edit your profile.',
+  'account.nameRequired': 'Please enter a valid DJ name.',
+  'account.slugInvalid': 'Slug may only contain lowercase letters, numbers and dashes.',
+  'account.saveError': 'Could not save account.',
+  'account.saveSuccess': 'Account updated successfully!',
+  'account.djName': 'DJ name:',
+  'account.djNamePlaceholder': 'e.g. DJ Alex',
+  'account.slug': 'Public URL slug:',
+  'account.slugHint': 'This is the unique link you share with your audience.',
+  'account.logo': 'DJ logo (top left):',
+  'account.removeLogo': 'Remove logo',
+  'account.changeLogo': 'Change logo',
+  'account.chooseImage': 'Choose image',
+  'account.logoHint':
+    'Only shown in the top-left library header. Automatically made square.',
+  'account.startImage': 'Start page image:',
+  'account.removeStartImage': 'Remove image',
+  'account.noStartImage': 'No start page photo yet',
+  'account.changePhoto': 'Change photo',
+  'account.choosePhoto': 'Choose photo',
+  'account.startImageHint':
+    'This is what your audience sees on the start page after scanning the QR code.',
+  'account.socials': 'Socials & links (on the start screen):',
+  'account.save': 'Save account',
+
+  'settings.title': 'Library',
+  'settings.subtitle': 'Upload your Rekordbox XML',
+  'settings.invalidXml': 'Please select an .xml file (exported from Rekordbox).',
+  'settings.xmlReadError': 'Failed to read Rekordbox XML.',
+  'settings.loginToUpload': 'Log in to the dashboard to upload XML.',
+  'settings.uploadRequired':
+    'Upload a Rekordbox XML file first, or choose the sample XML.',
+  'settings.saveError': 'Could not save the library to the server.',
+  'settings.status': 'Current library status:',
+  'settings.tracks': 'Tracks:',
+  'settings.playlists': 'Playlists:',
+  'settings.howTitle': 'How does uploading work?',
+  'settings.howStep1':
+    '1. Export your collection in Rekordbox: File ➔ Export Collection in XML Format.',
+  'settings.howStep2': '2. Upload the .xml file below.',
+  'settings.howNote':
+    'Note: There is always 1 active library. Uploading replaces all old tracks. Your DJ name, logo and socials are kept.',
+  'settings.selectFile': 'Select rekordbox.xml from your phone or laptop',
+  'settings.supportsXml': 'Supports all Rekordbox XML exports (.xml)',
+  'settings.chooseFile': 'Choose file',
+  'settings.sampleXml': 'Test with sample XML',
+  'settings.xmlParsed': 'XML analyzed!',
+  'settings.totalTracks': 'Total tracks:',
+  'settings.uploading': 'Uploading...',
+  'settings.uploadLibrary': 'Upload new library',
+
+  'share.title': 'Share page',
+  'share.body':
+    'Let others search your {count} tracks and submit requests on their phone!',
+  'share.scan': 'Scan to open',
+
+  'playlist.openFolder': 'Open folder',
+  'playlist.closeFolder': 'Collapse folder',
+  'playlist.activeCount': '{selected} / {total} active',
+  'playlist.track': 'track',
+  'playlist.tracks': 'tracks',
+  'playlist.filterTitle': 'Filter playlists',
+  'playlist.filterSubtitle':
+    'Choose which folders and playlists are visible in the library',
+  'playlist.deselectAll': 'Deselect all',
+  'playlist.selectAll': 'Select all',
+  'playlist.searchPlaceholder': 'Search folders or playlists...',
+  'playlist.noneInLibrary': 'No playlists found in the library.',
+  'playlist.noneForQuery': 'No folders or playlists found for "{query}".',
+  'playlist.apply': 'Apply filter',
+
+  'landing.brand': 'DJ Requests',
+  'landing.dashboard': 'Dashboard',
+  'landing.login': 'Log in',
+  'landing.signup': 'Create account',
+  'landing.forDjs': 'For DJs',
+  'landing.hero': 'Let your audience request tracks from your Rekordbox USB.',
+  'landing.heroBody':
+    'Upload your library, share a unique link or QR code, and manage requests live during your set. Every DJ gets their own page and account.',
+  'landing.toDashboard': 'Go to dashboard',
+  'landing.viewPublic': 'View public page',
+  'landing.startFree': 'Start free',
+  'landing.hasAccount': 'I already have an account',
+  'landing.featureXmlTitle': 'Rekordbox XML',
+  'landing.featureXmlBody':
+    'Upload your USB export and let guests search your catalog.',
+  'landing.featureLiveTitle': 'Live requests',
+  'landing.featureLiveBody': 'New requests appear in realtime on your DJ dashboard.',
+  'landing.featurePageTitle': 'Your own page',
+  'landing.featurePageBody': 'Every DJ gets a unique /d/your-name link for the audience.',
+
+  'login.title': 'Log in',
+  'login.subtitle': 'Manage your library and requests',
+  'login.email': 'Email',
+  'login.password': 'Password',
+  'login.submit': 'Log in',
+  'login.noAccount': "Don't have an account?",
+  'login.register': 'Sign up',
+  'signup.title': 'Create account',
+  'signup.subtitle': 'Create your own request page for your audience',
+  'signup.failed': 'Sign-up failed. Check whether the database trigger is set up correctly.',
+  'signup.checkEmail':
+    'Check your email to confirm your account, then you can log in. (Or disable “Confirm email” in Supabase Auth settings for local testing.)',
+  'signup.noSession':
+    'Sign-up did not return a session. Disable “Confirm email” under Authentication → Providers → Email, or confirm your email.',
+  'signup.djName': 'DJ name',
+  'signup.publicSlug': 'Public slug',
+  'signup.submit': 'Sign up',
+  'signup.hasAccount': 'Already have an account?',
+  'signup.login': 'Log in',
+
+  'dashboard.profileFailed': 'Failed to load profile',
+  'dashboard.profileHelp':
+    'Run 20260329140000_ensure_my_profile.sql in the Supabase SQL Editor, then refresh this page.',
+};
+
+export const dictionaries = { nl, en } as const;
