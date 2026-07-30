@@ -52,10 +52,7 @@ export const DJDashboard: React.FC<DJDashboardProps> = ({
       <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4">
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-400 bg-cyan-950/80 px-2 py-0.5 rounded border border-cyan-800/60">
-              {t('dj.controlCenter')}
-            </span>
-            <h2 className="text-base font-bold text-zinc-100 mt-1">
+            <h2 className="text-base font-bold text-zinc-100">
               {t('dj.manageFor', { name: library.djName })}
             </h2>
             <p className="text-xs text-zinc-400">

@@ -104,7 +104,6 @@ export const nl = {
     'Weet je zeker dat je alle verzoekjes uit deze lijst wilt verwijderen? Dit kan niet ongedaan worden gemaakt.',
 
   // DJ dashboard
-  'dj.controlCenter': 'DJ Control Center',
   'dj.manageFor': 'Beheer Verzoekjes voor {name}',
   'dj.manageHint':
     'Exporteer of beheer nummers die gedownload moeten worden voor je USB bibliotheek.',
@@ -346,7 +345,6 @@ export const en: { [K in keyof typeof nl]: string } = {
   'requests.clearConfirmBody':
     'Are you sure you want to delete all requests from this list? This cannot be undone.',
 
-  'dj.controlCenter': 'DJ Control Center',
   'dj.manageFor': 'Manage requests for {name}',
   'dj.manageHint':
     'Export or manage tracks that still need to be downloaded for your USB library.',
