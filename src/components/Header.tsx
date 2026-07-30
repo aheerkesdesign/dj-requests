@@ -65,7 +65,7 @@ export const Header: React.FC<HeaderProps> = ({
               title={t('common.language')}
               aria-label={t('common.language')}
             >
-              {locale === 'nl' ? t('common.switchToEn') : t('common.switchToNl')}
+              {locale === 'nl' ? t('common.switchToNl') : t('common.switchToEn')}
             </button>
 
             <button
