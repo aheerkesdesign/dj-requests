@@ -21,6 +21,24 @@ const TikTokIcon = () => (
   </svg>
 );
 
+const YouTubeIcon = () => (
+  <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+  </svg>
+);
+
+const FacebookIcon = () => (
+  <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+  </svg>
+);
+
+const XIcon = () => (
+  <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+    <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/>
+  </svg>
+);
+
 const SpotifyIcon = () => (
   <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
     <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.899 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.019zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141 C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.18-1.2-.18-1.38-.72-.18-.6.18-1.2.72-1.38 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
@@ -30,6 +48,12 @@ const SpotifyIcon = () => (
 const SoundcloudIcon = () => (
   <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
     <path d="M1.175 12.225c-.071 0-.131.022-.18.069-.048.048-.071.108-.071.179v6.027c0 .071.023.131.071.179.049.048.109.072.18.072h.001c.071 0 .131-.024.18-.072.048-.048.071-.108.071-.179v-6.027c0-.071-.023-.131-.071-.179-.049-.047-.109-.069-.181-.069zm1.411-1.391c-.071 0-.131.024-.18.072-.048.048-.071.108-.071.179v7.418c0 .071.023.131.071.179.049.048.109.072.18.072s.131-.024.18-.072c.048-.048.071-.108.071-.179v-7.418c0-.071-.023-.131-.071-.179-.049-.048-.109-.072-.18-.072zm1.412-.835c-.071 0-.131.024-.18.072-.048.048-.071.108-.071.179v8.253c0 .071.023.131.071.179.049.048.109.072.18.072s.131-.024.18-.072c.048-.048.071-.108.071-.179v-8.253c0-.071-.023-.131-.071-.179-.049-.048-.109-.072-.18-.072zm1.411-.557c-.071 0-.131.024-.18.072-.048.048-.071.108-.071.179v8.81c0 .071.023.131.071.179.049.048.109.072.18.072s.131-.024.18-.072c.048-.048.071-.108.071-.179v-8.81c0-.071-.023-.131-.071-.179-.049-.048-.109-.072-.18-.072zm1.412-.139c-.071 0-.131.024-.18.072-.048.048-.071.108-.071.179v8.949c0 .071.023.131.071.179.049.048.109.072.18.072s.131-.024.18-.072c.048-.048.071-.108.071-.179v-8.949c0-.071-.023-.131-.071-.179-.049-.048-.109-.072-.18-.072zm1.412.139c-.071 0-.131.024-.18.072-.048.048-.071.108-.071.179v8.81c0 .071.023.131.071.179.049.048.109.072.18.072s.131-.024.18-.072c.048-.048.071-.108.071-.179v-8.81c0-.071-.023-.131-.071-.179-.049-.048-.109-.072-.18-.072zm1.412.371c-.071 0-.131.024-.18.072-.048.048-.071.108-.071.179v8.439c0 .071.023.131.071.179.049.048.109.072.18.072s.131-.024.18-.072c.048-.048.071-.108.071-.179v-8.439c0-.071-.023-.131-.071-.179-.049-.048-.109-.072-.18-.072zm11.396 2.366c-.503 0-.992.091-1.448.27-.37-.899-.974-1.677-1.748-2.253-.773-.576-1.688-.888-2.645-.902-.821 0-1.632.222-2.348.643-.715.421-1.298 1.018-1.686 1.728-.052.095-.125.176-.213.237-.089.061-.19.098-.297.108l-.208.021v8.889c0 .071.023.131.071.179.049.048.109.072.18.072h10.344c.828 0 1.622-.329 2.208-.915.586-.586.915-1.38.915-2.208 0-.828-.329-1.622-.915-2.208-.586-.586-1.38-.915-2.208-.915z"/>
+  </svg>
+);
+
+const MixcloudIcon = () => (
+  <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+    <path d="M2.18 11.02h1.02v6.96H2.18zm2.04 0h1.02v6.96H4.22zm2.04 0h1.02v6.96H6.26zm2.04-.84h1.02v7.8H8.3zm2.04.42h1.02v7.38h-1.02zm2.04-.42h1.02v7.8h-1.02zm2.04.84h1.02v6.96h-1.02zm7.74-1.5c-1.02 0-1.92.42-2.58 1.08-.48-.9-1.44-1.5-2.52-1.5-.36 0-.72.06-1.02.18-.54-1.44-1.92-2.46-3.54-2.46H2.18C.96 7.92 0 8.88 0 10.08v8.04c0 1.2.96 2.16 2.18 2.16h13.86c2.16 0 3.96-1.8 3.96-3.96s-1.8-3.96-3.96-3.96z"/>
   </svg>
 );
 
@@ -45,8 +69,12 @@ export const StartScreen: React.FC<StartScreenProps> = ({
   const hasSocials = Boolean(
     socials.instagram ||
     socials.tiktok ||
+    socials.youtube ||
+    socials.facebook ||
+    socials.x ||
     socials.spotify ||
     socials.soundcloud ||
+    socials.mixcloud ||
     socials.website
   );
 
@@ -149,6 +177,45 @@ export const StartScreen: React.FC<StartScreenProps> = ({
                 </a>
               )}
 
+              {socials.youtube && (
+                <a
+                  href={socials.youtube}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3.5 py-2 rounded-xl bg-zinc-900/90 hover:bg-red-600 border border-zinc-800 hover:border-red-500 text-zinc-300 hover:text-white text-xs font-semibold flex items-center gap-2 transition-all shadow-sm"
+                >
+                  <YouTubeIcon />
+                  <span>YouTube</span>
+                  <ExternalLink className="w-3 h-3 opacity-60" />
+                </a>
+              )}
+
+              {socials.facebook && (
+                <a
+                  href={socials.facebook}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3.5 py-2 rounded-xl bg-zinc-900/90 hover:bg-blue-600 border border-zinc-800 hover:border-blue-500 text-zinc-300 hover:text-white text-xs font-semibold flex items-center gap-2 transition-all shadow-sm"
+                >
+                  <FacebookIcon />
+                  <span>Facebook</span>
+                  <ExternalLink className="w-3 h-3 opacity-60" />
+                </a>
+              )}
+
+              {socials.x && (
+                <a
+                  href={socials.x}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3.5 py-2 rounded-xl bg-zinc-900/90 hover:bg-zinc-100 border border-zinc-800 hover:border-zinc-300 text-zinc-300 hover:text-zinc-950 text-xs font-semibold flex items-center gap-2 transition-all shadow-sm"
+                >
+                  <XIcon />
+                  <span>X</span>
+                  <ExternalLink className="w-3 h-3 opacity-60" />
+                </a>
+              )}
+
               {socials.spotify && (
                 <a
                   href={socials.spotify}
@@ -170,7 +237,20 @@ export const StartScreen: React.FC<StartScreenProps> = ({
                   className="px-3.5 py-2 rounded-xl bg-zinc-900/90 hover:bg-orange-600 border border-zinc-800 hover:border-orange-500 text-zinc-300 hover:text-white text-xs font-semibold flex items-center gap-2 transition-all shadow-sm"
                 >
                   <SoundcloudIcon />
-                  <span>Soundcloud</span>
+                  <span>SoundCloud</span>
+                  <ExternalLink className="w-3 h-3 opacity-60" />
+                </a>
+              )}
+
+              {socials.mixcloud && (
+                <a
+                  href={socials.mixcloud}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3.5 py-2 rounded-xl bg-zinc-900/90 hover:bg-sky-600 border border-zinc-800 hover:border-sky-500 text-zinc-300 hover:text-white text-xs font-semibold flex items-center gap-2 transition-all shadow-sm"
+                >
+                  <MixcloudIcon />
+                  <span>Mixcloud</span>
                   <ExternalLink className="w-3 h-3 opacity-60" />
                 </a>
               )}

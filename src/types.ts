@@ -53,8 +53,12 @@ export interface TrackRequest {
 export interface SocialLinks {
   instagram?: string;
   tiktok?: string;
+  youtube?: string;
+  facebook?: string;
+  x?: string;
   spotify?: string;
   soundcloud?: string;
+  mixcloud?: string;
   website?: string;
 }
 
