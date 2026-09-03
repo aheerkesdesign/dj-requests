@@ -27,8 +27,8 @@ export const nl = {
   'header.accountAria': 'Account',
   'header.tracks': 'Nummers',
   'header.requests': 'Verzoekjes',
-  'header.djManage': 'DJ Beheer',
-  'header.djManageTitle': 'DJ Dashboard & Export',
+  'header.djManage': 'Downloadlijst',
+  'header.djManageTitle': 'Downloadlijst',
 
   // Start screen
   'start.welcome': 'Welkom! Vraag direct je favoriete nummer aan',
@@ -106,18 +106,12 @@ export const nl = {
     'Weet je zeker dat je alle verzoekjes uit deze lijst wilt verwijderen? Dit kan niet ongedaan worden gemaakt.',
 
   // DJ dashboard
-  'dj.manageFor': 'Beheer Verzoekjes voor {name}',
-  'dj.manageHint':
-    'Exporteer of beheer nummers die gedownload moeten worden voor je USB bibliotheek.',
-  'dj.exportDownloadList': 'Exporteer downloadlijst',
   'dj.toDownload': 'Te Downloaden Nummers ({count})',
   'dj.toDownloadHint': 'Aangevraagde nummers die nog niet op je USB stick staan',
   'dj.clearToDownload': 'Te downloaden nummers wissen',
   'dj.noneToDownload': 'Geen te downloaden nummers',
   'dj.noneToDownloadHint':
     'Alle aangevraagde nummers staan al in je bibliotheek of er zijn nog geen verzoekjes.',
-  'dj.exportTitle': 'Downloadlijst exporteren',
-  'dj.exportHint': 'Kies in welk formaat je de te downloaden nummers wilt exporteren.',
   'dj.clearToDownloadTitle': 'Te downloaden nummers wissen?',
   'dj.clearToDownloadBody':
     'Weet je zeker dat je alle te downloaden nummers uit deze lijst wilt verwijderen?',
@@ -296,8 +290,8 @@ export const en: { [K in keyof typeof nl]: string } = {
   'header.accountAria': 'Account',
   'header.tracks': 'Tracks',
   'header.requests': 'Requests',
-  'header.djManage': 'DJ Manage',
-  'header.djManageTitle': 'DJ Dashboard & Export',
+  'header.djManage': 'Download list',
+  'header.djManageTitle': 'Download list',
 
   'start.welcome': 'Welcome! Request your favorite track right away',
   'start.songRequest': 'SONG REQUEST',
@@ -367,18 +361,12 @@ export const en: { [K in keyof typeof nl]: string } = {
   'requests.clearConfirmBody':
     'Are you sure you want to delete all requests from this list? This cannot be undone.',
 
-  'dj.manageFor': 'Manage requests for {name}',
-  'dj.manageHint':
-    'Export or manage tracks that still need to be downloaded for your USB library.',
-  'dj.exportDownloadList': 'Export download list',
   'dj.toDownload': 'Tracks to download ({count})',
   'dj.toDownloadHint': 'Requested tracks that are not on your USB yet',
   'dj.clearToDownload': 'Clear download list',
   'dj.noneToDownload': 'No tracks to download',
   'dj.noneToDownloadHint':
     'All requested tracks are already in your library, or there are no requests yet.',
-  'dj.exportTitle': 'Export download list',
-  'dj.exportHint': 'Choose which format to export the download list in.',
   'dj.clearToDownloadTitle': 'Clear download list?',
   'dj.clearToDownloadBody':
     'Are you sure you want to remove all tracks from this download list?',

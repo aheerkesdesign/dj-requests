@@ -23,7 +23,6 @@ import {
   updateRequestStatus,
   deleteRequest as apiDeleteRequest,
   clearAllRequests as apiClearAllRequests,
-  clearLibraryCatalog,
   subscribeToRequests,
   subscribeToLibrary,
 } from '../utils/api';
@@ -343,19 +342,6 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
     }
   };
 
-  const handleDeleteLibrary = async () => {
-    if (!currentLibrary || !user || !isOwner) return;
-    try {
-      await clearLibraryCatalog(currentLibrary.id);
-      const refreshed = await fetchLibraryBySlug(currentLibrary.slug || slug || '');
-      if (refreshed) setCurrentLibrary(refreshed);
-      setRequests([]);
-      setActiveTab('tracks');
-    } catch (err) {
-      console.error('Fout bij wissen bibliotheek:', err);
-    }
-  };
-
   const handleOpenRequestPrefilled = (artist = '', title = '') => {
     setPrefilledRequest({ artist, title: title || filters.searchQuery });
     setIsRequestOpen(true);
@@ -561,12 +547,9 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
 
             {activeTab === 'dj' && isOwner && (
               <DJDashboard
-                library={currentLibrary}
                 requests={requests}
-                onUpdateStatus={handleUpdateStatus}
                 onDeleteRequest={handleDeleteRequest}
                 onClearToDownloadRequests={handleClearToDownloadRequests}
-                onDeleteLibrary={handleDeleteLibrary}
               />
             )}
           </main>

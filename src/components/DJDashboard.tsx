@@ -1,75 +1,28 @@
 import React from 'react';
-import { USBLibrary, TrackRequest, RequestStatus } from '../types';
-import { Download, FileSpreadsheet, Trash2, CheckCheck } from 'lucide-react';
-import { exportRequestsAsText } from '../utils/api';
+import { TrackRequest } from '../types';
+import { Download, Trash2, CheckCheck } from 'lucide-react';
 import { useI18n } from '../i18n/LanguageContext';
 
 interface DJDashboardProps {
-  library: USBLibrary;
   requests: TrackRequest[];
-  onUpdateStatus: (requestId: string, status: RequestStatus) => void;
   onDeleteRequest: (requestId: string) => void;
   onClearToDownloadRequests?: () => void;
-  onDeleteLibrary?: () => void;
-}
-
-function downloadBlob(filename: string, content: string, mime: string) {
-  const blob = new Blob([content], { type: mime });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
 }
 
 export const DJDashboard: React.FC<DJDashboardProps> = ({
-  library,
   requests,
   onDeleteRequest,
   onClearToDownloadRequests,
 }) => {
   const { t } = useI18n();
   const [confirmClearToDownload, setConfirmClearToDownload] = React.useState(false);
-  const [exportOpen, setExportOpen] = React.useState(false);
 
   const toDownloadRequests = requests.filter(
     (r) => r.kind === 'wishlist' && r.status !== 'declined'
   );
 
-  const handleExport = (format: 'txt' | 'csv') => {
-    const content = exportRequestsAsText(toDownloadRequests, format);
-    downloadBlob(
-      `wenslijst-${library.slug || library.id}.${format}`,
-      content,
-      format === 'csv' ? 'text/csv;charset=utf-8' : 'text/plain;charset=utf-8'
-    );
-    setExportOpen(false);
-  };
-
   return (
     <div className="space-y-4">
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4">
-        <div className="flex items-center justify-between gap-2 flex-wrap">
-          <div>
-            <h2 className="text-base font-bold text-zinc-100">
-              {t('dj.manageFor', { name: library.djName })}
-            </h2>
-            <p className="text-xs text-zinc-400">
-              {t('dj.manageHint')}
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setExportOpen(true)}
-            className="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-zinc-950 text-xs font-bold inline-flex items-center gap-1.5 transition-colors shadow-sm"
-          >
-            <Download className="w-4 h-4" /> {t('dj.exportDownloadList')}
-          </button>
-        </div>
-      </div>
-
       <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 space-y-3">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div>
@@ -129,51 +82,6 @@ export const DJDashboard: React.FC<DJDashboardProps> = ({
           </div>
         )}
       </div>
-
-      {exportOpen && (
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 max-w-sm w-full space-y-4 shadow-2xl">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-emerald-950/80 text-emerald-400 border border-emerald-800/60 shrink-0">
-                <Download className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="font-bold text-sm text-zinc-100">{t('dj.exportTitle')}</h3>
-                <p className="text-xs text-zinc-400 mt-0.5">
-                  {t('dj.exportHint')}
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <button
-                type="button"
-                onClick={() => handleExport('txt')}
-                className="w-full px-4 py-3 rounded-xl bg-cyan-950 hover:bg-cyan-900/80 text-cyan-300 border border-cyan-800/60 text-xs font-bold inline-flex items-center justify-center gap-2 transition-colors"
-              >
-                <Download className="w-4 h-4" /> TXT
-              </button>
-              <button
-                type="button"
-                onClick={() => handleExport('csv')}
-                className="w-full px-4 py-3 rounded-xl bg-emerald-950 hover:bg-emerald-900/80 text-emerald-300 border border-emerald-800/60 text-xs font-bold inline-flex items-center justify-center gap-2 transition-colors"
-              >
-                <FileSpreadsheet className="w-4 h-4" /> CSV
-              </button>
-            </div>
-
-            <div className="flex items-center justify-end pt-1">
-              <button
-                type="button"
-                onClick={() => setExportOpen(false)}
-                className="px-4 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold"
-              >
-                {t('common.cancel')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {confirmClearToDownload && (
         <div className="fixed inset-0 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4 z-50">

@@ -419,28 +419,6 @@ export function buildShareUrl(slug: string): string {
   return `${window.location.origin}/d/${slug}`;
 }
 
-export function exportRequestsAsText(
-  requests: TrackRequest[],
-  format: 'txt' | 'csv'
-): string {
-  if (format === 'csv') {
-    const header = 'Title,Artist,Status,CreatedAt\n';
-    const rows = requests
-      .map((r) =>
-        [
-          `"${r.title.replace(/"/g, '""')}"`,
-          `"${r.artist.replace(/"/g, '""')}"`,
-          r.status,
-          r.createdAt,
-        ].join(',')
-      )
-      .join('\n');
-    return header + rows;
-  }
-
-  return requests.map((r) => `${r.artist} - ${r.title}`).join('\n');
-}
-
 /** @deprecated Use fetchLibraryBySlug / fetchMyLibrary */
 export async function fetchLibraries(): Promise<LibrarySummary[]> {
   return [];
