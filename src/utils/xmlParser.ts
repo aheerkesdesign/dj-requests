@@ -209,35 +209,3 @@ export function parseRekordboxXML(xmlContent: string, libraryName: string = 'Mij
     playlistTree,
   };
 }
-
-/**
- * Generate a valid Rekordbox XML sample string for testing
- */
-export function generateSampleXMLString(): string {
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<DJ_PLAYLISTS Version="1.0.0">
-  <PRODUCT Name="rekordbox" Version="6.8.0" Company="Pioneer DJ"/>
-  <COLLECTION Entries="5">
-    <TRACK TrackID="101" Name="Strobe (Club Mix)" Artist="deadmau5" Album="For Lack of a Better Name" Genre="Progressive House" TotalTime="637" AverageBpm="128.00" Tonality="8A" Rating="5" Year="2009" Comments="Peak time banger" DateAdded="2024-01-10"/>
-    <TRACK TrackID="102" Name="World Hold On" Artist="Bob Sinclar, Fisher" Album="World Hold On Remix" Genre="Tech House" TotalTime="315" AverageBpm="126.00" Tonality="11B" Rating="4" Year="2022" Comments="Summer anthem" DateAdded="2024-02-12"/>
-    <TRACK TrackID="103" Name="Move" Artist="Adam Port, Stryv, Keinemusik" Album="Keinemusik Releases" Genre="Afro House" TotalTime="348" AverageBpm="122.00" Tonality="5A" Rating="5" Year="2024" Comments="Crowd favorite" DateAdded="2024-05-20"/>
-    <TRACK TrackID="104" Name="Drugs From Amsterdam" Artist="Mau P" Album="Amsterdam EP" Genre="Tech House" TotalTime="235" AverageBpm="125.00" Tonality="7A" Rating="5" Year="2022" Comments="Heavy bassline" DateAdded="2023-11-04"/>
-    <TRACK TrackID="105" Name="Miracle" Artist="Calvin Harris, Ellie Goulding" Album="Miracle Single" Genre="Dance / Trance" TotalTime="186" AverageBpm="143.00" Tonality="1A" Rating="4" Year="2023" Comments="90s trance revival" DateAdded="2024-03-01"/>
-  </COLLECTION>
-  <PLAYLISTS>
-    <NODE Type="0" Name="ROOT">
-      <NODE Type="0" Name="Club & Festival Sets">
-        <NODE Name="Mainstage Hits" Type="1">
-          <TRACK Key="101"/>
-          <TRACK Key="102"/>
-          <TRACK Key="104"/>
-        </NODE>
-        <NODE Name="Afro & Tech Vibe" Type="1">
-          <TRACK Key="103"/>
-          <TRACK Key="102"/>
-        </NODE>
-      </NODE>
-    </NODE>
-  </PLAYLISTS>
-</DJ_PLAYLISTS>`;
-}

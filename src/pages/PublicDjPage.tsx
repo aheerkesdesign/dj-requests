@@ -25,6 +25,7 @@ import { SearchBarAndFilters } from '../components/SearchBarAndFilters';
 import { TrackList } from '../components/TrackList';
 import { RequestTab } from '../components/RequestTab';
 import { RequestModal } from '../components/RequestModal';
+import { ImportModal } from '../components/ImportModal';
 import { SettingsModal } from '../components/SettingsModal';
 import { AccountModal } from '../components/AccountModal';
 import { ShareModal } from '../components/ShareModal';
@@ -94,6 +95,7 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
   const [viewMode, setViewMode] = useState<'start' | 'library'>(initialState.view);
   const [activeTab, setActiveTab] = useState<'tracks' | 'requests' | 'dj'>(initialState.tab);
 
+  const [isImportOpen, setIsImportOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
@@ -421,6 +423,7 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
         <>
           <Header
             currentLibrary={currentLibrary}
+            onOpenImport={() => setIsImportOpen(true)}
             onOpenSettings={() => setIsSettingsOpen(true)}
             onOpenAccount={() => setIsAccountOpen(true)}
             onOpenShare={() => setIsShareOpen(true)}
@@ -548,12 +551,16 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
 
       {isOwner && (
         <>
-          <SettingsModal
-            isOpen={isSettingsOpen}
-            onClose={() => setIsSettingsOpen(false)}
+          <ImportModal
+            isOpen={isImportOpen}
+            onClose={() => setIsImportOpen(false)}
             currentLibrary={currentLibrary}
             onUploadSuccess={handleUploadSuccess}
             allowUpload={Boolean(user && currentLibrary.ownerId === user.id)}
+          />
+          <SettingsModal
+            isOpen={isSettingsOpen}
+            onClose={() => setIsSettingsOpen(false)}
           />
           <AccountModal
             isOpen={isAccountOpen}

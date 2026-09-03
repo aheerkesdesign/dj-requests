@@ -1,10 +1,11 @@
 import React from 'react';
 import { USBLibrary } from '../types';
-import { Disc3, Settings, Share2, CircleUserRound } from 'lucide-react';
+import { Disc3, Settings, Share2, CircleUserRound, Import } from 'lucide-react';
 import { useI18n } from '../i18n/LanguageContext';
 
 interface HeaderProps {
   currentLibrary: USBLibrary | null;
+  onOpenImport: () => void;
   onOpenSettings: () => void;
   onOpenAccount: () => void;
   onOpenShare: () => void;
@@ -16,6 +17,7 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({
   currentLibrary,
+  onOpenImport,
   onOpenSettings,
   onOpenAccount,
   onOpenShare,
@@ -79,6 +81,14 @@ export const Header: React.FC<HeaderProps> = ({
 
             {isOwner && (
               <>
+                <button
+                  onClick={onOpenImport}
+                  className="p-2 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-800 transition-colors"
+                  title={t('header.importTitle')}
+                  aria-label={t('header.importAria')}
+                >
+                  <Import className="w-4 h-4" />
+                </button>
                 <button
                   onClick={onOpenSettings}
                   className="p-2 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-800 transition-colors"
