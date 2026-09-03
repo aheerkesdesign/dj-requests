@@ -6,10 +6,11 @@ import {
   TrackFieldVisibility,
   DEFAULT_TRACK_FIELD_VISIBILITY,
 } from '../types';
-import { Clock, Music2, Sparkles, CheckCheck, Trash2, Search, Ban } from 'lucide-react';
+import { Clock, Music2, CheckCheck, Trash2, Search, Ban } from 'lucide-react';
 import { findTrackInLibrary } from '../utils/library';
 import { useI18n } from '../i18n/LanguageContext';
 import { CamelotBadge } from './CamelotBadge';
+import { BpmBadge } from './BpmBadge';
 
 interface RequestTabProps {
   requests: TrackRequest[];
@@ -159,11 +160,7 @@ const SwipeableRequestCard: React.FC<SwipeableRequestCardProps> = ({
                   ·
                 </span>
               )}
-              {showBpm && (
-                <span className={`text-xs font-mono tabular-nums ${isMuted ? 'text-zinc-600' : 'text-zinc-400'}`}>
-                  {Math.round(matchingTrack!.bpm)} BPM
-                </span>
-              )}
+              {showBpm && <BpmBadge bpm={matchingTrack!.bpm} size="sm" />}
               {showBpm && showKey && (
                 <span className="text-zinc-700 text-xs" aria-hidden>
                   ·
@@ -347,8 +344,7 @@ export const RequestTab: React.FC<RequestTabProps> = ({
 
       {/* DJ Swipe Tip banner */}
       {isOwner && usbRequests.length > 0 && (
-        <div className="bg-zinc-900/80 border border-zinc-800/80 rounded-xl px-3.5 py-2 flex items-center gap-2 text-xs text-zinc-300">
-          <Sparkles className="w-4 h-4 text-emerald-400 shrink-0" />
+        <div className="bg-zinc-900/80 border border-zinc-800/80 rounded-xl px-3.5 py-2 text-xs text-zinc-300">
           <span>{t('requests.djTip')}</span>
         </div>
       )}

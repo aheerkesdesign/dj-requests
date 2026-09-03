@@ -42,7 +42,7 @@ import { AccountModal } from '../components/AccountModal';
 import { ShareModal } from '../components/ShareModal';
 import { DJDashboard } from '../components/DJDashboard';
 import { PlaylistFilterModal } from '../components/PlaylistFilterModal';
-import { Disc3, PlusCircle, Sparkles, ListFilter } from 'lucide-react';
+import { Disc3, PlusCircle, ListFilter } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { useI18n } from '../i18n/LanguageContext';
 
@@ -515,8 +515,8 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
                 ) : normalizeLibrarySettings(currentLibrary.librarySettings).enableDownloadRequests ? (
                   <div className="bg-gradient-to-r from-emerald-950/80 via-zinc-900 to-cyan-950/80 border border-emerald-500/30 rounded-2xl p-4 shadow-md flex items-center justify-between gap-3 flex-wrap">
                     <div className="space-y-1 max-w-lg">
-                      <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-400 uppercase tracking-wider">
-                        <Sparkles className="w-4 h-4" /> {t('public.trackNotFound')}
+                      <div className="text-xs font-bold text-emerald-400 uppercase tracking-wider">
+                        {t('public.trackNotFound')}
                       </div>
                       <h2 className="text-sm font-bold text-zinc-100">
                         {t('public.requestNextTime')}

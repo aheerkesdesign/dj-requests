@@ -32,7 +32,7 @@ export const nl = {
 
   // Start screen
   'start.welcome': 'Welkom! Vraag direct je favoriete nummer aan',
-  'start.songRequest': 'Nummer aanvragen',
+  'start.songRequest': 'NUMMER AANVRAGEN',
   'start.followSocials': 'Volg mij op mijn socials!',
 
   // Public page
@@ -98,7 +98,7 @@ export const nl = {
   'requests.clearTitle': 'Verzoekjes definitief verwijderen',
   'requests.clear': 'Verzoekjes verwijderen',
   'requests.djTip':
-    'DJ Tip: Swipe een nummer naar rechts (➡️) voor Gedraaid of naar links (⬅️) voor Geweigerd.',
+    'Swipe een nummer naar rechts om als gedraaid te markeren of naar links om als geweigerd te markeren.',
   'requests.emptyCategory': 'Nog geen verzoekjes in deze categorie',
   'requests.empty': 'Er zijn momenteel geen verzoekjes aanwezig.',
   'requests.clearConfirmTitle': 'Verzoekjes verwijderen?',
@@ -372,7 +372,7 @@ export const en: { [K in keyof typeof nl]: string } = {
   'requests.clearTitle': 'Permanently delete requests',
   'requests.clear': 'Delete requests',
   'requests.djTip':
-    'DJ tip: Swipe a track right (➡️) for Played or left (⬅️) for Declined.',
+    'Swipe a track to the right to mark it as played or to the left to mark it as declined.',
   'requests.emptyCategory': 'No requests in this category yet',
   'requests.empty': 'There are currently no requests.',
   'requests.clearConfirmTitle': 'Delete requests?',

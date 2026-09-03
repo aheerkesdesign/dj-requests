@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, User, Check, Sparkles, AlertTriangle, Upload, Globe, Share2, LogOut, ImageIcon } from 'lucide-react';
+import { X, User, Sparkles, AlertTriangle, Upload, Globe, Share2, LogOut, ImageIcon } from 'lucide-react';
 import { USBLibrary, SocialLinks } from '../types';
 import { useAuth } from '../lib/auth';
 import { useI18n } from '../i18n/LanguageContext';
@@ -52,7 +52,6 @@ export const AccountModal: React.FC<AccountModalProps> = ({
   const [startImageBlob, setStartImageBlob] = useState<Blob | null>(null);
   const [socials, setSocials] = useState<SocialLinks>(EMPTY_SOCIALS);
   const [isSaving, setIsSaving] = useState(false);
-  const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -74,7 +73,6 @@ export const AccountModal: React.FC<AccountModalProps> = ({
         mixcloud: currentLibrary.socials?.mixcloud || '',
         website: currentLibrary.socials?.website || '',
       });
-      setSuccess(false);
       setError('');
     }
   }, [isOpen, currentLibrary]);
@@ -205,7 +203,6 @@ export const AccountModal: React.FC<AccountModalProps> = ({
 
     setIsSaving(true);
     setError('');
-    setSuccess(false);
 
     try {
       await onUpdateDetails({
@@ -217,8 +214,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
         startImageBlob: startImageBlob || undefined,
         socials,
       });
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 3000);
+      onClose();
     } catch (err: any) {
       setError(err.message || t('account.saveError'));
     } finally {
@@ -254,13 +250,6 @@ export const AccountModal: React.FC<AccountModalProps> = ({
               <div className="p-3 rounded-xl bg-red-950/80 border border-red-800/80 text-red-300 text-xs font-medium flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 shrink-0 text-red-400" />
                 <span>{error}</span>
-              </div>
-            )}
-
-            {success && (
-              <div className="p-3 rounded-xl bg-emerald-950/80 border border-emerald-800/80 text-emerald-300 text-xs font-medium flex items-center gap-2">
-                <Check className="w-4 h-4 shrink-0 text-emerald-400" />
-                <span>{t('account.saveSuccess')}</span>
               </div>
             )}
 
@@ -520,7 +509,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
             type="submit"
             form="account-form"
             disabled={isSaving || !allowProfileEdit}
-            className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-zinc-950 font-bold text-xs shadow-md shadow-emerald-500/20 disabled:opacity-50 transition-all"
+            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-zinc-950 font-bold text-xs shadow-md shadow-emerald-500/20 disabled:opacity-40"
           >
             {isSaving ? t('common.saving') : t('account.save')}
           </button>

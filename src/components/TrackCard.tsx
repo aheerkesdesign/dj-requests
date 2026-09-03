@@ -3,6 +3,7 @@ import { Track, TrackFieldVisibility, DEFAULT_TRACK_FIELD_VISIBILITY } from '../
 import { PlusCircle, Check } from 'lucide-react';
 import { useI18n } from '../i18n/LanguageContext';
 import { CamelotBadge } from './CamelotBadge';
+import { BpmBadge } from './BpmBadge';
 
 interface TrackCardProps {
   track: Track;
@@ -88,11 +89,7 @@ export const TrackCard: React.FC<TrackCardProps> = ({
                 ·
               </span>
             )}
-            {showBpm && (
-              <span className="text-xs font-mono tabular-nums text-zinc-400">
-                {Math.round(track.bpm)} BPM
-              </span>
-            )}
+            {showBpm && <BpmBadge bpm={track.bpm} size="sm" />}
             {showBpm && showKey && (
               <span className="text-zinc-700 text-xs" aria-hidden>
                 ·

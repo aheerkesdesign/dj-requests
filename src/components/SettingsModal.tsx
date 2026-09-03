@@ -43,14 +43,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [guestOpen, setGuestOpen] = useState(true);
   const [languageOpen, setLanguageOpen] = useState(true);
 
+  // Only reset local form state when the modal opens — not when parent prefs
+  // update mid-save (that was clearing the "Saving..." button label).
   useEffect(() => {
-    if (isOpen) {
-      setPrefs(normalizeTrackDisplayPrefs(trackDisplayPrefs));
-      setSettings(normalizeLibrarySettings(librarySettings));
-      setError('');
-      setIsSaving(false);
-    }
-  }, [isOpen, trackDisplayPrefs, librarySettings]);
+    if (!isOpen) return;
+    setPrefs(normalizeTrackDisplayPrefs(trackDisplayPrefs));
+    setSettings(normalizeLibrarySettings(librarySettings));
+    setError('');
+    setIsSaving(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally only on open
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -71,7 +73,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   };
 
   const handleSave = async () => {
-    if (!allowEdit) return;
+    if (!allowEdit || isSaving) return;
     setIsSaving(true);
     setError('');
     try {
