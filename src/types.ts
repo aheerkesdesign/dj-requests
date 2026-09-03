@@ -67,6 +67,9 @@ export interface TrackFieldVisibility {
   album: boolean;
   bpm: boolean;
   key: boolean;
+  genre: boolean;
+  duration: boolean;
+  year: boolean;
 }
 
 export interface TrackDisplayPrefs {
@@ -78,6 +81,9 @@ export const DEFAULT_TRACK_FIELD_VISIBILITY: TrackFieldVisibility = {
   album: false,
   bpm: false,
   key: false,
+  genre: false,
+  duration: false,
+  year: false,
 };
 
 export const DEFAULT_TRACK_DISPLAY_PREFS: TrackDisplayPrefs = {
@@ -91,10 +97,41 @@ export function normalizeTrackDisplayPrefs(raw: unknown): TrackDisplayPrefs {
     album: Boolean(side?.album),
     bpm: Boolean(side?.bpm),
     key: Boolean(side?.key),
+    genre: Boolean(side?.genre),
+    duration: Boolean(side?.duration),
+    year: Boolean(side?.year),
   });
   return {
     dj: pick(src.dj),
     viewers: pick(src.viewers),
+  };
+}
+
+/** Library-level behavior settings (request controls, guest experience, language). */
+export interface LibrarySettings {
+  enableDownloadRequests: boolean;
+  skipStartScreen: boolean;
+  hidePlayedDeclinedFromGuests: boolean;
+  pageDefaultLocale: 'nl' | 'en' | 'auto';
+}
+
+export const DEFAULT_LIBRARY_SETTINGS: LibrarySettings = {
+  enableDownloadRequests: true,
+  skipStartScreen: false,
+  hidePlayedDeclinedFromGuests: false,
+  pageDefaultLocale: 'auto',
+};
+
+export function normalizeLibrarySettings(raw: unknown): LibrarySettings {
+  const src = (raw && typeof raw === 'object' ? raw : {}) as Partial<LibrarySettings>;
+  return {
+    enableDownloadRequests: src.enableDownloadRequests !== false,
+    skipStartScreen: Boolean(src.skipStartScreen),
+    hidePlayedDeclinedFromGuests: Boolean(src.hidePlayedDeclinedFromGuests),
+    pageDefaultLocale:
+      src.pageDefaultLocale === 'nl' || src.pageDefaultLocale === 'en'
+        ? src.pageDefaultLocale
+        : 'auto',
   };
 }
 
@@ -133,6 +170,7 @@ export interface USBLibrary {
   playlistTree?: PlaylistNode[];
   selectedPlaylistIds?: string[];
   trackDisplayPrefs?: TrackDisplayPrefs;
+  librarySettings?: LibrarySettings;
   subscriptionStatus?: SubscriptionStatus;
 }
 

@@ -12,8 +12,9 @@ import type {
   Profile,
   SubscriptionStatus,
   TrackDisplayPrefs,
+  LibrarySettings,
 } from '../types';
-import { normalizeTrackDisplayPrefs } from '../types';
+import { normalizeTrackDisplayPrefs, normalizeLibrarySettings } from '../types';
 
 export function getClientId(): string {
   let id = localStorage.getItem('rekordbox_client_id');
@@ -65,6 +66,7 @@ function mapLibraryRow(
     playlistTree: (lib.playlist_tree || undefined) as PlaylistNode[] | undefined,
     selectedPlaylistIds: lib.selected_playlist_ids ?? undefined,
     trackDisplayPrefs: normalizeTrackDisplayPrefs(lib.track_display_prefs),
+    librarySettings: normalizeLibrarySettings(lib.library_settings),
     subscriptionStatus: (profile?.subscription_status || 'none') as SubscriptionStatus,
   };
 }
@@ -225,6 +227,7 @@ export async function updateLibraryDetails(
     description?: string;
     selectedPlaylistIds?: string[];
     trackDisplayPrefs?: TrackDisplayPrefs;
+    librarySettings?: LibrarySettings;
   },
   _options?: { asOwner?: boolean }
 ): Promise<USBLibrary> {
@@ -236,6 +239,9 @@ export async function updateLibraryDetails(
   }
   if (updates.trackDisplayPrefs !== undefined) {
     patch.track_display_prefs = normalizeTrackDisplayPrefs(updates.trackDisplayPrefs);
+  }
+  if (updates.librarySettings !== undefined) {
+    patch.library_settings = updates.librarySettings;
   }
 
   const { error } = await supabase.from('libraries').update(patch).eq('id', libraryId);

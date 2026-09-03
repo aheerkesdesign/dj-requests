@@ -62,7 +62,10 @@ export const TrackCard: React.FC<TrackCardProps> = ({
   const showAlbum = visibleFields.album && Boolean(track.album);
   const showBpm = visibleFields.bpm && Boolean(track.bpm);
   const showKey = visibleFields.key && Boolean(track.key);
-  const showMeta = showAlbum || showBpm || showKey;
+  const showGenre = visibleFields.genre && Boolean(track.genre);
+  const showDuration = visibleFields.duration && Boolean(track.durationFormatted);
+  const showYear = visibleFields.year && Boolean(track.year);
+  const showMeta = showAlbum || showBpm || showKey || showGenre || showDuration || showYear;
 
   return (
     <div className="bg-zinc-900/80 hover:bg-zinc-800/90 border border-zinc-800/80 hover:border-zinc-700/80 rounded-xl px-4 py-3 transition-all duration-200 flex items-center justify-between gap-3 shadow-sm">
@@ -96,6 +99,34 @@ export const TrackCard: React.FC<TrackCardProps> = ({
               </span>
             )}
             {showKey && <CamelotBadge keyString={track.key} size="sm" />}
+            {(showBpm || showKey) && (showGenre || showDuration || showYear) && (
+              <span className="text-zinc-700 text-xs" aria-hidden>
+                ·
+              </span>
+            )}
+            {showGenre && (
+              <span className="text-xs text-zinc-500 truncate max-w-full">
+                {track.genre}
+              </span>
+            )}
+            {showGenre && (showDuration || showYear) && (
+              <span className="text-zinc-700 text-xs" aria-hidden>
+                ·
+              </span>
+            )}
+            {showDuration && (
+              <span className="text-xs font-mono tabular-nums text-zinc-400">
+                {track.durationFormatted}
+              </span>
+            )}
+            {showDuration && showYear && (
+              <span className="text-zinc-700 text-xs" aria-hidden>
+                ·
+              </span>
+            )}
+            {showYear && (
+              <span className="text-xs text-zinc-500">{track.year}</span>
+            )}
           </div>
         )}
       </div>

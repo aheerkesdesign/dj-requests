@@ -9,6 +9,7 @@ interface TrackListProps {
   searchQuery: string;
   requests?: TrackRequest[];
   isOwner?: boolean;
+  allowRequests?: boolean;
   visibleFields?: TrackFieldVisibility;
   onRequestModalOpen: () => void;
   onRequestSimilar: (artist: string, title: string) => Promise<void> | void;
@@ -19,6 +20,7 @@ export const TrackList: React.FC<TrackListProps> = ({
   searchQuery,
   requests = [],
   isOwner = false,
+  allowRequests = true,
   visibleFields = DEFAULT_TRACK_FIELD_VISIBILITY,
   onRequestModalOpen,
   onRequestSimilar
@@ -65,14 +67,14 @@ export const TrackList: React.FC<TrackListProps> = ({
               ? t('tracks.noneForQuery', { query: searchQuery })
               : t('tracks.noneInSelection')}
           </h3>
-          {!isOwner && (
+          {!isOwner && allowRequests && (
             <p className="text-xs text-zinc-400">
               {t('tracks.notOnUsb')}
             </p>
           )}
         </div>
 
-        {!isOwner && (
+        {!isOwner && allowRequests && (
           <div className="pt-2">
             <button
               onClick={onRequestModalOpen}
@@ -94,7 +96,7 @@ export const TrackList: React.FC<TrackListProps> = ({
           track={track}
           searchHighlight={searchQuery}
           isAlreadyRequested={isTrackRequested(track)}
-          onRequestSimilar={onRequestSimilar}
+          onRequestSimilar={allowRequests ? onRequestSimilar : undefined}
           visibleFields={visibleFields}
         />
       ))}

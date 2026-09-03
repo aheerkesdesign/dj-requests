@@ -9,6 +9,9 @@ import {
   TrackDisplayPrefs,
   DEFAULT_TRACK_DISPLAY_PREFS,
   normalizeTrackDisplayPrefs,
+  LibrarySettings,
+  DEFAULT_LIBRARY_SETTINGS,
+  normalizeLibrarySettings,
 } from '../types';
 import {
   fetchLibraryBySlug,
@@ -51,7 +54,7 @@ interface PublicDjPageProps {
 export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
   const { slug: routeSlug } = useParams<{ slug: string }>();
   const { user, profile, refreshProfile } = useAuth();
-  const { t } = useI18n();
+  const { t, setLocale } = useI18n();
   const slug = ownerMode ? profile?.slug : routeSlug;
   const isOwner = ownerMode;
 
@@ -160,6 +163,27 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
         } else {
           setSelectedPlaylistIds(null);
         }
+
+        // Guest-only behaviours driven by librarySettings
+        if (!ownerMode) {
+          const ls = normalizeLibrarySettings(lib.librarySettings);
+          // Skip start screen: send guest straight to library.
+          // Also clear the sessionStorage key so that toggling the setting off
+          // takes effect on next page load (avoids stale 'library' being replayed).
+          if (ls.skipStartScreen) {
+            sessionStorage.setItem('app_view_mode', 'library');
+            setViewMode('library');
+          } else {
+            // Setting is off — reset any previously forced 'library' value so guests
+            // see the start screen again on their next visit.
+            sessionStorage.removeItem('app_view_mode');
+          }
+          // Page default locale: apply only if the user hasn't stored a preference yet
+          if (ls.pageDefaultLocale !== 'auto' && !localStorage.getItem('dj_requests_locale')) {
+            setLocale(ls.pageDefaultLocale);
+          }
+        }
+
         const reqList = await fetchRequests(lib.id);
         setRequests(reqList);
       } catch (err) {
@@ -216,15 +240,18 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
     }
   };
 
-  const handleSaveTrackDisplayPrefs = async (prefs: TrackDisplayPrefs) => {
+  const handleSaveTrackDisplayPrefs = async (prefs: TrackDisplayPrefs, libSettings: LibrarySettings) => {
     if (!currentLibrary || !isOwner) {
       throw new Error(t('settings.loginToSave'));
     }
     const normalized = normalizeTrackDisplayPrefs(prefs);
-    setCurrentLibrary((prev) => (prev ? { ...prev, trackDisplayPrefs: normalized } : prev));
+    const normalizedSettings = normalizeLibrarySettings(libSettings);
+    setCurrentLibrary((prev) =>
+      prev ? { ...prev, trackDisplayPrefs: normalized, librarySettings: normalizedSettings } : prev
+    );
     await updateLibraryDetails(
       currentLibrary.id,
-      { trackDisplayPrefs: normalized },
+      { trackDisplayPrefs: normalized, librarySettings: normalizedSettings },
       { asOwner: true }
     );
   };
@@ -287,6 +314,11 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
     const kind: RequestKind = isTrackInLibrary({ title, artist }, currentLibrary.tracks)
       ? 'playable'
       : 'wishlist';
+    const ls = normalizeLibrarySettings(currentLibrary.librarySettings);
+    if (kind === 'wishlist' && !ls.enableDownloadRequests) {
+      // Download requests are disabled — silently skip wishlist submissions
+      return;
+    }
     const req = await submitRequest(currentLibrary.id, title, artist, kind);
     setRequests((prev) => [req, ...prev]);
   };
@@ -480,7 +512,7 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
                       <span>{t('public.filterPlaylistsBtn')}</span>
                     </button>
                   </div>
-                ) : (
+                ) : normalizeLibrarySettings(currentLibrary.librarySettings).enableDownloadRequests ? (
                   <div className="bg-gradient-to-r from-emerald-950/80 via-zinc-900 to-cyan-950/80 border border-emerald-500/30 rounded-2xl p-4 shadow-md flex items-center justify-between gap-3 flex-wrap">
                     <div className="space-y-1 max-w-lg">
                       <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-400 uppercase tracking-wider">
@@ -500,7 +532,7 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
                       <PlusCircle className="w-4 h-4" /> {t('public.requestTrack')}
                     </button>
                   </div>
-                )}
+                ) : null}
 
                 <div className="sticky top-[118px] z-20 bg-zinc-950/95 backdrop-blur-md py-3 border-b border-zinc-800/60 shadow-lg -mx-4 px-4 sm:mx-0 sm:px-0">
                   <SearchBarAndFilters
@@ -517,6 +549,7 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
                   searchQuery={filters.searchQuery}
                   requests={requests}
                   isOwner={isOwner}
+                  allowRequests={normalizeLibrarySettings(currentLibrary.librarySettings).enableDownloadRequests}
                   visibleFields={
                     (currentLibrary.trackDisplayPrefs ?? DEFAULT_TRACK_DISPLAY_PREFS)[
                       isOwner ? 'dj' : 'viewers'
@@ -538,6 +571,9 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
                   (currentLibrary.trackDisplayPrefs ?? DEFAULT_TRACK_DISPLAY_PREFS)[
                     isOwner ? 'dj' : 'viewers'
                   ]
+                }
+                hidePlayedDeclined={
+                  normalizeLibrarySettings(currentLibrary.librarySettings).hidePlayedDeclinedFromGuests
                 }
                 onUpdateStatus={handleUpdateStatus}
                 onDeleteRequest={handleDeleteRequest}
@@ -577,6 +613,7 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
             isOpen={isSettingsOpen}
             onClose={() => setIsSettingsOpen(false)}
             trackDisplayPrefs={currentLibrary.trackDisplayPrefs}
+            librarySettings={currentLibrary.librarySettings}
             onSavePrefs={handleSaveTrackDisplayPrefs}
             allowEdit={Boolean(user && currentLibrary.ownerId === user.id)}
           />

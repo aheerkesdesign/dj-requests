@@ -17,6 +17,7 @@ interface RequestTabProps {
   onOpenRequestModal: () => void;
   isOwner: boolean;
   visibleFields?: TrackFieldVisibility;
+  hidePlayedDeclined?: boolean;
   onUpdateStatus: (requestId: string, status: RequestStatus) => void;
   onDeleteRequest: (requestId: string) => void;
   onClearVerzoekjes?: () => void;
@@ -183,6 +184,7 @@ export const RequestTab: React.FC<RequestTabProps> = ({
   onOpenRequestModal,
   isOwner,
   visibleFields = DEFAULT_TRACK_FIELD_VISIBILITY,
+  hidePlayedDeclined = false,
   onUpdateStatus,
   onDeleteRequest,
   onClearVerzoekjes
@@ -226,6 +228,8 @@ export const RequestTab: React.FC<RequestTabProps> = ({
   });
 
   const filteredRequests = sortedRequests.filter(r => {
+    // Hide played/declined from guests when the DJ has enabled that setting
+    if (!isOwner && hidePlayedDeclined && (r.status === 'played' || r.status === 'declined')) return false;
     if (filterStatus === 'pending' && r.status !== 'pending') return false;
     if (filterStatus === 'played' && r.status !== 'played') return false;
     if (filterStatus === 'declined' && r.status !== 'declined') return false;

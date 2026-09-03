@@ -158,7 +158,8 @@ export function parseRekordboxXML(xmlContent: string, libraryName: string = 'Mij
     const artist = el.getAttribute('Artist') || 'Onbekende Artiest';
     const composer = el.getAttribute('Composer') || '';
     const album = el.getAttribute('Album') || '';
-    const genre = el.getAttribute('Genre') || 'Algemeen';
+    const genreRaw = el.getAttribute('Genre') || '';
+    const genre = genreRaw === 'Algemeen' ? '' : genreRaw;
     const bpmRaw = parseFloat(el.getAttribute('AverageBpm') || '0');
     const bpm = Math.round(bpmRaw * 10) / 10;
     const tonality = el.getAttribute('Tonality') || 'N/A';

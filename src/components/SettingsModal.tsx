@@ -1,18 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { X, Settings, CheckSquare, Square, AlertTriangle } from 'lucide-react';
+import { X, Settings, CheckSquare, Square, AlertTriangle, ChevronDown, ChevronRight } from 'lucide-react';
 import { useI18n } from '../i18n/LanguageContext';
 import {
   TrackDisplayPrefs,
   TrackFieldVisibility,
   DEFAULT_TRACK_DISPLAY_PREFS,
   normalizeTrackDisplayPrefs,
+  LibrarySettings,
+  DEFAULT_LIBRARY_SETTINGS,
+  normalizeLibrarySettings,
 } from '../types';
 
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
   trackDisplayPrefs?: TrackDisplayPrefs;
-  onSavePrefs: (prefs: TrackDisplayPrefs) => Promise<void>;
+  librarySettings?: LibrarySettings;
+  onSavePrefs: (prefs: TrackDisplayPrefs, settings: LibrarySettings) => Promise<void>;
   allowEdit?: boolean;
 }
 
@@ -23,21 +27,30 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   isOpen,
   onClose,
   trackDisplayPrefs,
+  librarySettings,
   onSavePrefs,
   allowEdit = true,
 }) => {
   const { t } = useI18n();
   const [prefs, setPrefs] = useState<TrackDisplayPrefs>(DEFAULT_TRACK_DISPLAY_PREFS);
+  const [settings, setSettings] = useState<LibrarySettings>(DEFAULT_LIBRARY_SETTINGS);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
+
+  // Collapsible sections
+  const [displayOpen, setDisplayOpen] = useState(true);
+  const [requestsOpen, setRequestsOpen] = useState(true);
+  const [guestOpen, setGuestOpen] = useState(true);
+  const [languageOpen, setLanguageOpen] = useState(true);
 
   useEffect(() => {
     if (isOpen) {
       setPrefs(normalizeTrackDisplayPrefs(trackDisplayPrefs));
+      setSettings(normalizeLibrarySettings(librarySettings));
       setError('');
       setIsSaving(false);
     }
-  }, [isOpen, trackDisplayPrefs]);
+  }, [isOpen, trackDisplayPrefs, librarySettings]);
 
   if (!isOpen) return null;
 
@@ -52,12 +65,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     }));
   };
 
+  const toggleSetting = <K extends keyof LibrarySettings>(key: K) => {
+    if (!allowEdit) return;
+    setSettings((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
   const handleSave = async () => {
     if (!allowEdit) return;
     setIsSaving(true);
     setError('');
     try {
-      await onSavePrefs(normalizeTrackDisplayPrefs(prefs));
+      await onSavePrefs(normalizeTrackDisplayPrefs(prefs), settings);
       onClose();
     } catch (err: any) {
       setError(err.message || t('settings.saveError'));
@@ -104,13 +122,68 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         {renderOptionalRow(audience, 'album', t('settings.fieldAlbum'))}
         {renderOptionalRow(audience, 'bpm', t('settings.fieldBpm'))}
         {renderOptionalRow(audience, 'key', t('settings.fieldKey'))}
+        {renderOptionalRow(audience, 'genre', t('settings.fieldGenre'))}
+        {renderOptionalRow(audience, 'duration', t('settings.fieldDuration'))}
+        {renderOptionalRow(audience, 'year', t('settings.fieldYear'))}
       </div>
     </div>
+  );
+
+  const renderToggleRow = (
+    checked: boolean,
+    onToggle: () => void,
+    label: string,
+    hint: string
+  ) => (
+    <button
+      type="button"
+      onClick={onToggle}
+      disabled={!allowEdit}
+      className="w-full flex items-start gap-3 text-left select-none disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      <div className="mt-0.5 shrink-0">
+        {checked ? (
+          <CheckSquare className="w-5 h-5 text-emerald-400" />
+        ) : (
+          <Square className="w-5 h-5 text-zinc-600" />
+        )}
+      </div>
+      <div>
+        <span className="text-xs font-medium text-zinc-200 block">{label}</span>
+        <span className="text-[11px] text-zinc-500 mt-0.5 block">{hint}</span>
+      </div>
+    </button>
+  );
+
+  const SectionHeader = ({
+    label,
+    open,
+    onToggle,
+  }: {
+    label: string;
+    open: boolean;
+    onToggle: () => void;
+  }) => (
+    <button
+      type="button"
+      onClick={onToggle}
+      className="w-full flex items-center justify-between gap-2 group"
+    >
+      <h3 className="text-sm font-semibold text-zinc-100 group-hover:text-emerald-400 transition-colors">
+        {label}
+      </h3>
+      {open ? (
+        <ChevronDown className="w-4 h-4 text-zinc-500 shrink-0" />
+      ) : (
+        <ChevronRight className="w-4 h-4 text-zinc-500 shrink-0" />
+      )}
+    </button>
   );
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
       <div className="w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden text-zinc-100 my-auto max-h-[90vh] flex flex-col">
+        {/* Header */}
         <div className="px-5 py-4 border-b border-zinc-800 bg-zinc-950/80 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="p-2 rounded-xl bg-emerald-950 border border-emerald-800/80 text-emerald-400">
@@ -130,7 +203,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </button>
         </div>
 
-        <div className="p-5 overflow-y-auto space-y-5">
+        {/* Scrollable body */}
+        <div className="p-5 overflow-y-auto space-y-6">
           {error && (
             <div className="p-3 rounded-xl bg-red-950/80 border border-red-800/80 text-red-300 text-xs font-medium flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 shrink-0 text-red-400" />
@@ -138,17 +212,122 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             </div>
           )}
 
+          {/* ── 1. Track Display ─────────────────────────────────── */}
           <section className="space-y-4">
-            <div>
-              <h3 className="text-sm font-semibold text-zinc-100">{t('settings.preferences')}</h3>
-              <p className="text-[11px] text-zinc-500 mt-0.5">{t('settings.preferencesHint')}</p>
-            </div>
+            <SectionHeader
+              label={t('settings.sectionDisplay')}
+              open={displayOpen}
+              onToggle={() => setDisplayOpen((v) => !v)}
+            />
+            {displayOpen && (
+              <div className="space-y-4">
+                {renderAudienceBlock('dj', t('settings.djSees'), t('settings.djSeesHint'))}
+                {renderAudienceBlock('viewers', t('settings.viewersSee'), t('settings.viewersSeeHint'))}
+              </div>
+            )}
+          </section>
 
-            {renderAudienceBlock('dj', t('settings.djSees'), t('settings.djSeesHint'))}
-            {renderAudienceBlock('viewers', t('settings.viewersSee'), t('settings.viewersSeeHint'))}
+          <div className="border-t border-zinc-800/60" />
+
+          {/* ── 2. Requests ─────────────────────────────────────── */}
+          <section className="space-y-4">
+            <SectionHeader
+              label={t('settings.sectionRequests')}
+              open={requestsOpen}
+              onToggle={() => setRequestsOpen((v) => !v)}
+            />
+            {requestsOpen && (
+              <div className="rounded-xl bg-zinc-950/80 border border-zinc-800/80 p-3.5 space-y-3">
+                {renderToggleRow(
+                  settings.enableDownloadRequests,
+                  () => toggleSetting('enableDownloadRequests'),
+                  t('settings.enableDownloadRequests'),
+                  t('settings.enableDownloadRequestsHint')
+                )}
+              </div>
+            )}
+          </section>
+
+          <div className="border-t border-zinc-800/60" />
+
+          {/* ── 3. Guest experience ──────────────────────────────── */}
+          <section className="space-y-4">
+            <SectionHeader
+              label={t('settings.sectionGuest')}
+              open={guestOpen}
+              onToggle={() => setGuestOpen((v) => !v)}
+            />
+            {guestOpen && (
+              <div className="rounded-xl bg-zinc-950/80 border border-zinc-800/80 p-3.5 space-y-4">
+                {renderToggleRow(
+                  settings.skipStartScreen,
+                  () => toggleSetting('skipStartScreen'),
+                  t('settings.skipStartScreen'),
+                  t('settings.skipStartScreenHint')
+                )}
+                {renderToggleRow(
+                  settings.hidePlayedDeclinedFromGuests,
+                  () => toggleSetting('hidePlayedDeclinedFromGuests'),
+                  t('settings.hidePlayedDeclined'),
+                  t('settings.hidePlayedDeclinedHint')
+                )}
+              </div>
+            )}
+          </section>
+
+          <div className="border-t border-zinc-800/60" />
+
+          {/* ── 4. Language ─────────────────────────────────────── */}
+          <section className="space-y-4">
+            <SectionHeader
+              label={t('settings.sectionLanguage')}
+              open={languageOpen}
+              onToggle={() => setLanguageOpen((v) => !v)}
+            />
+            {languageOpen && (
+              <div className="rounded-xl bg-zinc-950/80 border border-zinc-800/80 p-3.5 space-y-3">
+                <div>
+                  <span className="text-xs font-medium text-zinc-200 block">
+                    {t('settings.pageDefaultLocale')}
+                  </span>
+                  <span className="text-[11px] text-zinc-500 mt-0.5 block">
+                    {t('settings.pageDefaultLocaleHint')}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {(['auto', 'nl', 'en'] as const).map((val) => {
+                    const label =
+                      val === 'auto'
+                        ? t('settings.localeAuto')
+                        : val === 'nl'
+                          ? t('settings.localeNl')
+                          : t('settings.localeEn');
+                    const active = settings.pageDefaultLocale === val;
+                    return (
+                      <button
+                        key={val}
+                        type="button"
+                        disabled={!allowEdit}
+                        onClick={() =>
+                          allowEdit && setSettings((prev) => ({ ...prev, pageDefaultLocale: val }))
+                        }
+                        className={`px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+                          active
+                            ? 'bg-emerald-500/20 border-emerald-500/60 text-emerald-300'
+                            : 'bg-zinc-900 border-zinc-700 text-zinc-400 hover:text-zinc-200 hover:border-zinc-600'
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </section>
         </div>
 
+        {/* Footer */}
         <div className="p-4 border-t border-zinc-800 bg-zinc-950/80 flex items-center justify-end gap-2 shrink-0">
           <button
             type="button"
