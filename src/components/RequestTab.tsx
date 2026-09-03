@@ -1,14 +1,22 @@
 import React from 'react';
-import { TrackRequest, RequestStatus, Track } from '../types';
-import { Clock, Music2, Sparkles, CheckCheck, Trash2, Search, Ban, Activity } from 'lucide-react';
+import {
+  TrackRequest,
+  RequestStatus,
+  Track,
+  TrackFieldVisibility,
+  DEFAULT_TRACK_FIELD_VISIBILITY,
+} from '../types';
+import { Clock, Music2, Sparkles, CheckCheck, Trash2, Search, Ban } from 'lucide-react';
 import { findTrackInLibrary } from '../utils/library';
 import { useI18n } from '../i18n/LanguageContext';
+import { CamelotBadge } from './CamelotBadge';
 
 interface RequestTabProps {
   requests: TrackRequest[];
   libraryTracks?: Track[];
   onOpenRequestModal: () => void;
   isOwner: boolean;
+  visibleFields?: TrackFieldVisibility;
   onUpdateStatus: (requestId: string, status: RequestStatus) => void;
   onDeleteRequest: (requestId: string) => void;
   onClearVerzoekjes?: () => void;
@@ -18,6 +26,7 @@ interface SwipeableRequestCardProps {
   req: TrackRequest;
   matchingTrack?: Track;
   isOwner: boolean;
+  visibleFields: TrackFieldVisibility;
   onUpdateStatus: (id: string, status: RequestStatus) => void;
   onDeleteRequest: (id: string) => void;
   getStatusBadge: (status: RequestStatus) => React.ReactNode;
@@ -27,6 +36,7 @@ const SwipeableRequestCard: React.FC<SwipeableRequestCardProps> = ({
   req,
   matchingTrack,
   isOwner,
+  visibleFields,
   onUpdateStatus,
   onDeleteRequest,
   getStatusBadge
@@ -56,10 +66,8 @@ const SwipeableRequestCard: React.FC<SwipeableRequestCardProps> = ({
     setIsSwiping(false);
 
     if (offsetX > SWIPE_THRESHOLD) {
-      // Swipe Right -> Mark as Gedraaid
       onUpdateStatus(req.id, 'played');
     } else if (offsetX < -SWIPE_THRESHOLD) {
-      // Swipe Left -> Mark as Geweigerd
       onUpdateStatus(req.id, 'declined');
     }
 
@@ -69,6 +77,11 @@ const SwipeableRequestCard: React.FC<SwipeableRequestCardProps> = ({
   const isPlayed = req.status === 'played';
   const isDeclined = req.status === 'declined';
   const isMuted = isPlayed || isDeclined;
+
+  const showAlbum = visibleFields.album && Boolean(matchingTrack?.album);
+  const showBpm = visibleFields.bpm && Boolean(matchingTrack?.bpm);
+  const showKey = visibleFields.key && Boolean(matchingTrack?.key);
+  const showMeta = showAlbum || showBpm || showKey;
 
   let cardStyle = 'bg-zinc-900 border-zinc-800/80 hover:border-zinc-700/80';
   if (offsetX > 30) {
@@ -83,10 +96,8 @@ const SwipeableRequestCard: React.FC<SwipeableRequestCardProps> = ({
 
   return (
     <div className="relative overflow-hidden rounded-xl select-none group">
-      {/* Background Action Reveal Layer (only shown when swiping) */}
       {isOwner && Math.abs(offsetX) > 0 && (
         <div className="absolute inset-0 flex items-center justify-between px-4 rounded-xl text-xs font-bold bg-zinc-950 border border-zinc-800">
-          {/* Swipe Right Indicator: Gedraaid */}
           <div
             className={`flex items-center gap-1.5 transition-opacity duration-150 ${
               offsetX > 20 ? 'opacity-100 text-emerald-400' : 'opacity-30 text-emerald-600'
@@ -96,7 +107,6 @@ const SwipeableRequestCard: React.FC<SwipeableRequestCardProps> = ({
             <span>{t('requests.played')}</span>
           </div>
 
-          {/* Swipe Left Indicator: Geweigerd */}
           <div
             className={`flex items-center gap-1.5 transition-opacity duration-150 ${
               offsetX < -20 ? 'opacity-100 text-red-400' : 'opacity-30 text-red-600'
@@ -108,7 +118,6 @@ const SwipeableRequestCard: React.FC<SwipeableRequestCardProps> = ({
         </div>
       )}
 
-      {/* Foreground Card */}
       <div
         onMouseDown={e => handleStart(e.clientX)}
         onMouseMove={e => isSwiping && handleMove(e.clientX)}
@@ -125,7 +134,6 @@ const SwipeableRequestCard: React.FC<SwipeableRequestCardProps> = ({
           isOwner ? 'cursor-grab active:cursor-grabbing' : ''
         } ${cardStyle}`}
       >
-        {/* Request Info */}
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
             <h3 className={`text-sm leading-snug truncate ${isMuted ? 'font-medium text-zinc-400' : 'font-bold text-zinc-100'}`}>
@@ -134,19 +142,35 @@ const SwipeableRequestCard: React.FC<SwipeableRequestCardProps> = ({
             {getStatusBadge(req.status)}
           </div>
 
-          <div className="flex items-center gap-2 flex-wrap mt-1">
-            <p className={`text-xs truncate ${isMuted ? 'text-zinc-500 font-normal' : 'text-zinc-400 font-medium'}`}>
-              {req.artist}
-            </p>
+          <p className={`text-xs truncate mt-1 ${isMuted ? 'text-zinc-500 font-normal' : 'text-zinc-400 font-medium'}`}>
+            {req.artist}
+          </p>
 
-            {/* BPM Badge - Only in DJ mode */}
-            {isOwner && (matchingTrack?.bpm || req.bpm) ? (
-              <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold bg-cyan-950/90 text-cyan-300 border border-cyan-800/70 px-1.5 py-0.5 rounded-md shrink-0">
-                <Activity className="w-3 h-3 text-cyan-400 shrink-0" />
-                <span>{matchingTrack?.bpm || req.bpm} BPM</span>
-              </span>
-            ) : null}
-          </div>
+          {showMeta && (
+            <div className="flex items-center flex-wrap gap-x-2 gap-y-1 mt-1.5 min-w-0">
+              {showAlbum && (
+                <span className={`text-xs truncate max-w-full ${isMuted ? 'text-zinc-600' : 'text-zinc-500'}`}>
+                  {matchingTrack!.album}
+                </span>
+              )}
+              {showAlbum && (showBpm || showKey) && (
+                <span className="text-zinc-700 text-xs" aria-hidden>
+                  ·
+                </span>
+              )}
+              {showBpm && (
+                <span className={`text-xs font-mono tabular-nums ${isMuted ? 'text-zinc-600' : 'text-zinc-400'}`}>
+                  {Math.round(matchingTrack!.bpm)} BPM
+                </span>
+              )}
+              {showBpm && showKey && (
+                <span className="text-zinc-700 text-xs" aria-hidden>
+                  ·
+                </span>
+              )}
+              {showKey && <CamelotBadge keyString={matchingTrack!.key} size="sm" />}
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -158,6 +182,7 @@ export const RequestTab: React.FC<RequestTabProps> = ({
   libraryTracks = [],
   onOpenRequestModal,
   isOwner,
+  visibleFields = DEFAULT_TRACK_FIELD_VISIBILITY,
   onUpdateStatus,
   onDeleteRequest,
   onClearVerzoekjes
@@ -345,6 +370,7 @@ export const RequestTab: React.FC<RequestTabProps> = ({
                 req={req}
                 matchingTrack={matchingTrack}
                 isOwner={isOwner}
+                visibleFields={visibleFields}
                 onUpdateStatus={onUpdateStatus}
                 onDeleteRequest={onDeleteRequest}
                 getStatusBadge={getStatusBadge}

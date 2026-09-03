@@ -1,6 +1,15 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams } from 'react-router-dom';
-import { USBLibrary, TrackRequest, RequestStatus, RequestKind, SocialLinks } from '../types';
+import {
+  USBLibrary,
+  TrackRequest,
+  RequestStatus,
+  RequestKind,
+  SocialLinks,
+  TrackDisplayPrefs,
+  DEFAULT_TRACK_DISPLAY_PREFS,
+  normalizeTrackDisplayPrefs,
+} from '../types';
 import {
   fetchLibraryBySlug,
   fetchMyLibrary,
@@ -206,6 +215,19 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
     } catch (err) {
       console.error('Fout bij opslaan van playlist filter:', err);
     }
+  };
+
+  const handleSaveTrackDisplayPrefs = async (prefs: TrackDisplayPrefs) => {
+    if (!currentLibrary || !isOwner) {
+      throw new Error(t('settings.loginToSave'));
+    }
+    const normalized = normalizeTrackDisplayPrefs(prefs);
+    setCurrentLibrary((prev) => (prev ? { ...prev, trackDisplayPrefs: normalized } : prev));
+    await updateLibraryDetails(
+      currentLibrary.id,
+      { trackDisplayPrefs: normalized },
+      { asOwner: true }
+    );
   };
 
   const handleUpdateLibraryDetails = async (updates: {
@@ -509,6 +531,11 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
                   searchQuery={filters.searchQuery}
                   requests={requests}
                   isOwner={isOwner}
+                  visibleFields={
+                    (currentLibrary.trackDisplayPrefs ?? DEFAULT_TRACK_DISPLAY_PREFS)[
+                      isOwner ? 'dj' : 'viewers'
+                    ]
+                  }
                   onRequestModalOpen={() => handleOpenRequestPrefilled()}
                   onRequestSimilar={(artist, title) => handleSubmitRequest(title, artist)}
                 />
@@ -521,6 +548,11 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
                 libraryTracks={currentLibrary.tracks}
                 onOpenRequestModal={() => handleOpenRequestPrefilled()}
                 isOwner={isOwner}
+                visibleFields={
+                  (currentLibrary.trackDisplayPrefs ?? DEFAULT_TRACK_DISPLAY_PREFS)[
+                    isOwner ? 'dj' : 'viewers'
+                  ]
+                }
                 onUpdateStatus={handleUpdateStatus}
                 onDeleteRequest={handleDeleteRequest}
                 onClearVerzoekjes={handleClearVerzoekjes}
@@ -561,6 +593,9 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
           <SettingsModal
             isOpen={isSettingsOpen}
             onClose={() => setIsSettingsOpen(false)}
+            trackDisplayPrefs={currentLibrary.trackDisplayPrefs}
+            onSavePrefs={handleSaveTrackDisplayPrefs}
+            allowEdit={Boolean(user && currentLibrary.ownerId === user.id)}
           />
           <AccountModal
             isOpen={isAccountOpen}

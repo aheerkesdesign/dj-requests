@@ -1,5 +1,5 @@
 import React from 'react';
-import { Track, TrackRequest } from '../types';
+import { Track, TrackRequest, TrackFieldVisibility, DEFAULT_TRACK_FIELD_VISIBILITY } from '../types';
 import { TrackCard } from './TrackCard';
 import { SearchX, PlusCircle } from 'lucide-react';
 import { useI18n } from '../i18n/LanguageContext';
@@ -9,6 +9,7 @@ interface TrackListProps {
   searchQuery: string;
   requests?: TrackRequest[];
   isOwner?: boolean;
+  visibleFields?: TrackFieldVisibility;
   onRequestModalOpen: () => void;
   onRequestSimilar: (artist: string, title: string) => Promise<void> | void;
 }
@@ -18,6 +19,7 @@ export const TrackList: React.FC<TrackListProps> = ({
   searchQuery,
   requests = [],
   isOwner = false,
+  visibleFields = DEFAULT_TRACK_FIELD_VISIBILITY,
   onRequestModalOpen,
   onRequestSimilar
 }) => {
@@ -93,6 +95,7 @@ export const TrackList: React.FC<TrackListProps> = ({
           searchHighlight={searchQuery}
           isAlreadyRequested={isTrackRequested(track)}
           onRequestSimilar={onRequestSimilar}
+          visibleFields={visibleFields}
         />
       ))}
 

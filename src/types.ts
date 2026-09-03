@@ -58,6 +58,42 @@ export interface SocialLinks {
   website?: string;
 }
 
+/** Optional track fields; title and artist are always shown. */
+export interface TrackFieldVisibility {
+  album: boolean;
+  bpm: boolean;
+  key: boolean;
+}
+
+export interface TrackDisplayPrefs {
+  dj: TrackFieldVisibility;
+  viewers: TrackFieldVisibility;
+}
+
+export const DEFAULT_TRACK_FIELD_VISIBILITY: TrackFieldVisibility = {
+  album: false,
+  bpm: false,
+  key: false,
+};
+
+export const DEFAULT_TRACK_DISPLAY_PREFS: TrackDisplayPrefs = {
+  dj: { ...DEFAULT_TRACK_FIELD_VISIBILITY },
+  viewers: { ...DEFAULT_TRACK_FIELD_VISIBILITY },
+};
+
+export function normalizeTrackDisplayPrefs(raw: unknown): TrackDisplayPrefs {
+  const src = (raw && typeof raw === 'object' ? raw : {}) as Partial<TrackDisplayPrefs>;
+  const pick = (side: Partial<TrackFieldVisibility> | undefined): TrackFieldVisibility => ({
+    album: Boolean(side?.album),
+    bpm: Boolean(side?.bpm),
+    key: Boolean(side?.key),
+  });
+  return {
+    dj: pick(src.dj),
+    viewers: pick(src.viewers),
+  };
+}
+
 export interface Profile {
   id: string;
   displayName: string;
@@ -92,6 +128,7 @@ export interface USBLibrary {
   playlists: Playlist[];
   playlistTree?: PlaylistNode[];
   selectedPlaylistIds?: string[];
+  trackDisplayPrefs?: TrackDisplayPrefs;
   subscriptionStatus?: SubscriptionStatus;
 }
 

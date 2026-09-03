@@ -182,8 +182,22 @@ export const nl = {
 
   // Settings
   'settings.title': 'Instellingen',
-  'settings.subtitle': 'Algemene instellingen',
+  'settings.subtitle': 'Voorkeuren voor je bibliotheek',
   'settings.empty': 'Nog geen instellingen beschikbaar.',
+  'settings.preferences': 'Voorkeuren',
+  'settings.preferencesHint': 'Kies welke trackinfo zichtbaar is.',
+  'settings.djSees': 'Wat jij als DJ ziet',
+  'settings.djSeesHint': 'Zichtbaar in jouw bibliotheekweergave.',
+  'settings.viewersSee': 'Wat bezoekers zien',
+  'settings.viewersSeeHint': 'Zichtbaar op je openbare pagina.',
+  'settings.fieldTitle': 'Titel',
+  'settings.fieldArtist': 'Artiest',
+  'settings.fieldAlbum': 'Album',
+  'settings.fieldBpm': 'BPM',
+  'settings.fieldKey': 'Toonsoort / Key',
+  'settings.saveChanges': 'Wijzigingen opslaan',
+  'settings.saveError': 'Kon voorkeuren niet opslaan.',
+  'settings.loginToSave': 'Log in om voorkeuren op te slaan.',
 
   // Share modal
   'share.title': 'Pagina Delen',
@@ -426,8 +440,22 @@ export const en: { [K in keyof typeof nl]: string } = {
   'import.saveChanges': 'Save changes',
 
   'settings.title': 'Settings',
-  'settings.subtitle': 'General settings',
+  'settings.subtitle': 'Library preferences',
   'settings.empty': 'No settings available yet.',
+  'settings.preferences': 'Preferences',
+  'settings.preferencesHint': 'Choose which track info is visible.',
+  'settings.djSees': 'What you see as DJ',
+  'settings.djSeesHint': 'Visible in your library view.',
+  'settings.viewersSee': 'What viewers see',
+  'settings.viewersSeeHint': 'Visible on your public page.',
+  'settings.fieldTitle': 'Title',
+  'settings.fieldArtist': 'Artist',
+  'settings.fieldAlbum': 'Album',
+  'settings.fieldBpm': 'BPM',
+  'settings.fieldKey': 'Key',
+  'settings.saveChanges': 'Save changes',
+  'settings.saveError': 'Could not save preferences.',
+  'settings.loginToSave': 'Log in to save preferences.',
 
   'share.title': 'Share page',
   'share.body':
