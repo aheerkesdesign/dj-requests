@@ -32,7 +32,7 @@ export const nl = {
 
   // Start screen
   'start.welcome': 'Welkom! Vraag direct je favoriete nummer aan',
-  'start.songRequest': 'SONG REQUEST',
+  'start.songRequest': 'Nummer aanvragen',
   'start.followSocials': 'Volg mij op mijn socials!',
 
   // Public page
