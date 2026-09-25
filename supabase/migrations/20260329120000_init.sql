@@ -1,4 +1,4 @@
--- DJ Requests: multi-tenant schema, RLS, PIN RPCs, storage, signup trigger
+-- trackdrop: multi-tenant schema, RLS, PIN RPCs, storage, signup trigger
 
 create extension if not exists pgcrypto with schema extensions;
 

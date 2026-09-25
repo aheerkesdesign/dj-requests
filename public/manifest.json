@@ -1,6 +1,6 @@
 {
-  "name": "DJ Requests",
-  "short_name": "DJ Requests",
+  "name": "trackdrop",
+  "short_name": "trackdrop",
   "description": "Song requests from your Rekordbox USB library",
   "start_url": "/",
   "display": "standalone",

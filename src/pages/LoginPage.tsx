@@ -4,6 +4,7 @@ import { Disc3 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../lib/auth';
 import { useI18n } from '../i18n/LanguageContext';
+import { BrandName } from '../components/BrandName';
 
 export default function LoginPage() {
   const { user, loading } = useAuth();
@@ -33,7 +34,10 @@ export default function LoginPage() {
     <div className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center p-4">
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center space-y-2">
-          <Disc3 className="w-10 h-10 text-emerald-400 mx-auto" />
+          <Link to="/" className="inline-flex flex-col items-center gap-2">
+            <Disc3 className="w-10 h-10 text-emerald-400" />
+            <BrandName className="text-lg" />
+          </Link>
           <h1 className="text-xl font-bold">{t('login.title')}</h1>
           <p className="text-xs text-zinc-400">{t('login.subtitle')}</p>
         </div>

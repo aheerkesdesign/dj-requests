@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Disc3, Music2, Radio, Users } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { useI18n } from '../i18n/LanguageContext';
+import { BrandName } from '../components/BrandName';
 
 export default function LandingPage() {
   const { user, profile } = useAuth();
@@ -11,9 +12,9 @@ export default function LandingPage() {
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(16,185,129,0.15),_transparent_55%)] pointer-events-none" />
       <header className="relative max-w-5xl mx-auto px-4 py-5 flex items-center justify-between">
-        <div className="flex items-center gap-2 font-bold tracking-tight">
+        <div className="flex items-center gap-2 tracking-tight">
           <Disc3 className="w-6 h-6 text-emerald-400" />
-          <span>{t('landing.brand')}</span>
+          <BrandName />
         </div>
         <div className="flex items-center gap-2">
           <button

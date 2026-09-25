@@ -1,4 +1,4 @@
-# DJ Requests
+# trackdrop
 
 Multi-tenant Rekordbox song-request app powered by **Vite + React + Supabase**.
 

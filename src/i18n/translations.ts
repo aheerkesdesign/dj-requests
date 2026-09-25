@@ -234,7 +234,6 @@ export const nl = {
   'playlist.apply': 'Filter toepassen',
 
   // Landing
-  'landing.brand': 'DJ Requests',
   'landing.dashboard': 'Dashboard',
   'landing.login': 'Inloggen',
   'landing.signup': 'Account aanmaken',
@@ -501,7 +500,6 @@ export const en: { [K in keyof typeof nl]: string } = {
   'playlist.noneForQuery': 'No folders or playlists found for "{query}".',
   'playlist.apply': 'Apply filter',
 
-  'landing.brand': 'DJ Requests',
   'landing.dashboard': 'Dashboard',
   'landing.login': 'Log in',
   'landing.signup': 'Create account',
