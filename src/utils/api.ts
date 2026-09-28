@@ -265,6 +265,19 @@ export async function updateLibraryDetails(
   return fetchLibrary(libraryId);
 }
 
+function isManagedStoragePath(path: string): boolean {
+  return !/^https?:\/\//i.test(path) && !path.startsWith('data:');
+}
+
+/** Best-effort delete of a logos-bucket object. Ignores external/data URLs. */
+export async function removeStorageFile(path: string | null | undefined): Promise<void> {
+  if (!path || !isManagedStoragePath(path)) return;
+  const { error } = await supabase.storage.from('logos').remove([path]);
+  if (error) {
+    console.warn('Failed to remove storage file:', path, error.message);
+  }
+}
+
 export async function uploadLogo(userId: string, blob: Blob, ext = 'jpg'): Promise<string> {
   const path = `${userId}/logo-${Date.now()}.${ext}`;
   const { error } = await supabase.storage.from('logos').upload(path, blob, {

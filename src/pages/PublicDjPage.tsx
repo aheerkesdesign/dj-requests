@@ -22,6 +22,7 @@ import {
   updateMyProfile,
   uploadLogo,
   uploadStartImage,
+  removeStorageFile,
   fetchRequests,
   searchLibraryTracks,
   libraryHasTrack,
@@ -279,6 +280,9 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
       throw new Error(t('public.loginToEditProfile'));
     }
 
+    const previousLogoPath = profile?.logoPath;
+    const previousStartImagePath = profile?.startImagePath;
+
     let logoPath: string | null | undefined = undefined;
     if (updates.logoBlob) {
       logoPath = await uploadLogo(user.id, updates.logoBlob, 'jpg');
@@ -300,6 +304,14 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
       logoPath,
       startImagePath,
     });
+
+    // Drop replaced/removed files only after the profile points elsewhere (or to null).
+    if (logoPath !== undefined && previousLogoPath && previousLogoPath !== logoPath) {
+      await removeStorageFile(previousLogoPath);
+    }
+    if (startImagePath !== undefined && previousStartImagePath && previousStartImagePath !== startImagePath) {
+      await removeStorageFile(previousStartImagePath);
+    }
 
     if (updates.name) {
       await updateLibraryDetails(currentLibrary.id, { name: updates.name });
