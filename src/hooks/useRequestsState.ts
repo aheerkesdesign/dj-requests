@@ -110,11 +110,13 @@ export function useRequestsState({
 
   const handleUpdateStatus = async (requestId: string, status: RequestStatus) => {
     if (!currentLibrary || !isOwner) return;
+    setRequests((prev) => prev.map((r) => (r.id === requestId ? { ...r, status } : r)));
     try {
       const updated = await updateRequestStatus(currentLibrary.id, requestId, status);
       setRequests((prev) => prev.map((r) => (r.id === requestId ? updated : r)));
     } catch (err) {
       console.error('Fout bij bijwerken status:', err);
+      setRequests(await fetchRequests(currentLibrary.id));
     }
   };
 

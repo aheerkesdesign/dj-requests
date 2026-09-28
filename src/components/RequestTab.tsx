@@ -21,6 +21,8 @@ import {
   useListFlipMotion,
   useRemoteListClear,
   useSortChangeMotion,
+  MOTION_ENTER_MS,
+  prefersReducedMotion,
 } from '../hooks/useMotionPresence';
 import { cn } from '@/lib/utils';
 
@@ -85,51 +87,116 @@ interface SwipeableRequestCardProps {
   matchingTrack?: Track;
   isOwner: boolean;
   visibleFields: TrackFieldVisibility;
-  onUpdateStatus: (id: string, status: RequestStatus) => void;
-  onDeleteRequest: (id: string) => void;
+  onSwipeCommit: (id: string, status: RequestStatus) => void;
   getStatusBadge: (status: RequestStatus) => React.ReactNode;
 }
+
+const SWIPE_THRESHOLD = 70;
+const SWIPE_CLAMP = 140;
+const SWIPE_COMMIT_MS = 250;
 
 const SwipeableRequestCard: React.FC<SwipeableRequestCardProps> = ({
   req,
   matchingTrack,
   isOwner,
   visibleFields,
-  onUpdateStatus,
-  onDeleteRequest,
-  getStatusBadge
+  onSwipeCommit,
+  getStatusBadge,
 }) => {
   const { t } = useI18n();
   const [offsetX, setOffsetX] = React.useState(0);
   const [isSwiping, setIsSwiping] = React.useState(false);
-  const startXRef = React.useRef<number>(0);
+  const [isCommitting, setIsCommitting] = React.useState(false);
+  const startXRef = React.useRef(0);
+  const cardRef = React.useRef<HTMLDivElement>(null);
+  const commitStatusRef = React.useRef<RequestStatus | null>(null);
+  const commitTimerRef = React.useRef<number | null>(null);
+  const statusRef = React.useRef(req.status);
 
-  const SWIPE_THRESHOLD = 70;
+  // If this instance is reused after a status change (same list id), clear swipe chrome
+  // so we never leave the hint layer visible with the card translated off-screen.
+  if (statusRef.current !== req.status) {
+    statusRef.current = req.status;
+    if (offsetX !== 0 || isSwiping || isCommitting) {
+      setOffsetX(0);
+      setIsSwiping(false);
+      setIsCommitting(false);
+      commitStatusRef.current = null;
+    }
+  }
+
+  React.useEffect(() => {
+    return () => {
+      if (commitTimerRef.current !== null) {
+        window.clearTimeout(commitTimerRef.current);
+      }
+    };
+  }, []);
 
   const handleStart = (clientX: number) => {
-    if (!isOwner) return;
+    if (!isOwner || isCommitting) return;
     startXRef.current = clientX;
     setIsSwiping(true);
   };
 
   const handleMove = (clientX: number) => {
-    if (!isSwiping || !isOwner) return;
+    if (!isSwiping || !isOwner || isCommitting) return;
     const diffX = clientX - startXRef.current;
-    const clampedX = Math.max(-140, Math.min(140, diffX));
+    const clampedX = Math.max(-SWIPE_CLAMP, Math.min(SWIPE_CLAMP, diffX));
     setOffsetX(clampedX);
   };
 
-  const handleEnd = () => {
-    if (!isSwiping || !isOwner) return;
-    setIsSwiping(false);
+  const finishCommit = React.useCallback(() => {
+    const status = commitStatusRef.current;
+    commitStatusRef.current = null;
+    if (status) onSwipeCommit(req.id, status);
+  }, [onSwipeCommit, req.id]);
 
-    if (offsetX > SWIPE_THRESHOLD) {
-      onUpdateStatus(req.id, 'played');
-    } else if (offsetX < -SWIPE_THRESHOLD) {
-      onUpdateStatus(req.id, 'declined');
+  const beginCommit = (status: RequestStatus, direction: 1 | -1) => {
+    setIsSwiping(false);
+    commitStatusRef.current = status;
+
+    if (prefersReducedMotion()) {
+      finishCommit();
+      return;
     }
 
+    setIsCommitting(true);
+    const width = cardRef.current?.offsetWidth ?? 400;
+    setOffsetX(direction * (width + 24));
+
+    if (commitTimerRef.current !== null) {
+      window.clearTimeout(commitTimerRef.current);
+    }
+    commitTimerRef.current = window.setTimeout(() => {
+      commitTimerRef.current = null;
+      finishCommit();
+    }, SWIPE_COMMIT_MS);
+  };
+
+  const handleEnd = () => {
+    if (!isSwiping || !isOwner || isCommitting) return;
+
+    if (offsetX > SWIPE_THRESHOLD) {
+      beginCommit('played', 1);
+      return;
+    }
+    if (offsetX < -SWIPE_THRESHOLD) {
+      beginCommit('declined', -1);
+      return;
+    }
+
+    setIsSwiping(false);
     setOffsetX(0);
+  };
+
+  const handleTransitionEnd = (event: React.TransitionEvent<HTMLDivElement>) => {
+    if (event.propertyName !== 'transform' || !isCommitting) return;
+    if (commitTimerRef.current !== null) {
+      window.clearTimeout(commitTimerRef.current);
+      commitTimerRef.current = null;
+    }
+    finishCommit();
   };
 
   const isPlayed = req.status === 'played';
@@ -141,34 +208,41 @@ const SwipeableRequestCard: React.FC<SwipeableRequestCardProps> = ({
   const showKey = visibleFields.key && Boolean(matchingTrack?.key);
   const showMeta = showAlbum || showBpm || showKey;
 
+  const swipeProgress = Math.min(1, Math.abs(offsetX) / SWIPE_THRESHOLD);
+  const swipeRight = offsetX > 0;
+  const swipeLeft = offsetX < 0;
+  const playedHintOpacity = swipeRight ? 0.3 + 0.7 * swipeProgress : 0.3;
+  const declinedHintOpacity = swipeLeft ? 0.3 + 0.7 * swipeProgress : 0.3;
+
   let cardStyle = 'bg-card border-border/80 hover:border-border';
-  if (offsetX > 30) {
-    cardStyle = 'bg-primary/15 border-primary/50';
-  } else if (offsetX < -30) {
-    cardStyle = 'bg-red-950/50 border-red-500/50';
-  } else if (isPlayed) {
+  if (isPlayed && swipeProgress === 0) {
     cardStyle = 'bg-card border-primary/30 opacity-80';
-  } else if (isDeclined) {
+  } else if (isDeclined && swipeProgress === 0) {
     cardStyle = 'bg-card border-red-800/70 opacity-80';
   }
 
+  const tintBorder =
+    swipeRight && swipeProgress > 0
+      ? `color-mix(in srgb, var(--color-primary) ${Math.round(swipeProgress * 50)}%, var(--color-border))`
+      : swipeLeft && swipeProgress > 0
+        ? `color-mix(in srgb, rgb(239 68 68) ${Math.round(swipeProgress * 50)}%, var(--color-border))`
+        : undefined;
+
   return (
-    <div className="relative overflow-hidden rounded-xl select-none group">
-      {isOwner && Math.abs(offsetX) > 0 && (
+    <div ref={cardRef} className="relative overflow-hidden rounded-xl select-none group">
+      {isOwner && (isSwiping || isCommitting) && Math.abs(offsetX) > 0 && (
         <div className="absolute inset-0 flex items-center justify-between px-4 rounded-xl text-xs font-bold bg-background border border-border">
           <div
-            className={`flex items-center gap-1.5 transition-opacity duration-150 ${
-              offsetX > 20 ? 'opacity-100 text-primary' : 'opacity-30 text-primary/60'
-            }`}
+            className="flex items-center gap-1.5 text-primary"
+            style={{ opacity: playedHintOpacity }}
           >
             <CheckCheck className="w-5 h-5" />
             <span>{t('requests.played')}</span>
           </div>
 
           <div
-            className={`flex items-center gap-1.5 transition-opacity duration-150 ${
-              offsetX < -20 ? 'opacity-100 text-red-400' : 'opacity-30 text-red-600'
-            }`}
+            className="flex items-center gap-1.5 text-red-400"
+            style={{ opacity: declinedHintOpacity }}
           >
             <span>{t('requests.declined')}</span>
             <Ban className="w-5 h-5" />
@@ -177,37 +251,59 @@ const SwipeableRequestCard: React.FC<SwipeableRequestCardProps> = ({
       )}
 
       <div
-        onMouseDown={e => handleStart(e.clientX)}
-        onMouseMove={e => isSwiping && handleMove(e.clientX)}
+        onMouseDown={(e) => handleStart(e.clientX)}
+        onMouseMove={(e) => isSwiping && handleMove(e.clientX)}
         onMouseUp={handleEnd}
         onMouseLeave={handleEnd}
-        onTouchStart={e => handleStart(e.touches[0].clientX)}
-        onTouchMove={e => isSwiping && handleMove(e.touches[0].clientX)}
+        onTouchStart={(e) => handleStart(e.touches[0].clientX)}
+        onTouchMove={(e) => isSwiping && handleMove(e.touches[0].clientX)}
         onTouchEnd={handleEnd}
+        onTransitionEnd={handleTransitionEnd}
         style={{
           transform: `translateX(${offsetX}px)`,
-          transition: isSwiping ? 'none' : 'transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1)'
+          transition: isSwiping
+            ? 'none'
+            : 'transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1)',
+          borderColor: tintBorder,
         }}
-        className={`relative z-10 rounded-xl border px-4 py-3 flex items-center justify-between gap-3 shadow-xs transition-all ${
-          isOwner ? 'cursor-grab active:cursor-grabbing' : ''
-        } ${cardStyle}`}
+        className={cn(
+          'relative z-10 rounded-xl border px-4 py-3 flex items-center justify-between gap-3 shadow-xs overflow-hidden',
+          isOwner && !isCommitting ? 'cursor-grab active:cursor-grabbing' : '',
+          cardStyle
+        )}
       >
-        <div className="min-w-0 flex-1">
+        {swipeProgress > 0 && (
+          <div
+            aria-hidden
+            className={cn(
+              'absolute inset-0 pointer-events-none rounded-xl',
+              swipeRight ? 'bg-primary' : 'bg-red-500'
+            )}
+            style={{ opacity: swipeProgress * 0.15 }}
+          />
+        )}
+        <div className="relative min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <h3 className={`text-sm leading-snug truncate ${isMuted ? 'font-medium text-muted-foreground' : 'font-bold text-foreground'}`}>
+            <h3
+              className={`text-sm leading-snug truncate ${isMuted ? 'font-medium text-muted-foreground' : 'font-bold text-foreground'}`}
+            >
               {req.title}
             </h3>
             {getStatusBadge(req.status)}
           </div>
 
-          <p className={`text-xs truncate mt-1 ${isMuted ? 'text-muted-foreground font-normal' : 'text-muted-foreground font-medium'}`}>
+          <p
+            className={`text-xs truncate mt-1 ${isMuted ? 'text-muted-foreground font-normal' : 'text-muted-foreground font-medium'}`}
+          >
             {req.artist}
           </p>
 
           {showMeta && (
             <div className="flex items-center flex-wrap gap-x-2 gap-y-1 mt-1.5 min-w-0">
               {showAlbum && (
-                <span className={`text-xs truncate max-w-full ${isMuted ? 'text-muted-foreground' : 'text-muted-foreground'}`}>
+                <span
+                  className={`text-xs truncate max-w-full ${isMuted ? 'text-muted-foreground' : 'text-muted-foreground'}`}
+                >
                   {matchingTrack!.album}
                 </span>
               )}
@@ -241,7 +337,7 @@ export const RequestTab: React.FC<RequestTabProps> = ({
   showPlayedDeclined = true,
   showDjTips = true,
   onUpdateStatus,
-  onDeleteRequest,
+  onDeleteRequest: _onDeleteRequest,
   onClearVerzoekjes,
   sortBy,
   onSortByChange,
@@ -250,7 +346,9 @@ export const RequestTab: React.FC<RequestTabProps> = ({
   const [filterStatus, setFilterStatus] = React.useState<string>('all');
   const [searchQuery, setSearchQuery] = React.useState('');
   const [confirmClearVerzoekjes, setConfirmClearVerzoekjes] = React.useState(false);
-  const { requestExit, isExiting } = useExitingIds();
+  const [parkedIds, setParkedIds] = React.useState<Set<string>>(() => new Set());
+  const markEnteringRef = React.useRef<(id: string) => void>(() => {});
+  const { requestExit, isExiting } = useExitingIds(MOTION_ENTER_MS);
   const { beginAfterModalClose, listExiting, emptyEntering, clearBusy } = useClearListSequence(() => {
     onClearVerzoekjes?.();
   });
@@ -408,26 +506,65 @@ export const RequestTab: React.FC<RequestTabProps> = ({
     return timeA - timeB;
   });
 
-  const filteredRequests = sortedRequests.filter(r => {
+  const filteredRequests = sortedRequests.filter((r) => {
     // Hide played/declined from guests when the DJ has disabled showing them
-    if (!isOwner && !showPlayedDeclined && (r.status === 'played' || r.status === 'declined')) return false;
+    if (!isOwner && !showPlayedDeclined && (r.status === 'played' || r.status === 'declined'))
+      return false;
     if (filterStatus === 'pending' && r.status !== 'pending') return false;
     if (filterStatus === 'played' && r.status !== 'played') return false;
     if (filterStatus === 'declined' && r.status !== 'declined') return false;
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
-      return (
-        r.title.toLowerCase().includes(q) ||
-        r.artist.toLowerCase().includes(q)
-      );
+      return r.title.toLowerCase().includes(q) || r.artist.toLowerCase().includes(q);
     }
     return true;
   });
 
-  const filteredIds = filteredRequests.map((r) => r.id);
+  // Keep exiting rows visible at their pre-update slot; park after exit so the
+  // same id can leave and re-enter (enter animation + neighbor FLIP).
+  const displayRequests = filteredRequests.filter(
+    (r) => !parkedIds.has(r.id) || isExiting(r.id)
+  );
+
+  const handleSwipeCommit = React.useCallback(
+    (id: string, status: RequestStatus) => {
+      if (prefersReducedMotion()) {
+        onUpdateStatus(id, status);
+        return;
+      }
+
+      requestExit(id, () => {
+        // Hide for one frame so the same list id remounts at the destination
+        // (clears local swipe translate) instead of React reusing the slid-off card.
+        setParkedIds((prev) => {
+          if (prev.has(id)) return prev;
+          const next = new Set(prev);
+          next.add(id);
+          return next;
+        });
+        onUpdateStatus(id, status);
+        requestAnimationFrame(() => {
+          setParkedIds((prev) => {
+            if (!prev.has(id)) return prev;
+            const next = new Set(prev);
+            next.delete(id);
+            return next;
+          });
+          markEnteringRef.current(id);
+        });
+      });
+    },
+    [onUpdateStatus, requestExit]
+  );
+
+  const filteredIds = displayRequests.map((r) => r.id);
   const insertMotionEnabled =
     !holdingForMeta && !showListExiting && !listArriving && !sortMotionBusy;
-  const { isEntering, enteringIds } = useEnteringIds(filteredIds, insertMotionEnabled);
+  const { isEntering, enteringIds, markEntering } = useEnteringIds(
+    filteredIds,
+    insertMotionEnabled
+  );
+  markEnteringRef.current = markEntering;
   // While rows expand open, layout itself pushes neighbors — FLIP would fight that.
   useListFlipMotion(
     listContainerRef,
@@ -553,7 +690,7 @@ export const RequestTab: React.FC<RequestTabProps> = ({
       )}
 
       {/* Hold new/updated rows until catalog matches so optional meta arrives with them */}
-      {holdingForMeta ? null : filteredRequests.length === 0 ? (
+      {holdingForMeta ? null : filteredRequests.length === 0 && parkedIds.size === 0 ? (
         <div
           className={cn(
             'bg-card/50 border border-border/80 rounded-2xl p-8 text-center my-2 space-y-2',
@@ -578,27 +715,31 @@ export const RequestTab: React.FC<RequestTabProps> = ({
             !showListExiting && !listArriving && sortListMotionClass
           )}
         >
-          {filteredRequests.map((req, index) => {
+          {displayRequests.map((req, index) => {
             const matchingTrack = listMatched?.get(req.id);
             const entering = isEntering(req.id);
+            const exiting = isExiting(req.id);
             return (
               <div
-                key={req.id}
+                key={`${req.id}:${req.status}`}
                 data-list-id={req.id}
                 className={cn(
-                  isExiting(req.id) && 'motion-panel-exit',
+                  exiting && 'motion-list-item-exit',
                   entering && 'motion-list-item-enter'
                 )}
               >
-                <div className={cn(entering && 'motion-list-item-enter-clip')}>
+                <div
+                  className={cn(
+                    (entering || exiting) && 'motion-list-item-enter-clip'
+                  )}
+                >
                   <div className={cn(index > 0 && 'pt-2.5')}>
                     <SwipeableRequestCard
                       req={req}
                       matchingTrack={matchingTrack}
                       isOwner={isOwner}
                       visibleFields={visibleFields}
-                      onUpdateStatus={onUpdateStatus}
-                      onDeleteRequest={onDeleteRequest}
+                      onSwipeCommit={handleSwipeCommit}
                       getStatusBadge={getStatusBadge}
                     />
                   </div>

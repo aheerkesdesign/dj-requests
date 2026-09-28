@@ -204,6 +204,18 @@
   }
 }
 
+/* Collapse row space and fade out in place (mirror of enter). */
+@keyframes motion-list-item-exit {
+  from {
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
+  to {
+    grid-template-rows: 0fr;
+    opacity: 0;
+  }
+}
+
 @layer utilities {
   .motion-panel-exit {
     animation: motion-fade-out var(--duration-motion-fast) ease-out forwards;
@@ -225,6 +237,12 @@
     grid-template-rows: 0fr;
     opacity: 0;
     animation: motion-list-item-enter var(--duration-motion-slow) var(--ease-motion) both;
+  }
+
+  .motion-list-item-exit {
+    display: grid;
+    grid-template-rows: 1fr;
+    animation: motion-list-item-exit var(--duration-motion-slow) var(--ease-motion) forwards;
   }
 
   .motion-list-item-enter-clip {
@@ -294,6 +312,7 @@
   .motion-panel-enter,
   .motion-fade-in-place,
   .motion-list-item-enter,
+  .motion-list-item-exit,
   .motion-request-confirm,
   .motion-sort-label,
   .motion-overlay-enter,
@@ -315,5 +334,10 @@
   .motion-list-item-enter {
     grid-template-rows: 1fr;
     transform: none;
+  }
+
+  .motion-list-item-exit {
+    grid-template-rows: 0fr;
+    opacity: 0;
   }
 }

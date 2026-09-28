@@ -10,7 +10,7 @@ import {
 export const MOTION_EXIT_MS = 150;
 export const MOTION_ENTER_MS = 250;
 
-function prefersReducedMotion() {
+export function prefersReducedMotion() {
   return (
     typeof window !== 'undefined' &&
     window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -336,7 +336,17 @@ export function useEnteringIds(ids: string[], enabled = true) {
     [enteringThisRender]
   );
 
-  return { enteringIds: enteringThisRender, isEntering };
+  const markEntering = useCallback((id: string) => {
+    if (prefersReducedMotion()) return;
+    setEnteringIds((prev) => {
+      if (prev.has(id)) return prev;
+      const next = new Set(prev);
+      next.add(id);
+      return next;
+    });
+  }, []);
+
+  return { enteringIds: enteringThisRender, isEntering, markEntering };
 }
 
 /**
