@@ -190,6 +190,20 @@
   }
 }
 
+/* Grow row space and fade in from above in one motion (no nested translate). */
+@keyframes motion-list-item-enter {
+  from {
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    grid-template-rows: 1fr;
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @layer utilities {
   .motion-panel-exit {
     animation: motion-fade-out var(--duration-motion-fast) ease-out forwards;
@@ -204,6 +218,18 @@
   .motion-fade-in-place {
     opacity: 0;
     animation: motion-fade-in-place var(--duration-motion-slow) var(--ease-motion) both;
+  }
+
+  .motion-list-item-enter {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    animation: motion-list-item-enter var(--duration-motion-slow) var(--ease-motion) both;
+  }
+
+  .motion-list-item-enter-clip {
+    overflow: hidden;
+    min-height: 0;
   }
 
   .motion-request-confirm {
@@ -267,6 +293,7 @@
   .motion-panel-exit,
   .motion-panel-enter,
   .motion-fade-in-place,
+  .motion-list-item-enter,
   .motion-request-confirm,
   .motion-sort-label,
   .motion-overlay-enter,
@@ -278,9 +305,15 @@
 
   .motion-panel-enter,
   .motion-fade-in-place,
+  .motion-list-item-enter,
   .motion-sort-label,
   .motion-overlay-enter,
   .motion-modal-enter {
     opacity: 1;
+  }
+
+  .motion-list-item-enter {
+    grid-template-rows: 1fr;
+    transform: none;
   }
 }

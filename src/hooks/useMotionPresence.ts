@@ -282,84 +282,84 @@ export function useSortChangeMotion<T extends string>(sortBy: T) {
  * Marks newly appearing ids for one enter-duration so callers can fade them in.
  * Skips the first snapshot and empty→non-empty bursts (those use list-level enter).
  * Multiple ids added in one update are all marked together.
+ *
+ * Detection runs during render so the first painted frame already has enter classes —
+ * otherwise rows mount at full height, collapse to 0fr, then expand again.
  */
 export function useEnteringIds(ids: string[], enabled = true) {
-  const knownRef = useRef<Set<string> | null>(null);
-  const idsRef = useRef(ids);
-  idsRef.current = ids;
-  const [enteringIds, setEnteringIds] = useState<Set<string>>(() => new Set());
   const idsKey = ids.join('\0');
+  const [prevIdsKey, setPrevIdsKey] = useState<string | null>(null);
+  const [enteringIds, setEnteringIds] = useState<Set<string>>(() => new Set());
 
-  useLayoutEffect(() => {
-    const currentIds = idsRef.current;
-    const next = new Set(currentIds);
+  let enteringThisRender = enteringIds;
 
+  if (prevIdsKey === null) {
+    setPrevIdsKey(idsKey);
+  } else if (prevIdsKey !== idsKey) {
     if (!enabled) {
       // Stay in sync while list-level motion owns the screen, so we don't
       // replay inserts as individual fades when enabled again.
-      if (knownRef.current !== null) {
-        knownRef.current = next;
+      setPrevIdsKey(idsKey);
+    } else {
+      const prevIds = prevIdsKey === '' ? [] : prevIdsKey.split('\0');
+      const prevSet = new Set(prevIds);
+      const added = ids.filter((id) => !prevSet.has(id));
+      setPrevIdsKey(idsKey);
+
+      // Whole-list arrive-from-empty handles the first population after clear.
+      if (added.length > 0 && prevIds.length > 0 && !prefersReducedMotion()) {
+        enteringThisRender = new Set(enteringIds);
+        for (const id of added) enteringThisRender.add(id);
+        setEnteringIds(enteringThisRender);
       }
-      return;
     }
+  }
 
-    if (knownRef.current === null) {
-      knownRef.current = next;
-      return;
-    }
-
-    const known = knownRef.current;
-    const added: string[] = [];
-    for (const id of currentIds) {
-      if (!known.has(id)) added.push(id);
-    }
-    knownRef.current = next;
-
-    // Whole-list arrive-from-empty handles the first population after clear.
-    if (added.length === 0 || known.size === 0) return;
-    if (prefersReducedMotion()) return;
-
-    setEnteringIds((prev) => {
-      const merged = new Set(prev);
-      for (const id of added) merged.add(id);
-      return merged;
-    });
-
+  useEffect(() => {
+    if (enteringIds.size === 0) return;
+    const batch = [...enteringIds];
     const timer = window.setTimeout(() => {
       setEnteringIds((prev) => {
         let changed = false;
-        const merged = new Set(prev);
-        for (const id of added) {
-          if (merged.delete(id)) changed = true;
+        const next = new Set(prev);
+        for (const id of batch) {
+          if (next.delete(id)) changed = true;
         }
-        return changed ? merged : prev;
+        return changed ? next : prev;
       });
     }, MOTION_ENTER_MS);
-
     return () => window.clearTimeout(timer);
-  }, [idsKey, enabled]);
+  }, [enteringIds]);
 
-  const isEntering = useCallback((id: string) => enteringIds.has(id), [enteringIds]);
+  const isEntering = useCallback(
+    (id: string) => enteringThisRender.has(id),
+    [enteringThisRender]
+  );
 
-  return { enteringIds, isEntering };
+  return { enteringIds: enteringThisRender, isEntering };
 }
 
 /**
  * FLIP: when existing rows move (e.g. new items inserted above), animate the
  * translate instead of jumping. New rows are skipped (they fade in separately).
+ *
+ * Only animates when `itemIds` actually change while `animate` is true — turning
+ * `animate` back on after an insert must not FLIP from stale collapsed positions.
  */
 export function useListFlipMotion(
   containerRef: RefObject<HTMLElement | null>,
   itemIds: string[],
-  enabled: boolean
+  animate: boolean
 ) {
   const prevRectsRef = useRef<Map<string, number>>(new Map());
+  const prevIdsKeyRef = useRef<string | null>(null);
   const idsKey = itemIds.join('\0');
 
   useLayoutEffect(() => {
     const container = containerRef.current;
     if (!container) {
       prevRectsRef.current = new Map();
+      prevIdsKeyRef.current = idsKey;
       return;
     }
 
@@ -371,8 +371,12 @@ export function useListFlipMotion(
       nextTops.set(id, node.getBoundingClientRect().top);
     }
 
+    const idsChanged = prevIdsKeyRef.current !== null && prevIdsKeyRef.current !== idsKey;
+    prevIdsKeyRef.current = idsKey;
+
     const prevTops = prevRectsRef.current;
-    const canAnimate = enabled && prevTops.size > 0 && !prefersReducedMotion();
+    const canAnimate =
+      animate && idsChanged && prevTops.size > 0 && !prefersReducedMotion();
 
     if (canAnimate) {
       for (const node of nodes) {
@@ -405,5 +409,5 @@ export function useListFlipMotion(
     }
 
     prevRectsRef.current = nextTops;
-  }, [idsKey, enabled, containerRef]);
+  }, [idsKey, animate, containerRef]);
 }

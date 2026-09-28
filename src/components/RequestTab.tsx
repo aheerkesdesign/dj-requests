@@ -430,8 +430,13 @@ export const RequestTab: React.FC<RequestTabProps> = ({
   const filteredIds = filteredRequests.map((r) => r.id);
   const insertMotionEnabled =
     !holdingForMeta && !showListExiting && !listArriving && !sortMotionBusy;
-  const { isEntering } = useEnteringIds(filteredIds, insertMotionEnabled);
-  useListFlipMotion(listContainerRef, filteredIds, insertMotionEnabled);
+  const { isEntering, enteringIds } = useEnteringIds(filteredIds, insertMotionEnabled);
+  // While rows expand open, layout itself pushes neighbors — FLIP would fight that.
+  useListFlipMotion(
+    listContainerRef,
+    filteredIds,
+    insertMotionEnabled && enteringIds.size === 0
+  );
 
   const getStatusBadge = (status: RequestStatus) => {
     switch (status) {
@@ -566,32 +571,37 @@ export const RequestTab: React.FC<RequestTabProps> = ({
         <div
           ref={listContainerRef}
           className={cn(
-            'space-y-2.5',
+            'flex flex-col',
             showListExiting && 'motion-panel-exit',
             listArriving && 'motion-panel-enter',
             !showListExiting && !listArriving && sortListMotionClass
           )}
         >
-          {filteredRequests.map(req => {
+          {filteredRequests.map((req, index) => {
             const matchingTrack = listMatched?.get(req.id);
+            const entering = isEntering(req.id);
             return (
               <div
                 key={req.id}
                 data-list-id={req.id}
                 className={cn(
                   isExiting(req.id) && 'motion-panel-exit',
-                  isEntering(req.id) && 'motion-fade-in-place'
+                  entering && 'motion-list-item-enter'
                 )}
               >
-                <SwipeableRequestCard
-                  req={req}
-                  matchingTrack={matchingTrack}
-                  isOwner={isOwner}
-                  visibleFields={visibleFields}
-                  onUpdateStatus={onUpdateStatus}
-                  onDeleteRequest={onDeleteRequest}
-                  getStatusBadge={getStatusBadge}
-                />
+                <div className={cn(entering && 'motion-list-item-enter-clip')}>
+                  <div className={cn(index > 0 && 'pt-2.5')}>
+                    <SwipeableRequestCard
+                      req={req}
+                      matchingTrack={matchingTrack}
+                      isOwner={isOwner}
+                      visibleFields={visibleFields}
+                      onUpdateStatus={onUpdateStatus}
+                      onDeleteRequest={onDeleteRequest}
+                      getStatusBadge={getStatusBadge}
+                    />
+                  </div>
+                </div>
               </div>
             );
           })}
