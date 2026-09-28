@@ -1,8 +1,9 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { dictionaries } from './translations';
 import { Locale, TranslationKey, TranslateFn, translate } from './types';
 
-const STORAGE_KEY = 'dj_requests_locale';
+/** Current storage key; legacy `dj_requests_locale` is migrated once. */
+export const LOCALE_STORAGE_KEY = 'trackdrop_locale';
+const LEGACY_LOCALE_STORAGE_KEY = 'dj_requests_locale';
 
 interface LanguageContextValue {
   locale: Locale;
@@ -15,15 +16,24 @@ const LanguageContext = createContext<LanguageContextValue | undefined>(undefine
 
 function readStoredLocale(): Locale {
   if (typeof window === 'undefined') return 'nl';
-  const stored = localStorage.getItem(STORAGE_KEY);
-  return stored === 'en' || stored === 'nl' ? stored : 'nl';
+  const stored =
+    localStorage.getItem(LOCALE_STORAGE_KEY) ?? localStorage.getItem(LEGACY_LOCALE_STORAGE_KEY);
+  if (stored === 'en' || stored === 'nl') {
+    if (!localStorage.getItem(LOCALE_STORAGE_KEY)) {
+      localStorage.setItem(LOCALE_STORAGE_KEY, stored);
+      localStorage.removeItem(LEGACY_LOCALE_STORAGE_KEY);
+    }
+    return stored;
+  }
+  return 'nl';
 }
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>(() => readStoredLocale());
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, locale);
+    localStorage.setItem(LOCALE_STORAGE_KEY, locale);
+    localStorage.removeItem(LEGACY_LOCALE_STORAGE_KEY);
     document.documentElement.lang = locale;
   }, [locale]);
 
@@ -50,4 +60,3 @@ export function useI18n() {
 }
 
 export type { Locale, TranslationKey };
-export { dictionaries };

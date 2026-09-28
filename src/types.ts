@@ -12,7 +12,7 @@ export interface Track {
   durationFormatted: string;
   year?: string;
   comments?: string;
-  rating: number;
+  rating?: number;
   dateAdded?: string;
   playlists: string[];
   bitrate?: string;
@@ -172,17 +172,4 @@ export interface USBLibrary {
   trackDisplayPrefs?: TrackDisplayPrefs;
   librarySettings?: LibrarySettings;
   subscriptionStatus?: SubscriptionStatus;
-}
-
-export interface LibrarySummary {
-  id: string;
-  name: string;
-  djName: string;
-  slug?: string;
-  logoUrl?: string;
-  socials?: SocialLinks;
-  description: string;
-  trackCount: number;
-  playlistCount: number;
-  updatedAt: string;
 }

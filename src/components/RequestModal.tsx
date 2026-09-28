@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, Send, Sparkles, Music } from 'lucide-react';
 import { useI18n } from '../i18n/LanguageContext';
+import { errorMessage } from '../utils/errors';
 
 interface RequestModalProps {
   isOpen: boolean;
@@ -46,8 +47,8 @@ export const RequestModal: React.FC<RequestModalProps> = ({
     try {
       await onSubmit(title.trim(), artist.trim());
       onClose();
-    } catch (err: any) {
-      setError(err.message || t('requestModal.submitError'));
+    } catch (err: unknown) {
+      setError(errorMessage(err, t('requestModal.submitError')));
     } finally {
       setLoading(false);
     }

@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from './supabase';
-import type { Profile, SocialLinks, SubscriptionStatus } from '../types';
-import { getLogoPublicUrl } from './supabase';
+import type { Profile } from '../types';
+import { mapProfile, PROFILE_COLUMNS } from './profile';
 
 interface AuthContextValue {
   session: Session | null;
@@ -14,28 +14,6 @@ interface AuthContextValue {
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
-
-const PROFILE_COLUMNS =
-  'id, display_name, slug, logo_path, start_image_path, socials, stripe_customer_id, subscription_status, plan, current_period_end, created_at, updated_at';
-
-function mapProfile(row: any): Profile {
-  return {
-    id: row.id,
-    displayName: row.display_name,
-    slug: row.slug,
-    logoPath: row.logo_path,
-    logoUrl: getLogoPublicUrl(row.logo_path),
-    startImagePath: row.start_image_path,
-    startImageUrl: getLogoPublicUrl(row.start_image_path),
-    socials: (row.socials || {}) as SocialLinks,
-    subscriptionStatus: (row.subscription_status || 'none') as SubscriptionStatus,
-    plan: row.plan,
-    currentPeriodEnd: row.current_period_end,
-    stripeCustomerId: row.stripe_customer_id,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-  };
-}
 
 async function fetchProfileRow(userId: string) {
   return supabase.from('profiles').select(PROFILE_COLUMNS).eq('id', userId).maybeSingle();

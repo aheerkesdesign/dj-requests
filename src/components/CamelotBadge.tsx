@@ -3,7 +3,6 @@ import React from 'react';
 interface CamelotBadgeProps {
   keyString: string;
   size?: 'sm' | 'md' | 'lg';
-  showLabel?: boolean;
 }
 
 // Color coding mapping based on Camelot Wheel colors
@@ -29,7 +28,7 @@ export function getCamelotColor(keyStr: string): { bg: string; text: string; bor
   }
 }
 
-export const CamelotBadge: React.FC<CamelotBadgeProps> = ({ keyString, size = 'md', showLabel = true }) => {
+export const CamelotBadge: React.FC<CamelotBadgeProps> = ({ keyString, size = 'md' }) => {
   const { bg, text, border } = getCamelotColor(keyString);
 
   const sizeClasses = {
@@ -41,7 +40,7 @@ export const CamelotBadge: React.FC<CamelotBadgeProps> = ({ keyString, size = 'm
   return (
     <span
       className={`inline-flex items-center justify-center font-mono font-semibold rounded-md border shadow-xs tracking-wider ${bg} ${text} ${border} ${sizeClasses[size]}`}
-      title={`Muzikale Sleutel / Camelot: ${keyString}`}
+      title={`${keyString}`}
     >
       {keyString}
     </span>

@@ -11,9 +11,6 @@ interface FilterState {
 interface SearchBarAndFiltersProps {
   filters: FilterState;
   onFilterChange: (updated: Partial<FilterState>) => void;
-  totalTracksCount?: number;
-  filteredTracksCount?: number;
-  onOpenRequestModal?: () => void;
 }
 
 export const SearchBarAndFilters: React.FC<SearchBarAndFiltersProps> = ({
@@ -24,7 +21,6 @@ export const SearchBarAndFilters: React.FC<SearchBarAndFiltersProps> = ({
 
   return (
     <div className="space-y-2.5">
-      {/* Search Input & Sort Selector Bar */}
       <div className="flex items-center gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
@@ -45,7 +41,6 @@ export const SearchBarAndFilters: React.FC<SearchBarAndFiltersProps> = ({
           )}
         </div>
 
-        {/* Sort button */}
         <button
           onClick={() =>
             onFilterChange({
@@ -65,4 +60,3 @@ export const SearchBarAndFilters: React.FC<SearchBarAndFiltersProps> = ({
     </div>
   );
 };
-

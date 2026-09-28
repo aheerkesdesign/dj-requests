@@ -2,6 +2,7 @@ import React from 'react';
 import { USBLibrary } from '../types';
 import { Disc3, Settings, Share2, CircleUserRound, Import } from 'lucide-react';
 import { useI18n } from '../i18n/LanguageContext';
+import { LocaleToggle } from './LocaleToggle';
 
 interface HeaderProps {
   currentLibrary: USBLibrary | null;
@@ -26,7 +27,7 @@ export const Header: React.FC<HeaderProps> = ({
   activeTab,
   setActiveTab,
 }) => {
-  const { locale, toggleLocale, t } = useI18n();
+  const { t } = useI18n();
 
   return (
     <header className="sticky top-0 z-30 bg-zinc-950/95 backdrop-blur-md border-b border-zinc-800/80 px-4 py-3 text-zinc-100 shadow-md">
@@ -37,10 +38,10 @@ export const Header: React.FC<HeaderProps> = ({
             className="flex items-center gap-2.5 min-w-0 cursor-pointer group"
             title={t('header.backToStart')}
           >
-            {(currentLibrary?.logoUrl || '/icon.svg') ? (
+            {(currentLibrary?.logoUrl || '/favicon.png') ? (
               <div className="w-10 h-10 rounded-xl overflow-hidden bg-zinc-900 border border-zinc-800 shrink-0 flex items-center justify-center p-0.5 shadow-md group-hover:border-emerald-500/50 transition-colors">
                 <img
-                  src={currentLibrary?.logoUrl || '/icon.svg'}
+                  src={currentLibrary?.logoUrl || '/favicon.png'}
                   alt={currentLibrary?.djName || 'DJ Logo'}
                   className="w-full h-full object-contain rounded-lg"
                 />
@@ -60,15 +61,7 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           <div className="flex items-center gap-1.5 shrink-0">
-            <button
-              type="button"
-              onClick={toggleLocale}
-              className="min-w-[2.25rem] px-2 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-800 transition-colors text-[11px] font-bold tracking-wide"
-              title={t('common.language')}
-              aria-label={t('common.language')}
-            >
-              {locale === 'nl' ? t('common.switchToNl') : t('common.switchToEn')}
-            </button>
+            <LocaleToggle />
 
             <button
               onClick={onOpenShare}

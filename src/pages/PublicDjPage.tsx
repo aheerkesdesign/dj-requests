@@ -1,40 +1,10 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import {
-  USBLibrary,
-  Track,
-  TrackRequest,
-  RequestStatus,
-  RequestKind,
-  SocialLinks,
-  TrackDisplayPrefs,
   DEFAULT_TRACK_DISPLAY_PREFS,
-  normalizeTrackDisplayPrefs,
-  LibrarySettings,
-  DEFAULT_LIBRARY_SETTINGS,
   normalizeLibrarySettings,
+  TrackRequest,
 } from '../types';
-import {
-  fetchLibraryBySlug,
-  fetchMyLibrary,
-  updateLibraryDetails,
-  upsertMyLibraryCatalog,
-  updateMyProfile,
-  uploadLogo,
-  uploadStartImage,
-  removeStorageFile,
-  fetchRequests,
-  searchLibraryTracks,
-  libraryHasTrack,
-  matchRequestTracks,
-  TRACK_PAGE_SIZE,
-  submitRequest,
-  updateRequestStatus,
-  deleteRequest as apiDeleteRequest,
-  clearAllRequests as apiClearAllRequests,
-  subscribeToRequests,
-  subscribeToLibrary,
-} from '../utils/api';
 import { Header } from '../components/Header';
 import { StartScreen } from '../components/StartScreen';
 import { SearchBarAndFilters } from '../components/SearchBarAndFilters';
@@ -50,6 +20,11 @@ import { PlaylistFilterModal } from '../components/PlaylistFilterModal';
 import { Disc3, ListFilter } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { useI18n } from '../i18n/LanguageContext';
+import { useDjPageNavigation } from '../hooks/useDjPageNavigation';
+import { useLibraryLoader } from '../hooks/useLibraryLoader';
+import { useCatalogSearch } from '../hooks/useCatalogSearch';
+import { useRequestsState } from '../hooks/useRequestsState';
+import { useLibraryMutations } from '../hooks/useLibraryMutations';
 
 interface PublicDjPageProps {
   /** When true, treat as owner dashboard embed (auth session) */
@@ -63,450 +38,82 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
   const slug = ownerMode ? profile?.slug : routeSlug;
   const isOwner = ownerMode;
 
-  const [currentLibrary, setCurrentLibrary] = useState<USBLibrary | null>(null);
+  const { viewMode, setViewMode, activeTab, setActiveTab } = useDjPageNavigation(ownerMode);
   const [requests, setRequests] = useState<TrackRequest[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [notFound, setNotFound] = useState(false);
 
-  const getInitialState = () => {
-    if (typeof window === 'undefined') {
-      return { view: ownerMode ? ('library' as const) : ('start' as const), tab: 'tracks' as const };
-    }
+  const {
+    currentLibrary,
+    setCurrentLibrary,
+    loading,
+    notFound,
+    selectedPlaylistIds,
+    setSelectedPlaylistIds,
+    isPlaylistFilterOpen,
+    setIsPlaylistFilterOpen,
+  } = useLibraryLoader({
+    ownerMode,
+    slug,
+    user,
+    profile,
+    setViewMode,
+    setLocale,
+    setRequests,
+  });
 
-    // Dashboard (owner) always opens the library UI — don't reuse guest start-screen session
-    if (ownerMode) {
-      const ownerTab = sessionStorage.getItem('owner_active_tab') as 'tracks' | 'requests' | 'dj' | null;
-      const tab: 'tracks' | 'requests' | 'dj' =
-        ownerTab === 'tracks' || ownerTab === 'requests' || ownerTab === 'dj' ? ownerTab : 'tracks';
-      return { view: 'library' as const, tab };
-    }
+  const {
+    matchedByRequestId,
+    handleSubmitRequest,
+    handleUpdateStatus,
+    handleDeleteRequest,
+    handleClearToDownloadRequests,
+    handleClearVerzoekjes,
+  } = useRequestsState({ currentLibrary, isOwner, requests, setRequests });
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const paramView = urlParams.get('view') as 'start' | 'library' | null;
-    const paramTab = urlParams.get('tab') as 'tracks' | 'requests' | 'dj' | null;
-    const sessionView = sessionStorage.getItem('app_view_mode') as 'start' | 'library' | null;
-    const sessionTab = sessionStorage.getItem('app_active_tab') as 'tracks' | 'requests' | 'dj' | null;
+  const {
+    filters,
+    setFilters,
+    catalogTracks,
+    catalogTotal,
+    catalogLoading,
+    catalogListKey,
+    activeSelectedPlaylistIds,
+    loadMoreTracks,
+  } = useCatalogSearch({
+    currentLibrary,
+    selectedPlaylistIds,
+    ownerMode,
+    viewMode,
+  });
 
-    const view: 'start' | 'library' =
-      paramView === 'start' || paramView === 'library'
-        ? paramView
-        : sessionView === 'start' || sessionView === 'library'
-          ? sessionView
-          : 'start';
-
-    let tab: 'tracks' | 'requests' | 'dj' =
-      paramTab === 'tracks' || paramTab === 'requests' || paramTab === 'dj'
-        ? paramTab
-        : sessionTab === 'tracks' || sessionTab === 'requests' || sessionTab === 'dj'
-          ? sessionTab
-          : 'tracks';
-
-    if (tab === 'dj') tab = 'tracks';
-
-    return { view, tab };
-  };
-
-  const initialState = useMemo(() => getInitialState(), [ownerMode]);
-
-  const [viewMode, setViewMode] = useState<'start' | 'library'>(initialState.view);
-  const [activeTab, setActiveTab] = useState<'tracks' | 'requests' | 'dj'>(initialState.tab);
+  const {
+    handleSavePlaylistFilter,
+    handleSaveTrackDisplayPrefs,
+    handleUpdateLibraryDetails,
+    handleUploadSuccess,
+  } = useLibraryMutations({
+    currentLibrary,
+    setCurrentLibrary,
+    setSelectedPlaylistIds,
+    setRequests,
+    setActiveTab,
+    isOwner,
+    user,
+    profile,
+    slug,
+    refreshProfile,
+    t,
+  });
 
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [isRequestOpen, setIsRequestOpen] = useState(false);
-  const [isPlaylistFilterOpen, setIsPlaylistFilterOpen] = useState(false);
   const [prefilledRequest, setPrefilledRequest] = useState({ artist: '', title: '' });
-  const [selectedPlaylistIds, setSelectedPlaylistIds] = useState<string[] | null>(null);
-  const isPlaylistFilterOpenRef = useRef(isPlaylistFilterOpen);
-
-  const [filters, setFilters] = useState({
-    searchQuery: '',
-    sortBy: 'title' as 'title' | 'artist',
-    sortOrder: 'asc' as 'asc' | 'desc',
-  });
-  const [catalogTracks, setCatalogTracks] = useState<Track[]>([]);
-  const [catalogTotal, setCatalogTotal] = useState(0);
-  const [catalogLoading, setCatalogLoading] = useState(false);
-  const [matchedTracks, setMatchedTracks] = useState<Track[]>([]);
-  const searchRequest = useRef(0);
-
-  useEffect(() => {
-    isPlaylistFilterOpenRef.current = isPlaylistFilterOpen;
-  }, [isPlaylistFilterOpen]);
-
-  useEffect(() => {
-    async function init() {
-      if (ownerMode) {
-        if (!user?.id) {
-          setLoading(true);
-          return;
-        }
-        if (!profile) {
-          setNotFound(true);
-          setLoading(false);
-          return;
-        }
-      }
-
-      if (!slug) {
-        setNotFound(true);
-        setLoading(false);
-        return;
-      }
-
-      setLoading(true);
-      setNotFound(false);
-      try {
-        const lib = ownerMode && user?.id
-          ? await fetchMyLibrary(user.id)
-          : await fetchLibraryBySlug(slug);
-        if (!lib) {
-          setNotFound(true);
-          setCurrentLibrary(null);
-          return;
-        }
-        setCurrentLibrary(lib);
-        if (lib.selectedPlaylistIds && Array.isArray(lib.selectedPlaylistIds)) {
-          setSelectedPlaylistIds(lib.selectedPlaylistIds);
-        } else {
-          setSelectedPlaylistIds(null);
-        }
-
-        // Guest-only behaviours driven by librarySettings
-        if (!ownerMode) {
-          const ls = normalizeLibrarySettings(lib.librarySettings);
-          // Skip start screen: send guest straight to library.
-          // Also clear the sessionStorage key so that toggling the setting off
-          // takes effect on next page load (avoids stale 'library' being replayed).
-          if (ls.skipStartScreen) {
-            sessionStorage.setItem('app_view_mode', 'library');
-            setViewMode('library');
-          } else {
-            // Setting is off — reset any previously forced 'library' value so guests
-            // see the start screen again on their next visit.
-            sessionStorage.removeItem('app_view_mode');
-          }
-          // Page default locale: apply only if the user hasn't stored a preference yet
-          if (ls.pageDefaultLocale !== 'auto' && !localStorage.getItem('dj_requests_locale')) {
-            setLocale(ls.pageDefaultLocale);
-          }
-        }
-
-        const reqList = await fetchRequests(lib.id);
-        setRequests(reqList);
-      } catch (err) {
-        console.error('Fout bij initialisatie:', err);
-        setNotFound(true);
-      } finally {
-        setLoading(false);
-      }
-    }
-    void init();
-  }, [slug, ownerMode, profile?.id, user?.id]);
-
-  useEffect(() => {
-    if (!currentLibrary?.id) return;
-    const unsubReq = subscribeToRequests(currentLibrary.id, setRequests);
-    const unsubLib = subscribeToLibrary(currentLibrary.id, (updatedLib) => {
-      setCurrentLibrary(updatedLib);
-      if (!isPlaylistFilterOpenRef.current && Array.isArray(updatedLib.selectedPlaylistIds)) {
-        setSelectedPlaylistIds(updatedLib.selectedPlaylistIds);
-      }
-    });
-    return () => {
-      unsubReq();
-      unsubLib();
-    };
-  }, [currentLibrary?.id]);
-
-  useEffect(() => {
-    if (ownerMode) {
-      sessionStorage.setItem('owner_active_tab', activeTab);
-      return;
-    }
-
-    sessionStorage.setItem('app_view_mode', viewMode);
-    sessionStorage.setItem('app_active_tab', activeTab);
-    sessionStorage.removeItem('app_is_dj_mode');
-
-    const urlParams = new URLSearchParams(window.location.search);
-    urlParams.set('view', viewMode);
-    urlParams.set('tab', activeTab === 'dj' ? 'tracks' : activeTab);
-    urlParams.delete('dj');
-    const newUrl = `${window.location.pathname}?${urlParams.toString()}`;
-    window.history.replaceState({ path: newUrl }, '', newUrl);
-  }, [viewMode, activeTab, ownerMode]);
-
-  const handleSavePlaylistFilter = async (selectedIds: string[]) => {
-    setSelectedPlaylistIds(selectedIds);
-    if (!currentLibrary || !isOwner) return;
-    setCurrentLibrary((prev) => (prev ? { ...prev, selectedPlaylistIds: selectedIds } : prev));
-    try {
-      await updateLibraryDetails(currentLibrary.id, { selectedPlaylistIds: selectedIds }, { asOwner: true });
-    } catch (err) {
-      console.error('Fout bij opslaan van playlist filter:', err);
-    }
-  };
-
-  const handleSaveTrackDisplayPrefs = async (prefs: TrackDisplayPrefs, libSettings: LibrarySettings) => {
-    if (!currentLibrary || !isOwner) {
-      throw new Error(t('settings.loginToSave'));
-    }
-    const normalized = normalizeTrackDisplayPrefs(prefs);
-    const normalizedSettings = normalizeLibrarySettings(libSettings);
-    setCurrentLibrary((prev) =>
-      prev ? { ...prev, trackDisplayPrefs: normalized, librarySettings: normalizedSettings } : prev
-    );
-    await updateLibraryDetails(
-      currentLibrary.id,
-      { trackDisplayPrefs: normalized, librarySettings: normalizedSettings },
-      { asOwner: true }
-    );
-  };
-
-  const handleUpdateLibraryDetails = async (updates: {
-    name?: string;
-    djName?: string;
-    logoUrl?: string;
-    logoBlob?: Blob;
-    startImageUrl?: string;
-    startImageBlob?: Blob;
-    socials?: SocialLinks;
-    slug?: string;
-  }) => {
-    if (!currentLibrary || !user) {
-      throw new Error(t('public.loginToEditProfile'));
-    }
-
-    const previousLogoPath = profile?.logoPath;
-    const previousStartImagePath = profile?.startImagePath;
-
-    let logoPath: string | null | undefined = undefined;
-    if (updates.logoBlob) {
-      logoPath = await uploadLogo(user.id, updates.logoBlob, 'jpg');
-    } else if (updates.logoUrl === '') {
-      logoPath = null;
-    }
-
-    let startImagePath: string | null | undefined = undefined;
-    if (updates.startImageBlob) {
-      startImagePath = await uploadStartImage(user.id, updates.startImageBlob, 'jpg');
-    } else if (updates.startImageUrl === '') {
-      startImagePath = null;
-    }
-
-    await updateMyProfile(user.id, {
-      displayName: updates.djName,
-      slug: updates.slug,
-      socials: updates.socials,
-      logoPath,
-      startImagePath,
-    });
-
-    // Drop replaced/removed files only after the profile points elsewhere (or to null).
-    if (logoPath !== undefined && previousLogoPath && previousLogoPath !== logoPath) {
-      await removeStorageFile(previousLogoPath);
-    }
-    if (startImagePath !== undefined && previousStartImagePath && previousStartImagePath !== startImagePath) {
-      await removeStorageFile(previousStartImagePath);
-    }
-
-    if (updates.name) {
-      await updateLibraryDetails(currentLibrary.id, { name: updates.name });
-    }
-
-    await refreshProfile();
-    const refreshed = await fetchLibraryBySlug(updates.slug || currentLibrary.slug || slug || '');
-    if (refreshed) setCurrentLibrary(refreshed);
-  };
-
-  const handleUploadSuccess = async (newLib: USBLibrary) => {
-    if (!user) throw new Error(t('public.loginToUpload'));
-    const saved = await upsertMyLibraryCatalog(user.id, newLib);
-    setCurrentLibrary(saved);
-    setRequests([]);
-    setActiveTab('tracks');
-  };
-
-  const handleSubmitRequest = async (title: string, artist: string) => {
-    if (!currentLibrary) return;
-    const kind: RequestKind = (await libraryHasTrack(currentLibrary.id, title, artist))
-      ? 'playable'
-      : 'wishlist';
-    const ls = normalizeLibrarySettings(currentLibrary.librarySettings);
-    if (kind === 'wishlist' && !ls.enableDownloadRequests) {
-      // Download requests are disabled — silently skip wishlist submissions
-      return;
-    }
-    const req = await submitRequest(currentLibrary.id, title, artist, kind);
-    setRequests((prev) => [req, ...prev]);
-  };
-
-  const handleUpdateStatus = async (requestId: string, status: RequestStatus) => {
-    if (!currentLibrary || !isOwner) return;
-    try {
-      const updated = await updateRequestStatus(currentLibrary.id, requestId, status, { asOwner: true });
-      setRequests((prev) => prev.map((r) => (r.id === requestId ? updated : r)));
-    } catch (err) {
-      console.error('Fout bij bijwerken status:', err);
-    }
-  };
-
-  const handleDeleteRequest = async (requestId: string) => {
-    if (!currentLibrary || !isOwner) return;
-    setRequests((prev) => prev.filter((r) => r.id !== requestId));
-    try {
-      await apiDeleteRequest(currentLibrary.id, requestId, { asOwner: true });
-    } catch (err) {
-      console.error('Fout bij verwijderen verzoek:', err);
-      setRequests(await fetchRequests(currentLibrary.id));
-    }
-  };
-
-  const handleClearToDownloadRequests = async () => {
-    if (!currentLibrary || !isOwner) return;
-    const toDownload = requests.filter(
-      (r) => r.kind === 'wishlist' && r.status !== 'declined'
-    );
-    if (toDownload.length === 0) return;
-    const idsToDelete = toDownload.map((r) => r.id);
-    setRequests((prev) => prev.filter((r) => !idsToDelete.includes(r.id)));
-    try {
-      await apiClearAllRequests(currentLibrary.id, { asOwner: true, reqIds: idsToDelete });
-    } catch (err) {
-      console.error(err);
-      setRequests(await fetchRequests(currentLibrary.id));
-    }
-  };
-
-  const handleClearVerzoekjes = async () => {
-    if (!currentLibrary || !isOwner) return;
-    const verzoekjes = requests.filter((r) => r.kind === 'playable');
-    if (verzoekjes.length === 0) return;
-    const idsToDelete = verzoekjes.map((r) => r.id);
-    setRequests((prev) => prev.filter((r) => !idsToDelete.includes(r.id)));
-    try {
-      await apiClearAllRequests(currentLibrary.id, { asOwner: true, reqIds: idsToDelete });
-    } catch (err) {
-      console.error(err);
-      setRequests(await fetchRequests(currentLibrary.id));
-    }
-  };
 
   const handleOpenRequestPrefilled = (artist = '', title = '') => {
     setPrefilledRequest({ artist, title: title || filters.searchQuery });
     setIsRequestOpen(true);
-  };
-
-  const activeSelectedPlaylistIds = useMemo(() => {
-    if (!currentLibrary?.playlists) return [];
-    if (selectedPlaylistIds === null) return currentLibrary.playlists.map((p) => p.id);
-    return selectedPlaylistIds;
-  }, [currentLibrary, selectedPlaylistIds]);
-
-  const playlistIdsForSearch = useMemo(() => {
-    if (!currentLibrary?.playlists?.length) return null;
-    const allIds = currentLibrary.playlists.map((p) => p.id);
-    const allSelected =
-      activeSelectedPlaylistIds.length === allIds.length &&
-      allIds.every((id) => activeSelectedPlaylistIds.includes(id));
-    return allSelected ? null : activeSelectedPlaylistIds;
-  }, [currentLibrary, activeSelectedPlaylistIds]);
-
-  const catalogListKey = `${filters.searchQuery}|${filters.sortBy}|${filters.sortOrder}|${
-    playlistIdsForSearch?.join(',') ?? 'all'
-  }`;
-
-  useEffect(() => {
-    if (!currentLibrary?.id) return;
-    const requestId = ++searchRequest.current;
-    if (!ownerMode && viewMode !== 'library') return;
-
-    const libraryId = currentLibrary.id;
-    setCatalogLoading(true);
-    const handle = window.setTimeout(() => {
-      void (async () => {
-        try {
-          const page = await searchLibraryTracks(libraryId, {
-            query: filters.searchQuery,
-            playlistIds: playlistIdsForSearch,
-            sortBy: filters.sortBy,
-            sortOrder: filters.sortOrder,
-            offset: 0,
-            limit: TRACK_PAGE_SIZE,
-          });
-          if (searchRequest.current !== requestId) return;
-          setCatalogTracks(page.tracks);
-          setCatalogTotal(page.total);
-        } catch (err) {
-          console.error(err);
-          if (searchRequest.current !== requestId) return;
-          setCatalogTracks([]);
-          setCatalogTotal(0);
-        } finally {
-          if (searchRequest.current === requestId) setCatalogLoading(false);
-        }
-      })();
-    }, 300);
-
-    return () => {
-      window.clearTimeout(handle);
-    };
-  }, [
-    currentLibrary?.id,
-    currentLibrary?.trackCount,
-    filters.searchQuery,
-    filters.sortBy,
-    filters.sortOrder,
-    playlistIdsForSearch,
-    ownerMode,
-    viewMode,
-  ]);
-
-  useEffect(() => {
-    if (!currentLibrary?.id) return;
-    let cancelled = false;
-    const libraryId = currentLibrary.id;
-    void (async () => {
-      try {
-        const tracks = await matchRequestTracks(
-          libraryId,
-          requests.map((request) => ({ title: request.title, artist: request.artist }))
-        );
-        if (!cancelled) setMatchedTracks(tracks);
-      } catch (err) {
-        console.error(err);
-        if (!cancelled) setMatchedTracks([]);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [currentLibrary?.id, requests]);
-
-  const loadMoreTracks = async () => {
-    if (!currentLibrary?.id || catalogLoading || catalogTracks.length >= catalogTotal) return;
-    const requestId = searchRequest.current;
-    setCatalogLoading(true);
-    try {
-      const page = await searchLibraryTracks(currentLibrary.id, {
-        query: filters.searchQuery,
-        playlistIds: playlistIdsForSearch,
-        sortBy: filters.sortBy,
-        sortOrder: filters.sortOrder,
-        offset: catalogTracks.length,
-        limit: TRACK_PAGE_SIZE,
-      });
-      if (searchRequest.current !== requestId) return;
-      setCatalogTracks((prev) => [...prev, ...page.tracks]);
-      setCatalogTotal(page.total);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      if (searchRequest.current === requestId) setCatalogLoading(false);
-    }
   };
 
   if (loading) {
@@ -600,9 +207,6 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
                   <SearchBarAndFilters
                     filters={filters}
                     onFilterChange={(updated) => setFilters((prev) => ({ ...prev, ...updated }))}
-                    totalTracksCount={currentLibrary.trackCount || 0}
-                    filteredTracksCount={catalogTotal}
-                    onOpenRequestModal={() => handleOpenRequestPrefilled()}
                   />
                 </div>
 
@@ -631,7 +235,7 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
             {activeTab === 'requests' && (
               <RequestTab
                 requests={requests}
-                libraryTracks={matchedTracks}
+                matchedByRequestId={matchedByRequestId}
                 onOpenRequestModal={() => handleOpenRequestPrefilled()}
                 isOwner={isOwner}
                 visibleFields={

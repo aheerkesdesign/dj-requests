@@ -7,14 +7,13 @@ import {
   DEFAULT_TRACK_FIELD_VISIBILITY,
 } from '../types';
 import { Clock, Music2, CheckCheck, Trash2, Search, Ban } from 'lucide-react';
-import { findTrackInLibrary } from '../utils/library';
 import { useI18n } from '../i18n/LanguageContext';
 import { CamelotBadge } from './CamelotBadge';
 import { BpmBadge } from './BpmBadge';
 
 interface RequestTabProps {
   requests: TrackRequest[];
-  libraryTracks?: Track[];
+  matchedByRequestId?: Map<string, Track>;
   onOpenRequestModal: () => void;
   isOwner: boolean;
   visibleFields?: TrackFieldVisibility;
@@ -177,7 +176,7 @@ const SwipeableRequestCard: React.FC<SwipeableRequestCardProps> = ({
 
 export const RequestTab: React.FC<RequestTabProps> = ({
   requests,
-  libraryTracks = [],
+  matchedByRequestId,
   onOpenRequestModal,
   isOwner,
   visibleFields = DEFAULT_TRACK_FIELD_VISIBILITY,
@@ -363,7 +362,7 @@ export const RequestTab: React.FC<RequestTabProps> = ({
       ) : (
         <div className="space-y-2.5">
           {filteredRequests.map(req => {
-            const matchingTrack = findTrackInLibrary(req, libraryTracks);
+            const matchingTrack = matchedByRequestId?.get(req.id);
             return (
               <SwipeableRequestCard
                 key={req.id}

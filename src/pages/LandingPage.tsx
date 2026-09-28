@@ -3,10 +3,11 @@ import { Disc3, Music2, Radio, Users } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { useI18n } from '../i18n/LanguageContext';
 import { BrandName } from '../components/BrandName';
+import { LocaleToggle } from '../components/LocaleToggle';
 
 export default function LandingPage() {
   const { user, profile } = useAuth();
-  const { t, locale, toggleLocale } = useI18n();
+  const { t } = useI18n();
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
@@ -17,15 +18,7 @@ export default function LandingPage() {
           <BrandName />
         </div>
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={toggleLocale}
-            className="min-w-[2.25rem] px-2 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-800 transition-colors text-[11px] font-bold tracking-wide"
-            title={t('common.language')}
-            aria-label={t('common.language')}
-          >
-            {locale === 'nl' ? t('common.switchToNl') : t('common.switchToEn')}
-          </button>
+          <LocaleToggle />
           {user ? (
             <Link
               to="/dashboard"

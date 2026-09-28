@@ -4,6 +4,8 @@ Multi-tenant Rekordbox song-request app powered by **Vite + React + Supabase**.
 
 Each DJ creates an account, uploads a Rekordbox XML library, and gets a public page at `/d/:slug` where the audience can browse tracks and submit requests. Live updates use Supabase Realtime.
 
+> Package manager: **npm** (see `package-lock.json`). The GitHub repo folder may still be named `DJ-Requests`.
+
 ## Setup
 
 ### 1. Supabase project
@@ -68,4 +70,5 @@ Wire Checkout + webhooks via Supabase Edge Functions when you monetize. Do not p
 
 - Catalog rows live in `library_tracks`. The public page calls `search_library_tracks` and loads one page at a time. Playlists stay on `libraries`. After this migration, re-upload a large Rekordbox XML if the jsonb backfill times out.
 - Guests insert requests anonymously (RLS); DJ mutations use the authenticated session
-- Express / Google AI Studio Gemini scaffolding has been removed
+- Page shell logic lives in hooks under `src/hooks/` (`useDjPageNavigation`, `useLibraryLoader`, `useCatalogSearch`, `useRequestsState`, `useLibraryMutations`)
+- Locale preference is stored as `trackdrop_locale` (legacy `dj_requests_locale` is migrated automatically)

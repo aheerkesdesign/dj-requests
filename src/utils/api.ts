@@ -1,6 +1,7 @@
 import { supabase, getLogoPublicUrl } from '../lib/supabase';
+import type { Database, Json } from '../lib/database.types';
+import { mapProfile, PROFILE_COLUMNS, PROFILE_PUBLIC_COLUMNS } from '../lib/profile';
 import type {
-  LibrarySummary,
   USBLibrary,
   TrackRequest,
   SocialLinks,
@@ -22,6 +23,15 @@ export const TRACK_PAGE_SIZE = 50;
 const LIBRARY_COLUMNS =
   'id, owner_id, name, description, playlists, playlist_tree, selected_playlist_ids, track_count, playlist_count, track_display_prefs, library_settings, updated_at, created_at';
 
+type LibraryRow = Database['public']['Tables']['libraries']['Row'];
+type LibraryUpdate = Database['public']['Tables']['libraries']['Update'];
+type ProfileUpdate = Database['public']['Tables']['profiles']['Update'];
+type RequestRow = Database['public']['Tables']['requests']['Row'];
+type ProfilePublic = Pick<
+  Database['public']['Tables']['profiles']['Row'],
+  'id' | 'display_name' | 'slug' | 'logo_path' | 'start_image_path' | 'socials' | 'subscription_status'
+>;
+
 function dedupeTracks(tracks: Track[]): Track[] {
   const byKey = new Map<string, Track>();
   for (const track of tracks) {
@@ -30,16 +40,7 @@ function dedupeTracks(tracks: Track[]): Track[] {
   return [...byKey.values()];
 }
 
-export function getClientId(): string {
-  let id = localStorage.getItem('rekordbox_client_id');
-  if (!id) {
-    id = `cli-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-    localStorage.setItem('rekordbox_client_id', id);
-  }
-  return id;
-}
-
-function mapRequest(row: any): TrackRequest {
+function mapRequest(row: RequestRow): TrackRequest {
   return {
     id: row.id,
     libraryId: row.library_id,
@@ -51,17 +52,7 @@ function mapRequest(row: any): TrackRequest {
   };
 }
 
-function mapLibraryRow(
-  lib: any,
-  profile?: {
-    display_name?: string;
-    slug?: string;
-    logo_path?: string | null;
-    start_image_path?: string | null;
-    socials?: SocialLinks;
-    subscription_status?: string;
-  } | null
-): USBLibrary {
+function mapLibraryRow(lib: LibraryRow, profile?: ProfilePublic | null): USBLibrary {
   return {
     id: lib.id,
     ownerId: lib.owner_id,
@@ -76,8 +67,8 @@ function mapLibraryRow(
     playlistCount: lib.playlist_count ?? (Array.isArray(lib.playlists) ? lib.playlists.length : 0),
     updatedAt: lib.updated_at,
     tracks: [],
-    playlists: (lib.playlists || []) as Playlist[],
-    playlistTree: (lib.playlist_tree || undefined) as PlaylistNode[] | undefined,
+    playlists: (lib.playlists as unknown as Playlist[]) || [],
+    playlistTree: (lib.playlist_tree as unknown as PlaylistNode[] | null) || undefined,
     selectedPlaylistIds: lib.selected_playlist_ids ?? undefined,
     trackDisplayPrefs: normalizeTrackDisplayPrefs(lib.track_display_prefs),
     librarySettings: normalizeLibrarySettings(lib.library_settings),
@@ -85,49 +76,44 @@ function mapLibraryRow(
   };
 }
 
+async function loadLibraryForOwner(ownerId: string): Promise<USBLibrary | null> {
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select(PROFILE_PUBLIC_COLUMNS)
+    .eq('id', ownerId)
+    .maybeSingle();
+
+  if (profileError) throw new Error(profileError.message);
+  if (!profile) return null;
+
+  const { data: lib, error: libError } = await supabase
+    .from('libraries')
+    .select(LIBRARY_COLUMNS)
+    .eq('owner_id', ownerId)
+    .maybeSingle();
+
+  if (libError) throw new Error(libError.message);
+  if (!lib) return null;
+
+  return mapLibraryRow(lib as LibraryRow, profile as ProfilePublic);
+}
+
 export async function fetchLibraryBySlug(slug: string): Promise<USBLibrary | null> {
   const normalized = slug.trim().toLowerCase();
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
-    .select('id, display_name, slug, logo_path, start_image_path, socials, subscription_status')
+    .select(PROFILE_PUBLIC_COLUMNS)
     .eq('slug', normalized)
     .maybeSingle();
 
   if (profileError) throw new Error(profileError.message);
   if (!profile) return null;
 
-  const { data: lib, error: libError } = await supabase
-    .from('libraries')
-    .select(LIBRARY_COLUMNS)
-    .eq('owner_id', profile.id)
-    .maybeSingle();
-
-  if (libError) throw new Error(libError.message);
-  if (!lib) return null;
-
-  return mapLibraryRow(lib, profile);
+  return loadLibraryForOwner(profile.id);
 }
 
 export async function fetchMyLibrary(userId: string): Promise<USBLibrary | null> {
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('id, display_name, slug, logo_path, start_image_path, socials, subscription_status')
-    .eq('id', userId)
-    .maybeSingle();
-
-  if (profileError) throw new Error(profileError.message);
-  if (!profile) return null;
-
-  const { data: lib, error: libError } = await supabase
-    .from('libraries')
-    .select(LIBRARY_COLUMNS)
-    .eq('owner_id', userId)
-    .maybeSingle();
-
-  if (libError) throw new Error(libError.message);
-  if (!lib) return null;
-
-  return mapLibraryRow(lib, profile);
+  return loadLibraryForOwner(userId);
 }
 
 export async function fetchLibrary(id: string): Promise<USBLibrary> {
@@ -137,11 +123,11 @@ export async function fetchLibrary(id: string): Promise<USBLibrary> {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('id, display_name, slug, logo_path, start_image_path, socials, subscription_status')
-    .eq('id', lib.owner_id)
+    .select(PROFILE_PUBLIC_COLUMNS)
+    .eq('id', (lib as LibraryRow).owner_id)
     .maybeSingle();
 
-  return mapLibraryRow(lib, profile);
+  return mapLibraryRow(lib as LibraryRow, profile as ProfilePublic | null);
 }
 
 export async function upsertMyLibraryCatalog(
@@ -150,13 +136,13 @@ export async function upsertMyLibraryCatalog(
 ): Promise<USBLibrary> {
   const tracks = dedupeTracks(libraryData.tracks || []);
   const playlists = libraryData.playlists || [];
-  const payload = {
+  const payload: LibraryUpdate & { owner_id: string } = {
     owner_id: userId,
     name: libraryData.name || 'Mijn USB Bibliotheek',
     description: libraryData.description || '',
-    tracks: [],
-    playlists,
-    playlist_tree: libraryData.playlistTree ?? null,
+    tracks: [] as Json,
+    playlists: playlists as unknown as Json,
+    playlist_tree: (libraryData.playlistTree ?? null) as unknown as Json | null,
     track_count: tracks.length,
     playlist_count: playlists.length,
     updated_at: new Date().toISOString(),
@@ -168,7 +154,7 @@ export async function upsertMyLibraryCatalog(
     .eq('owner_id', userId)
     .maybeSingle();
 
-  let lib;
+  let lib: LibraryRow;
   if (existing?.id) {
     const { data, error } = await supabase
       .from('libraries')
@@ -177,17 +163,17 @@ export async function upsertMyLibraryCatalog(
       .select(LIBRARY_COLUMNS)
       .single();
     if (error) throw new Error(error.message);
-    lib = data;
+    lib = data as LibraryRow;
   } else {
     const { data, error } = await supabase.from('libraries').insert(payload).select(LIBRARY_COLUMNS).single();
     if (error) throw new Error(error.message);
-    lib = data;
+    lib = data as LibraryRow;
   }
 
   await replaceLibraryTracks(lib.id, tracks, playlists);
 
-  // Clear requests on full library replace (matches previous single-upload UX)
-  await supabase.from('requests').delete().eq('library_id', lib.id);
+  const { error: clearError } = await supabase.from('requests').delete().eq('library_id', lib.id);
+  if (clearError) throw new Error(clearError.message);
 
   return fetchLibrary(lib.id);
 }
@@ -202,38 +188,22 @@ export async function updateMyProfile(
     socials?: SocialLinks;
   }
 ): Promise<Profile> {
-  const patch: Record<string, unknown> = {};
+  const patch: ProfileUpdate = {};
   if (updates.displayName !== undefined) patch.display_name = updates.displayName;
   if (updates.slug !== undefined) patch.slug = updates.slug.trim().toLowerCase();
   if (updates.logoPath !== undefined) patch.logo_path = updates.logoPath;
   if (updates.startImagePath !== undefined) patch.start_image_path = updates.startImagePath;
-  if (updates.socials !== undefined) patch.socials = updates.socials;
+  if (updates.socials !== undefined) patch.socials = updates.socials as Json;
 
   const { data, error } = await supabase
     .from('profiles')
     .update(patch)
     .eq('id', userId)
-    .select(
-      'id, display_name, slug, logo_path, start_image_path, socials, stripe_customer_id, subscription_status, plan, current_period_end, created_at, updated_at'
-    )
+    .select(PROFILE_COLUMNS)
     .single();
 
   if (error) throw new Error(error.message);
-
-  return {
-    id: data.id,
-    displayName: data.display_name,
-    slug: data.slug,
-    logoPath: data.logo_path,
-    logoUrl: getLogoPublicUrl(data.logo_path),
-    startImagePath: data.start_image_path,
-    startImageUrl: getLogoPublicUrl(data.start_image_path),
-    socials: (data.socials || {}) as SocialLinks,
-    subscriptionStatus: (data.subscription_status || 'none') as SubscriptionStatus,
-    plan: data.plan,
-    currentPeriodEnd: data.current_period_end,
-    stripeCustomerId: data.stripe_customer_id,
-  };
+  return mapProfile(data);
 }
 
 export async function updateLibraryDetails(
@@ -244,20 +214,19 @@ export async function updateLibraryDetails(
     selectedPlaylistIds?: string[];
     trackDisplayPrefs?: TrackDisplayPrefs;
     librarySettings?: LibrarySettings;
-  },
-  _options?: { asOwner?: boolean }
+  }
 ): Promise<USBLibrary> {
-  const patch: Record<string, unknown> = {};
+  const patch: LibraryUpdate = {};
   if (updates.name !== undefined) patch.name = updates.name;
   if (updates.description !== undefined) patch.description = updates.description;
   if (updates.selectedPlaylistIds !== undefined) {
     patch.selected_playlist_ids = updates.selectedPlaylistIds;
   }
   if (updates.trackDisplayPrefs !== undefined) {
-    patch.track_display_prefs = normalizeTrackDisplayPrefs(updates.trackDisplayPrefs);
+    patch.track_display_prefs = normalizeTrackDisplayPrefs(updates.trackDisplayPrefs) as unknown as Json;
   }
   if (updates.librarySettings !== undefined) {
-    patch.library_settings = updates.librarySettings;
+    patch.library_settings = updates.librarySettings as unknown as Json;
   }
 
   const { error } = await supabase.from('libraries').update(patch).eq('id', libraryId);
@@ -278,8 +247,13 @@ export async function removeStorageFile(path: string | null | undefined): Promis
   }
 }
 
-export async function uploadLogo(userId: string, blob: Blob, ext = 'jpg'): Promise<string> {
-  const path = `${userId}/logo-${Date.now()}.${ext}`;
+async function uploadBrandingAsset(
+  userId: string,
+  kind: 'logo' | 'start',
+  blob: Blob,
+  ext = 'jpg'
+): Promise<string> {
+  const path = `${userId}/${kind}-${Date.now()}.${ext}`;
   const { error } = await supabase.storage.from('logos').upload(path, blob, {
     upsert: true,
     contentType: blob.type || `image/${ext}`,
@@ -288,14 +262,12 @@ export async function uploadLogo(userId: string, blob: Blob, ext = 'jpg'): Promi
   return path;
 }
 
+export async function uploadLogo(userId: string, blob: Blob, ext = 'jpg'): Promise<string> {
+  return uploadBrandingAsset(userId, 'logo', blob, ext);
+}
+
 export async function uploadStartImage(userId: string, blob: Blob, ext = 'jpg'): Promise<string> {
-  const path = `${userId}/start-${Date.now()}.${ext}`;
-  const { error } = await supabase.storage.from('logos').upload(path, blob, {
-    upsert: true,
-    contentType: blob.type || `image/${ext}`,
-  });
-  if (error) throw new Error(error.message);
-  return path;
+  return uploadBrandingAsset(userId, 'start', blob, ext);
 }
 
 const TRACK_INSERT_CHUNK = 400;
@@ -311,7 +283,7 @@ async function replaceLibraryTracks(libraryId: string, tracks: Track[], playlist
       name: track.name || '',
       artist: track.artist || '',
       playlist_ids: playlistIdsForTrack(track, playlists),
-      data: track,
+      data: track as unknown as Json,
     }));
     const { error } = await supabase.from('library_tracks').insert(rows);
     if (error) throw new Error(error.message);
@@ -369,28 +341,7 @@ export async function matchRequestTracks(
     })),
   });
   if (error) throw new Error(error.message);
-  return Array.isArray(data) ? (data as Track[]) : [];
-}
-
-export async function clearLibraryCatalog(libraryId: string): Promise<void> {
-  const { error: tracksError } = await supabase.from('library_tracks').delete().eq('library_id', libraryId);
-  if (tracksError) throw new Error(tracksError.message);
-
-  const { error } = await supabase
-    .from('libraries')
-    .update({
-      tracks: [],
-      playlists: [],
-      playlist_tree: null,
-      selected_playlist_ids: null,
-      track_count: 0,
-      playlist_count: 0,
-      description: 'Upload je Rekordbox XML om te starten.',
-    })
-    .eq('id', libraryId);
-  if (error) throw new Error(error.message);
-
-  await supabase.from('requests').delete().eq('library_id', libraryId);
+  return Array.isArray(data) ? (data as unknown as Track[]) : [];
 }
 
 export async function fetchRequests(libraryId: string): Promise<TrackRequest[]> {
@@ -400,11 +351,8 @@ export async function fetchRequests(libraryId: string): Promise<TrackRequest[]> 
     .eq('library_id', libraryId)
     .order('created_at', { ascending: false });
 
-  if (error) {
-    console.warn('API error voor verzoekjes:', error);
-    return [];
-  }
-  return (data || []).map(mapRequest);
+  if (error) throw new Error(error.message);
+  return (data || []).map((row) => mapRequest(row as RequestRow));
 }
 
 export async function submitRequest(
@@ -431,14 +379,13 @@ export async function submitRequest(
     }
     throw new Error(error.message || 'Kon verzoek niet opslaan');
   }
-  return mapRequest(data);
+  return mapRequest(data as RequestRow);
 }
 
 export async function updateRequestStatus(
   libraryId: string,
   requestId: string,
-  status: string,
-  _options?: { asOwner?: boolean }
+  status: string
 ): Promise<TrackRequest> {
   const { data, error } = await supabase
     .from('requests')
@@ -448,14 +395,10 @@ export async function updateRequestStatus(
     .select('*')
     .single();
   if (error) throw new Error(error.message);
-  return mapRequest(data);
+  return mapRequest(data as RequestRow);
 }
 
-export async function deleteRequest(
-  libraryId: string,
-  requestId: string,
-  _options?: { asOwner?: boolean }
-): Promise<void> {
+export async function deleteRequest(libraryId: string, requestId: string): Promise<void> {
   const { error } = await supabase
     .from('requests')
     .delete()
@@ -466,7 +409,7 @@ export async function deleteRequest(
 
 export async function clearAllRequests(
   libraryId: string,
-  options?: { asOwner?: boolean; reqIds?: string[] }
+  options?: { reqIds?: string[] }
 ): Promise<void> {
   let query = supabase.from('requests').delete().eq('library_id', libraryId);
   if (options?.reqIds && options.reqIds.length > 0) {
@@ -481,8 +424,12 @@ export function subscribeToRequests(
   onChange: (requests: TrackRequest[]) => void
 ): () => void {
   const reload = async () => {
-    const list = await fetchRequests(libraryId);
-    onChange(list);
+    try {
+      const list = await fetchRequests(libraryId);
+      onChange(list);
+    } catch (err) {
+      console.warn('Requests realtime refresh failed', err);
+    }
   };
 
   const channel = supabase
@@ -529,9 +476,4 @@ export function subscribeToLibrary(
 export function buildShareUrl(slug: string): string {
   if (typeof window === 'undefined') return `/d/${slug}`;
   return `${window.location.origin}/d/${slug}`;
-}
-
-/** @deprecated Use fetchLibraryBySlug / fetchMyLibrary */
-export async function fetchLibraries(): Promise<LibrarySummary[]> {
-  return [];
 }

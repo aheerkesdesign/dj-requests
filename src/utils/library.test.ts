@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isTrackInLibrary, playlistIdsForTrack } from './library';
+import { isTrackInLibrary, findTrackInLibrary, playlistIdsForTrack } from './library';
 import type { Playlist, Track } from '../types';
 
 function track(partial: Partial<Track> & Pick<Track, 'name' | 'artist'>): Track {
@@ -33,6 +33,18 @@ describe('isTrackInLibrary', () => {
 
   it('is false for an empty catalog', () => {
     expect(isTrackInLibrary({ title: 'Blue Monday', artist: 'New Order' }, [])).toBe(false);
+  });
+});
+
+describe('findTrackInLibrary', () => {
+  const tracks = [track({ name: 'Blue Monday', artist: 'New Order', trackId: '10' })];
+
+  it('returns the matching track', () => {
+    expect(findTrackInLibrary({ title: 'Blue Monday', artist: 'New Order' }, tracks)?.trackId).toBe('10');
+  });
+
+  it('returns undefined when nothing matches', () => {
+    expect(findTrackInLibrary({ title: 'Missing', artist: 'Nobody' }, tracks)).toBeUndefined();
   });
 });
 

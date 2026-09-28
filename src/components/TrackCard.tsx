@@ -4,6 +4,7 @@ import { PlusCircle, Check } from 'lucide-react';
 import { useI18n } from '../i18n/LanguageContext';
 import { CamelotBadge } from './CamelotBadge';
 import { BpmBadge } from './BpmBadge';
+import { errorMessage } from '../utils/errors';
 
 interface TrackCardProps {
   track: Track;
@@ -38,9 +39,9 @@ export const TrackCard: React.FC<TrackCardProps> = ({
     setIsLoading(true);
     try {
       await onRequestSimilar(track.artist, track.name);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setRequestedLocally(false);
-      alert(err.message || t('trackCard.requestError'));
+      alert(errorMessage(err, t('trackCard.requestError')));
     } finally {
       setIsLoading(false);
     }

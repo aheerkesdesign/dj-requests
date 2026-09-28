@@ -8,27 +8,25 @@
     "build": "vite build",
     "start": "vite preview",
     "preview": "vite preview",
-    "clean": "rm -rf dist",
+    "clean": "node --input-type=module -e \"import { rmSync } from 'node:fs'; rmSync('dist', { recursive: true, force: true })\"",
     "lint": "tsc --noEmit",
     "test": "vitest run"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.8",
-    "@tailwindcss/vite": "^4.1.14",
-    "@vitejs/plugin-react": "^5.0.4",
     "lucide-react": "^0.546.0",
     "react": "^19.0.1",
     "react-dom": "^19.0.1",
-    "react-router-dom": "^7.6.2",
-    "vite": "^6.2.3"
+    "react-router-dom": "^7.6.2"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.1.14",
     "@types/node": "^22.14.0",
-    "autoprefixer": "^10.4.21",
+    "@vitejs/plugin-react": "^5.0.4",
     "happy-dom": "^20.14.5",
-    "sharp": "^0.35.3",
     "tailwindcss": "^4.1.14",
     "typescript": "~5.8.2",
+    "vite": "^6.2.3",
     "vitest": "^5.0.2"
   }
 }

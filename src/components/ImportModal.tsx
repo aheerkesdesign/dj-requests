@@ -3,6 +3,7 @@ import { X, Import, Upload, Check, AlertTriangle } from 'lucide-react';
 import { parseRekordboxXML } from '../utils/xmlParser';
 import { USBLibrary } from '../types';
 import { useI18n } from '../i18n/LanguageContext';
+import { errorMessage } from '../utils/errors';
 
 interface ImportModalProps {
   isOpen: boolean;
@@ -64,8 +65,8 @@ export const ImportModal: React.FC<ImportModalProps> = ({
           currentLibrary?.djName || 'DJ'
         );
         setParsedPreview(preview);
-      } catch (err: any) {
-        setUploadError(err.message || t('import.xmlReadError'));
+      } catch (err: unknown) {
+        setUploadError(errorMessage(err, t('import.xmlReadError')));
         setParsedPreview(null);
       }
     };
@@ -140,8 +141,8 @@ export const ImportModal: React.FC<ImportModalProps> = ({
       finalLibrary.socials = currentLibrary?.socials;
       await onUploadSuccess(finalLibrary);
       onClose();
-    } catch (err: any) {
-      setUploadError(err.message || t('import.saveError'));
+    } catch (err: unknown) {
+      setUploadError(errorMessage(err, t('import.saveError')));
     } finally {
       setIsUploading(false);
     }

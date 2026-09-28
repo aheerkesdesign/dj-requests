@@ -10,6 +10,7 @@ import {
   DEFAULT_LIBRARY_SETTINGS,
   normalizeLibrarySettings,
 } from '../types';
+import { errorMessage } from '../utils/errors';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -79,8 +80,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     try {
       await onSavePrefs(normalizeTrackDisplayPrefs(prefs), settings);
       onClose();
-    } catch (err: any) {
-      setError(err.message || t('settings.saveError'));
+    } catch (err: unknown) {
+      setError(errorMessage(err, t('settings.saveError')));
     } finally {
       setIsSaving(false);
     }

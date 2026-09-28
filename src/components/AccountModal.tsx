@@ -4,6 +4,7 @@ import { X, User, Sparkles, AlertTriangle, Upload, Globe, Share2, LogOut, ImageI
 import { USBLibrary, SocialLinks } from '../types';
 import { useAuth } from '../lib/auth';
 import { useI18n } from '../i18n/LanguageContext';
+import { errorMessage } from '../utils/errors';
 
 const EMPTY_SOCIALS: SocialLinks = {
   instagram: '',
@@ -215,8 +216,8 @@ export const AccountModal: React.FC<AccountModalProps> = ({
         socials,
       });
       onClose();
-    } catch (err: any) {
-      setError(err.message || t('account.saveError'));
+    } catch (err: unknown) {
+      setError(errorMessage(err, t('account.saveError')));
     } finally {
       setIsSaving(false);
     }
@@ -395,7 +396,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                 </label>
                 <div className="space-y-2 bg-zinc-950/70 border border-zinc-800 p-3 rounded-xl">
                   <div>
-                    <span className="text-[10px] text-zinc-400 block mb-0.5">Instagram URL:</span>
+                    <span className="text-[10px] text-zinc-400 block mb-0.5">{t('account.socialInstagram')}</span>
                     <input
                       type="url"
                       value={socials.instagram || ''}
@@ -405,7 +406,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                     />
                   </div>
                   <div>
-                    <span className="text-[10px] text-zinc-400 block mb-0.5">TikTok URL:</span>
+                    <span className="text-[10px] text-zinc-400 block mb-0.5">{t('account.socialTiktok')}</span>
                     <input
                       type="url"
                       value={socials.tiktok || ''}
@@ -415,7 +416,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                     />
                   </div>
                   <div>
-                    <span className="text-[10px] text-zinc-400 block mb-0.5">YouTube URL:</span>
+                    <span className="text-[10px] text-zinc-400 block mb-0.5">{t('account.socialYoutube')}</span>
                     <input
                       type="url"
                       value={socials.youtube || ''}
@@ -425,7 +426,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                     />
                   </div>
                   <div>
-                    <span className="text-[10px] text-zinc-400 block mb-0.5">Facebook URL:</span>
+                    <span className="text-[10px] text-zinc-400 block mb-0.5">{t('account.socialFacebook')}</span>
                     <input
                       type="url"
                       value={socials.facebook || ''}
@@ -435,7 +436,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                     />
                   </div>
                   <div>
-                    <span className="text-[10px] text-zinc-400 block mb-0.5">X URL:</span>
+                    <span className="text-[10px] text-zinc-400 block mb-0.5">{t('account.socialX')}</span>
                     <input
                       type="url"
                       value={socials.x || ''}
@@ -445,7 +446,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                     />
                   </div>
                   <div>
-                    <span className="text-[10px] text-zinc-400 block mb-0.5">Spotify URL:</span>
+                    <span className="text-[10px] text-zinc-400 block mb-0.5">{t('account.socialSpotify')}</span>
                     <input
                       type="url"
                       value={socials.spotify || ''}
@@ -455,7 +456,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                     />
                   </div>
                   <div>
-                    <span className="text-[10px] text-zinc-400 block mb-0.5">SoundCloud URL:</span>
+                    <span className="text-[10px] text-zinc-400 block mb-0.5">{t('account.socialSoundcloud')}</span>
                     <input
                       type="url"
                       value={socials.soundcloud || ''}
@@ -465,7 +466,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                     />
                   </div>
                   <div>
-                    <span className="text-[10px] text-zinc-400 block mb-0.5">Mixcloud URL:</span>
+                    <span className="text-[10px] text-zinc-400 block mb-0.5">{t('account.socialMixcloud')}</span>
                     <input
                       type="url"
                       value={socials.mixcloud || ''}
@@ -475,7 +476,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                     />
                   </div>
                   <div>
-                    <span className="text-[10px] text-zinc-400 block mb-0.5">Website / Linktree URL:</span>
+                    <span className="text-[10px] text-zinc-400 block mb-0.5">{t('account.socialWebsite')}</span>
                     <input
                       type="url"
                       value={socials.website || ''}
