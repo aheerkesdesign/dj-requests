@@ -139,5 +139,87 @@ export function useClearListSequence(onClear: () => void) {
     beginAfterModalClose,
     listExiting: phase === 'list-exit',
     emptyEntering: phase === 'empty-enter',
+    /** True while the local clear animation is in progress (incl. waiting for the modal). */
+    clearBusy: phase !== 'idle',
   };
+}
+
+/**
+ * When `items` drops from non-empty to empty without a local clear sequence,
+ * keep the previous snapshot on screen for a fade-out, then fade the empty state in.
+ */
+export function useRemoteListClear<T>(items: T[], localBusy: boolean) {
+  const prevRef = useRef(items);
+  const [snapshot, setSnapshot] = useState<T[] | null>(null);
+  const [phase, setPhase] = useState<'idle' | 'exit' | 'empty-enter'>('idle');
+
+  useEffect(() => {
+    if (localBusy) {
+      prevRef.current = items;
+      if (phase !== 'idle') setPhase('idle');
+      if (snapshot !== null) setSnapshot(null);
+      return;
+    }
+
+    if (phase === 'idle' && prevRef.current.length > 0 && items.length === 0) {
+      if (prefersReducedMotion()) {
+        prevRef.current = items;
+        return;
+      }
+      setSnapshot(prevRef.current);
+      setPhase('exit');
+      return;
+    }
+
+    if (phase === 'idle') {
+      prevRef.current = items;
+    }
+  }, [items, localBusy, phase, snapshot]);
+
+  useEffect(() => {
+    if (phase === 'exit') {
+      const timer = window.setTimeout(() => {
+        setSnapshot(null);
+        prevRef.current = [];
+        setPhase('empty-enter');
+      }, MOTION_EXIT_MS);
+      return () => window.clearTimeout(timer);
+    }
+
+    if (phase === 'empty-enter') {
+      const timer = window.setTimeout(() => setPhase('idle'), MOTION_ENTER_MS);
+      return () => window.clearTimeout(timer);
+    }
+  }, [phase]);
+
+  return {
+    displayItems: snapshot ?? items,
+    listExiting: phase === 'exit',
+    emptyEntering: phase === 'empty-enter',
+  };
+}
+
+/**
+ * True for one enter-duration after `count` goes from 0 to at least 1.
+ * The first settled value does not count, so the initial paint stays still.
+ * Pass `settled: false` while the count is not yet meaningful.
+ */
+export function useArriveFromEmpty(count: number, settled: boolean) {
+  const [prevCount, setPrevCount] = useState<number | null>(null);
+  const [arriving, setArriving] = useState(false);
+
+  if (settled && count !== prevCount) {
+    const fromEmpty = prevCount === 0 && count > 0 && !prefersReducedMotion();
+    setPrevCount(count);
+    if (fromEmpty) setArriving(true);
+    else if (count === 0) setArriving(false);
+  }
+
+  useEffect(() => {
+    if (!arriving) return;
+    const timer = window.setTimeout(() => setArriving(false), MOTION_ENTER_MS);
+    return () => window.clearTimeout(timer);
+  }, [arriving]);
+
+  return arriving;
 }

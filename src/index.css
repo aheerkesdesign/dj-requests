@@ -140,6 +140,15 @@
   }
 }
 
+@keyframes motion-fade-in-place {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 @keyframes motion-request-confirm {
   0% {
     transform: scale(1);
@@ -190,6 +199,11 @@
   .motion-panel-enter {
     opacity: 0;
     animation: motion-fade-in-from-top var(--duration-motion-slow) var(--ease-motion) both;
+  }
+
+  .motion-fade-in-place {
+    opacity: 0;
+    animation: motion-fade-in-place var(--duration-motion-slow) var(--ease-motion) both;
   }
 
   .motion-request-confirm {
@@ -252,6 +266,7 @@
 
   .motion-panel-exit,
   .motion-panel-enter,
+  .motion-fade-in-place,
   .motion-request-confirm,
   .motion-sort-label,
   .motion-overlay-enter,
@@ -262,6 +277,7 @@
   }
 
   .motion-panel-enter,
+  .motion-fade-in-place,
   .motion-sort-label,
   .motion-overlay-enter,
   .motion-modal-enter {

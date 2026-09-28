@@ -12,7 +12,7 @@ import { CamelotBadge } from './CamelotBadge';
 import { BpmBadge } from './BpmBadge';
 import { ModalShell } from './ModalShell';
 import { SearchBarAndFilters } from './SearchBarAndFilters';
-import { useClearListSequence, useExitingIds } from '../hooks/useMotionPresence';
+import { useArriveFromEmpty, useClearListSequence, useExitingIds, useRemoteListClear } from '../hooks/useMotionPresence';
 import { cn } from '@/lib/utils';
 
 function needsMatchedTrackMeta(visibleFields: TrackFieldVisibility): boolean {
@@ -246,7 +246,7 @@ export const RequestTab: React.FC<RequestTabProps> = ({
   const [searchQuery, setSearchQuery] = React.useState('');
   const [confirmClearVerzoekjes, setConfirmClearVerzoekjes] = React.useState(false);
   const { requestExit, isExiting } = useExitingIds();
-  const { beginAfterModalClose, listExiting, emptyEntering } = useClearListSequence(() => {
+  const { beginAfterModalClose, listExiting, emptyEntering, clearBusy } = useClearListSequence(() => {
     onClearVerzoekjes?.();
   });
 
@@ -293,6 +293,15 @@ export const RequestTab: React.FC<RequestTabProps> = ({
 
   // Filter requests to show ONLY playable tracks (in the DJ's library)
   const usbRequests = listRequests.filter(r => r.kind === 'playable');
+  const holdingForMeta = needsMeta && !matchingReady && !publishedRef.current;
+  const {
+    displayItems: displayUsbRequests,
+    listExiting: remoteListExiting,
+    emptyEntering: remoteEmptyEntering,
+  } = useRemoteListClear(usbRequests, clearBusy);
+  const listArriving = useArriveFromEmpty(usbRequests.length, !holdingForMeta);
+  const showListExiting = listExiting || remoteListExiting;
+  const showEmptyEntering = emptyEntering || remoteEmptyEntering;
 
   const getStatusRank = (status: RequestStatus) => {
     if (status === 'pending') return 0;
@@ -356,7 +365,7 @@ export const RequestTab: React.FC<RequestTabProps> = ({
     return textA.localeCompare(textB, undefined, { sensitivity: 'base', numeric: true });
   };
 
-  const sortedRequests = [...usbRequests].sort((a, b) => {
+  const sortedRequests = [...displayUsbRequests].sort((a, b) => {
     // Always keep status groups: pending → played → declined
     const rankA = getStatusRank(a.status);
     const rankB = getStatusRank(b.status);
@@ -441,7 +450,7 @@ export const RequestTab: React.FC<RequestTabProps> = ({
                 : 'bg-card border-border text-muted-foreground'
             }`}
           >
-            {t('requests.all', { count: usbRequests.length })}
+            {t('requests.all')}
           </button>
           <button
             type="button"
@@ -478,11 +487,14 @@ export const RequestTab: React.FC<RequestTabProps> = ({
           </button>
         </div>
 
-        {isOwner && usbRequests.length > 0 && (
+        {isOwner && displayUsbRequests.length > 0 && (
           <button
             type="button"
             onClick={() => setConfirmClearVerzoekjes(true)}
-            className="px-3 py-1.5 rounded-xl bg-red-950/70 hover:bg-red-900 border border-red-800/80 text-red-300 text-xs font-bold flex items-center gap-1.5 transition-all shrink-0 self-end sm:self-auto"
+            className={cn(
+              'px-3 py-1.5 rounded-xl bg-red-950/70 hover:bg-red-900 border border-red-800/80 text-red-300 text-xs font-bold flex items-center gap-1.5 transition-all shrink-0 self-end sm:self-auto',
+              listArriving && 'motion-fade-in-place'
+            )}
             title={t('requests.clearTitle')}
           >
             <Trash2 className="w-3.5 h-3.5" />
@@ -502,18 +514,24 @@ export const RequestTab: React.FC<RequestTabProps> = ({
       />
 
       {/* DJ Swipe Tip banner */}
-      {isOwner && !hideDjTips && usbRequests.length > 0 && (
-        <div className="bg-card/80 border border-border/80 rounded-xl px-3.5 py-2 text-xs text-foreground">
+      {isOwner && !hideDjTips && displayUsbRequests.length > 0 && (
+        <div
+          className={cn(
+            'bg-card/80 border border-border/80 rounded-xl px-3.5 py-2 text-xs text-foreground',
+            listArriving && 'motion-fade-in-place',
+            showListExiting && 'motion-panel-exit'
+          )}
+        >
           <span>{t('requests.djTip')}</span>
         </div>
       )}
 
       {/* Hold new/updated rows until catalog matches so optional meta arrives with them */}
-      {needsMeta && !matchingReady && !publishedRef.current ? null : filteredRequests.length === 0 ? (
+      {holdingForMeta ? null : filteredRequests.length === 0 ? (
         <div
           className={cn(
             'bg-card/50 border border-border/80 rounded-2xl p-8 text-center my-2 space-y-2',
-            emptyEntering && 'motion-panel-enter'
+            showEmptyEntering && 'motion-panel-enter'
           )}
         >
           <Music2 className="w-10 h-10 text-muted-foreground mx-auto" />
@@ -525,7 +543,7 @@ export const RequestTab: React.FC<RequestTabProps> = ({
           </div>
         </div>
       ) : (
-        <div className={cn('space-y-2.5', listExiting && 'motion-panel-exit')}>
+        <div className={cn('space-y-2.5', showListExiting && 'motion-panel-exit', listArriving && 'motion-panel-enter')}>
           {filteredRequests.map(req => {
             const matchingTrack = listMatched?.get(req.id);
             return (

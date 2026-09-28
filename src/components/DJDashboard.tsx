@@ -2,7 +2,7 @@ import React from 'react';
 import { TrackRequest } from '../types';
 import { Download, Trash2, CheckCheck } from 'lucide-react';
 import { useI18n } from '../i18n/LanguageContext';
-import { useClearListSequence, useExitingIds } from '../hooks/useMotionPresence';
+import { useClearListSequence, useExitingIds, useRemoteListClear } from '../hooks/useMotionPresence';
 import { ModalShell } from './ModalShell';
 import { cn } from '@/lib/utils';
 
@@ -22,13 +22,20 @@ export const DJDashboard: React.FC<DJDashboardProps> = ({
   const { t } = useI18n();
   const [confirmClearToDownload, setConfirmClearToDownload] = React.useState(false);
   const { requestExit, isExiting } = useExitingIds();
-  const { beginAfterModalClose, listExiting, emptyEntering } = useClearListSequence(() => {
+  const { beginAfterModalClose, listExiting, emptyEntering, clearBusy } = useClearListSequence(() => {
     onClearToDownloadRequests?.();
   });
 
   const toDownloadRequests = requests.filter(
     (r) => r.kind === 'wishlist' && r.status !== 'declined'
   );
+  const {
+    displayItems: displayToDownload,
+    listExiting: remoteListExiting,
+    emptyEntering: remoteEmptyEntering,
+  } = useRemoteListClear(toDownloadRequests, clearBusy);
+  const showListExiting = listExiting || remoteListExiting;
+  const showEmptyEntering = emptyEntering || remoteEmptyEntering;
 
   const handleClearAll = () => {
     setConfirmClearToDownload(false);
@@ -42,7 +49,7 @@ export const DJDashboard: React.FC<DJDashboardProps> = ({
           <div>
             <h3 className="font-bold text-sm text-foreground flex items-center gap-2">
               <Download className="w-4 h-4 text-primary" />
-              {t('dj.toDownload', { count: toDownloadRequests.length })}
+              {t('dj.toDownload', { count: displayToDownload.length })}
             </h3>
             {!hideDjTips && (
               <span className="text-xs text-muted-foreground font-normal">
@@ -51,7 +58,7 @@ export const DJDashboard: React.FC<DJDashboardProps> = ({
             )}
           </div>
 
-          {toDownloadRequests.length > 0 && (
+          {displayToDownload.length > 0 && (
             <button
               type="button"
               onClick={() => setConfirmClearToDownload(true)}
@@ -63,11 +70,11 @@ export const DJDashboard: React.FC<DJDashboardProps> = ({
           )}
         </div>
 
-        {toDownloadRequests.length === 0 ? (
+        {displayToDownload.length === 0 ? (
           <div
             className={cn(
               'text-center py-6 space-y-1 bg-background/60 rounded-xl border border-border/60',
-              emptyEntering && 'motion-panel-enter'
+              showEmptyEntering && 'motion-panel-enter'
             )}
           >
             <CheckCheck className="w-8 h-8 text-primary mx-auto opacity-80" />
@@ -77,8 +84,8 @@ export const DJDashboard: React.FC<DJDashboardProps> = ({
             </p>
           </div>
         ) : (
-          <div className={cn('space-y-2', listExiting && 'motion-panel-exit')}>
-            {toDownloadRequests.map((r, idx) => (
+          <div className={cn('space-y-2', showListExiting && 'motion-panel-exit')}>
+            {displayToDownload.map((r, idx) => (
               <div
                 key={r.id}
                 className={cn(

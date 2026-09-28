@@ -432,18 +432,29 @@ export function subscribeToRequests(
     }
   };
 
+  // Bulk clears emit one DELETE per row; coalesce into a single refetch.
+  let debounceTimer: number | undefined;
+  const scheduleReload = () => {
+    window.clearTimeout(debounceTimer);
+    debounceTimer = window.setTimeout(() => {
+      debounceTimer = undefined;
+      void reload();
+    }, 100);
+  };
+
   const channel = supabase
     .channel(`requests:${libraryId}`)
     .on(
       'postgres_changes',
       { event: '*', schema: 'public', table: 'requests', filter: `library_id=eq.${libraryId}` },
       () => {
-        void reload();
+        scheduleReload();
       }
     )
     .subscribe();
 
   return () => {
+    window.clearTimeout(debounceTimer);
     void supabase.removeChannel(channel);
   };
 }
