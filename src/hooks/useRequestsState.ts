@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type Dispatch, type SetStateAction } from 'react';
+import { useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from 'react';
 import type { RequestKind, RequestStatus, Track, TrackRequest, USBLibrary } from '../types';
 import { normalizeLibrarySettings } from '../types';
 import {
@@ -19,6 +19,14 @@ interface UseRequestsStateArgs {
   setRequests: Dispatch<SetStateAction<TrackRequest[]>>;
 }
 
+/** Only title/artist affect catalog matching — status/id changes must not rematch. */
+function matchFingerprint(requests: TrackRequest[]): string {
+  return requests
+    .map((r) => `${r.title}\0${r.artist ?? ''}`)
+    .sort()
+    .join('\n');
+}
+
 export function useRequestsState({
   currentLibrary,
   isOwner,
@@ -26,38 +34,56 @@ export function useRequestsState({
   setRequests,
 }: UseRequestsStateArgs) {
   const [matchedTracks, setMatchedTracks] = useState<Track[]>([]);
-  const [matchingReady, setMatchingReady] = useState(false);
+  /** Fingerprint for which `matchedTracks` is current. */
+  const [matchedFingerprint, setMatchedFingerprint] = useState<string | null>(null);
+  const requestsRef = useRef(requests);
+  requestsRef.current = requests;
+  const matchedLibraryIdRef = useRef<string | null>(null);
+
+  const fingerprint = useMemo(() => matchFingerprint(requests), [requests]);
+  const libraryId = currentLibrary?.id ?? null;
+  /** True once catalog matches for the current title/artist set are available. */
+  const matchingReady = !libraryId || matchedFingerprint === fingerprint;
 
   useEffect(() => {
-    if (!currentLibrary?.id) {
+    if (!libraryId) {
+      matchedLibraryIdRef.current = null;
       setMatchedTracks([]);
-      setMatchingReady(true);
+      setMatchedFingerprint(null);
       return;
     }
 
     let cancelled = false;
-    const libraryId = currentLibrary.id;
-    setMatchingReady(false);
+    const libraryChanged = matchedLibraryIdRef.current !== libraryId;
+    if (libraryChanged) {
+      matchedLibraryIdRef.current = libraryId;
+      setMatchedTracks([]);
+      setMatchedFingerprint(null);
+    }
+
+    const fingerprintAtStart = fingerprint;
     void (async () => {
       try {
+        const currentRequests = requestsRef.current;
         const tracks = await matchRequestTracks(
           libraryId,
-          requests.map((request) => ({ title: request.title, artist: request.artist }))
+          currentRequests.map((request) => ({ title: request.title, artist: request.artist }))
         );
         if (cancelled) return;
         setMatchedTracks(tracks);
+        setMatchedFingerprint(fingerprintAtStart);
       } catch (err) {
         console.error(err);
         if (cancelled) return;
         setMatchedTracks([]);
-      } finally {
-        if (!cancelled) setMatchingReady(true);
+        setMatchedFingerprint(fingerprintAtStart);
       }
     })();
+
     return () => {
       cancelled = true;
     };
-  }, [currentLibrary?.id, requests]);
+  }, [libraryId, fingerprint]);
 
   /** Map request id → catalog track using the server-matched candidate set. */
   const matchedByRequestId = useMemo(() => {

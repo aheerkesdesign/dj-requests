@@ -9,7 +9,7 @@ import { Header } from '../components/Header';
 import { StartScreen } from '../components/StartScreen';
 import { SearchBarAndFilters } from '../components/SearchBarAndFilters';
 import { TrackList } from '../components/TrackList';
-import { RequestTab } from '../components/RequestTab';
+import { RequestTab, type RequestSortBy } from '../components/RequestTab';
 import { RequestModal } from '../components/RequestModal';
 import { ImportModal } from '../components/ImportModal';
 import { SettingsModal } from '../components/SettingsModal';
@@ -125,6 +125,7 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [isRequestOpen, setIsRequestOpen] = useState(false);
   const [prefilledRequest, setPrefilledRequest] = useState({ artist: '', title: '' });
+  const [requestSortBy, setRequestSortBy] = useState<RequestSortBy>('order');
   /** When true, keep the loading shell until the first library paint can fade in cleanly. */
   const [holdEnterUntilReady, setHoldEnterUntilReady] = useState(true);
 
@@ -248,8 +249,10 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
 
                   <div className="sticky top-[118px] z-20 bg-background/95 backdrop-blur-md py-3 border-b border-border/60 shadow-lg -mx-4 px-4 sm:mx-0 sm:px-0">
                     <SearchBarAndFilters
-                      filters={filters}
-                      onFilterChange={(updated) => setFilters((prev) => ({ ...prev, ...updated }))}
+                      searchQuery={filters.searchQuery}
+                      onSearchChange={(searchQuery) =>
+                        setFilters((prev) => ({ ...prev, searchQuery }))
+                      }
                     />
                   </div>
 
@@ -284,6 +287,8 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
                   onUpdateStatus={handleUpdateStatus}
                   onDeleteRequest={handleDeleteRequest}
                   onClearVerzoekjes={handleClearVerzoekjes}
+                  sortBy={requestSortBy}
+                  onSortByChange={setRequestSortBy}
                 />
               )}
 

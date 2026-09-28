@@ -6,17 +6,57 @@ import {
   TrackFieldVisibility,
   DEFAULT_TRACK_FIELD_VISIBILITY,
 } from '../types';
-import { Clock, Music2, CheckCheck, Trash2, Search, Ban, Disc3 } from 'lucide-react';
+import { Clock, Music2, CheckCheck, Trash2, Ban } from 'lucide-react';
 import { useI18n } from '../i18n/LanguageContext';
 import { CamelotBadge } from './CamelotBadge';
 import { BpmBadge } from './BpmBadge';
 import { ModalShell } from './ModalShell';
+import { SearchBarAndFilters } from './SearchBarAndFilters';
 import { useClearListSequence, useExitingIds } from '../hooks/useMotionPresence';
 import { cn } from '@/lib/utils';
 
 function needsMatchedTrackMeta(visibleFields: TrackFieldVisibility): boolean {
-  return Boolean(visibleFields.album || visibleFields.bpm || visibleFields.key);
+  return Boolean(
+    visibleFields.album ||
+      visibleFields.bpm ||
+      visibleFields.key ||
+      visibleFields.genre ||
+      visibleFields.duration ||
+      visibleFields.year
+  );
 }
+
+export type RequestSortBy =
+  | 'order'
+  | 'title'
+  | 'artist'
+  | keyof TrackFieldVisibility;
+
+const OPTIONAL_SORT_FIELDS: (keyof TrackFieldVisibility)[] = [
+  'album',
+  'bpm',
+  'key',
+  'genre',
+  'duration',
+  'year',
+];
+
+const OPTIONAL_SORT_LABEL_KEYS: Record<
+  keyof TrackFieldVisibility,
+  | 'settings.fieldAlbum'
+  | 'settings.fieldBpm'
+  | 'settings.fieldKey'
+  | 'settings.fieldGenre'
+  | 'settings.fieldDuration'
+  | 'settings.fieldYear'
+> = {
+  album: 'settings.fieldAlbum',
+  bpm: 'settings.fieldBpm',
+  key: 'settings.fieldKey',
+  genre: 'settings.fieldGenre',
+  duration: 'settings.fieldDuration',
+  year: 'settings.fieldYear',
+};
 interface RequestTabProps {
   requests: TrackRequest[];
   matchedByRequestId?: Map<string, Track>;
@@ -30,6 +70,9 @@ interface RequestTabProps {
   onUpdateStatus: (requestId: string, status: RequestStatus) => void;
   onDeleteRequest: (requestId: string) => void;
   onClearVerzoekjes?: () => void;
+  /** Lifted so tab switches do not reset the choice. */
+  sortBy: RequestSortBy;
+  onSortByChange: (sortBy: RequestSortBy) => void;
 }
 
 interface SwipeableRequestCardProps {
@@ -194,26 +237,63 @@ export const RequestTab: React.FC<RequestTabProps> = ({
   hideDjTips = false,
   onUpdateStatus,
   onDeleteRequest,
-  onClearVerzoekjes
+  onClearVerzoekjes,
+  sortBy,
+  onSortByChange,
 }) => {
   const { t } = useI18n();
   const [filterStatus, setFilterStatus] = React.useState<string>('all');
-  const [searchFilter, setSearchFilter] = React.useState('');
+  const [searchQuery, setSearchQuery] = React.useState('');
   const [confirmClearVerzoekjes, setConfirmClearVerzoekjes] = React.useState(false);
   const { requestExit, isExiting } = useExitingIds();
   const { beginAfterModalClose, listExiting, emptyEntering } = useClearListSequence(() => {
     onClearVerzoekjes?.();
   });
 
-  const waitForMatches = needsMatchedTrackMeta(visibleFields) && !matchingReady;
+  const needsMeta = needsMatchedTrackMeta(visibleFields);
+  // Keep the last fully-matched list on screen while new matches load — no spinner,
+  // and never flash a row before BPM/album/key/etc. are ready.
+  const publishedRef = React.useRef<{
+    requests: TrackRequest[];
+    matchedByRequestId?: Map<string, Track>;
+  } | null>(null);
+  if (!needsMeta || matchingReady) {
+    publishedRef.current = { requests, matchedByRequestId };
+  }
+  const listRequests =
+    !needsMeta || matchingReady ? requests : (publishedRef.current?.requests ?? []);
+  const listMatched =
+    !needsMeta || matchingReady
+      ? matchedByRequestId
+      : publishedRef.current?.matchedByRequestId;
+
+  const sortOptions = React.useMemo(() => {
+    const options: { value: RequestSortBy; label: string; title?: string }[] = [
+      {
+        value: 'order',
+        label: t('requests.sortOrder'),
+        title: t('requests.sortOrderHint'),
+      },
+      { value: 'title', label: t('requests.sortTitle') },
+      { value: 'artist', label: t('requests.sortArtist') },
+    ];
+    for (const field of OPTIONAL_SORT_FIELDS) {
+      if (visibleFields[field]) {
+        options.push({ value: field, label: t(OPTIONAL_SORT_LABEL_KEYS[field]) });
+      }
+    }
+    return options;
+  }, [t, visibleFields]);
+
+  React.useEffect(() => {
+    if (!sortOptions.some((o) => o.value === sortBy)) {
+      onSortByChange('order');
+    }
+  }, [sortBy, sortOptions, onSortByChange]);
 
   // Filter requests to show ONLY playable tracks (in the DJ's library)
-  const usbRequests = requests.filter(r => r.kind === 'playable');
+  const usbRequests = listRequests.filter(r => r.kind === 'playable');
 
-  // Sorting:
-  // 1. In afwachting (pending): van oud naar nieuw (ascending)
-  // 2. Gedraaid (played): van nieuw naar oud (descending)
-  // 3. Geweigerd (declined): van nieuw naar oud (descending)
   const getStatusRank = (status: RequestStatus) => {
     if (status === 'pending') return 0;
     if (status === 'played') return 1;
@@ -221,23 +301,91 @@ export const RequestTab: React.FC<RequestTabProps> = ({
     return 0;
   };
 
+  const compareOptionalField = (a: TrackRequest, b: TrackRequest): number => {
+    const trackA = listMatched?.get(a.id);
+    const trackB = listMatched?.get(b.id);
+
+    if (sortBy === 'bpm') {
+      const bpmA = trackA?.bpm;
+      const bpmB = trackB?.bpm;
+      const hasA = typeof bpmA === 'number' && Number.isFinite(bpmA);
+      const hasB = typeof bpmB === 'number' && Number.isFinite(bpmB);
+      if (!hasA && !hasB) return 0;
+      if (!hasA) return 1;
+      if (!hasB) return -1;
+      return bpmA - bpmB;
+    }
+
+    if (sortBy === 'duration') {
+      const durA = trackA?.duration;
+      const durB = trackB?.duration;
+      const hasA = typeof durA === 'number' && Number.isFinite(durA);
+      const hasB = typeof durB === 'number' && Number.isFinite(durB);
+      if (!hasA && !hasB) return 0;
+      if (!hasA) return 1;
+      if (!hasB) return -1;
+      return durA - durB;
+    }
+
+    const textA = (
+      sortBy === 'album'
+        ? trackA?.album
+        : sortBy === 'key'
+          ? trackA?.key
+          : sortBy === 'genre'
+            ? trackA?.genre
+            : sortBy === 'year'
+              ? trackA?.year
+              : undefined
+    )?.toString().trim() ?? '';
+    const textB = (
+      sortBy === 'album'
+        ? trackB?.album
+        : sortBy === 'key'
+          ? trackB?.key
+          : sortBy === 'genre'
+            ? trackB?.genre
+            : sortBy === 'year'
+              ? trackB?.year
+              : undefined
+    )?.toString().trim() ?? '';
+
+    if (!textA && !textB) return 0;
+    if (!textA) return 1;
+    if (!textB) return -1;
+    return textA.localeCompare(textB, undefined, { sensitivity: 'base', numeric: true });
+  };
+
   const sortedRequests = [...usbRequests].sort((a, b) => {
+    // Always keep status groups: pending → played → declined
     const rankA = getStatusRank(a.status);
     const rankB = getStatusRank(b.status);
     if (rankA !== rankB) {
       return rankA - rankB;
     }
 
-    const timeA = new Date(a.createdAt).getTime() || 0;
-    const timeB = new Date(b.createdAt).getTime() || 0;
-
-    // Rank 0: In afwachting -> van oud naar nieuw
-    if (rankA === 0) {
-      return timeA - timeB;
+    // Within a status group, apply the selected sort
+    if (sortBy === 'order') {
+      const timeA = new Date(a.createdAt).getTime() || 0;
+      const timeB = new Date(b.createdAt).getTime() || 0;
+      // Pending: oldest first. Played/declined: newest first.
+      if (rankA === 0) return timeA - timeB;
+      return timeB - timeA;
     }
 
-    // Rank 1 & 2: Gedraaid & Geweigerd -> van nieuw naar oud
-    return timeB - timeA;
+    if (sortBy === 'title' || sortBy === 'artist') {
+      const fieldA = (sortBy === 'artist' ? a.artist : a.title).toLowerCase();
+      const fieldB = (sortBy === 'artist' ? b.artist : b.title).toLowerCase();
+      const fieldCmp = fieldA.localeCompare(fieldB, undefined, { sensitivity: 'base' });
+      if (fieldCmp !== 0) return fieldCmp;
+    } else {
+      const fieldCmp = compareOptionalField(a, b);
+      if (fieldCmp !== 0) return fieldCmp;
+    }
+
+    const timeA = new Date(a.createdAt).getTime() || 0;
+    const timeB = new Date(b.createdAt).getTime() || 0;
+    return timeA - timeB;
   });
 
   const filteredRequests = sortedRequests.filter(r => {
@@ -246,8 +394,8 @@ export const RequestTab: React.FC<RequestTabProps> = ({
     if (filterStatus === 'pending' && r.status !== 'pending') return false;
     if (filterStatus === 'played' && r.status !== 'played') return false;
     if (filterStatus === 'declined' && r.status !== 'declined') return false;
-    if (searchFilter.trim()) {
-      const q = searchFilter.toLowerCase();
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
       return (
         r.title.toLowerCase().includes(q) ||
         r.artist.toLowerCase().includes(q)
@@ -281,9 +429,8 @@ export const RequestTab: React.FC<RequestTabProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Filter and Search Bar */}
+      {/* Status filters */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 text-xs">
-        {/* Status Pills */}
         <div className="flex items-center gap-1 overflow-x-auto pb-1 scrollbar-none">
           <button
             type="button"
@@ -331,32 +478,28 @@ export const RequestTab: React.FC<RequestTabProps> = ({
           </button>
         </div>
 
-        {/* Right Controls: Quick Search & Clear All for DJ */}
-        <div className="flex items-center gap-2">
-          <div className="relative min-w-[160px] flex-1 sm:flex-initial">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-            <input
-              type="text"
-              value={searchFilter}
-              onChange={e => setSearchFilter(e.target.value)}
-              placeholder={t('requests.searchPlaceholder')}
-              className="w-full pl-8 pr-3 py-1 rounded-lg bg-card border border-border text-xs text-foreground outline-none focus:border-primary/40"
-            />
-          </div>
-
-          {isOwner && usbRequests.length > 0 && (
-            <button
-              type="button"
-              onClick={() => setConfirmClearVerzoekjes(true)}
-              className="px-3 py-1.5 rounded-xl bg-red-950/70 hover:bg-red-900 border border-red-800/80 text-red-300 text-xs font-bold flex items-center gap-1.5 transition-all shrink-0"
-              title={t('requests.clearTitle')}
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-              <span>{t('requests.clear')}</span>
-            </button>
-          )}
-        </div>
+        {isOwner && usbRequests.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setConfirmClearVerzoekjes(true)}
+            className="px-3 py-1.5 rounded-xl bg-red-950/70 hover:bg-red-900 border border-red-800/80 text-red-300 text-xs font-bold flex items-center gap-1.5 transition-all shrink-0 self-end sm:self-auto"
+            title={t('requests.clearTitle')}
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            <span>{t('requests.clear')}</span>
+          </button>
+        )}
       </div>
+
+      <SearchBarAndFilters
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        sortMenu={{
+          value: sortBy,
+          options: sortOptions,
+          onChange: (value) => onSortByChange(value as RequestSortBy),
+        }}
+      />
 
       {/* DJ Swipe Tip banner */}
       {isOwner && !hideDjTips && usbRequests.length > 0 && (
@@ -365,12 +508,8 @@ export const RequestTab: React.FC<RequestTabProps> = ({
         </div>
       )}
 
-      {/* Requests List — wait for catalog matches so BPM/key/album appear with the row */}
-      {waitForMatches ? (
-        <div className="flex justify-center py-10">
-          <Disc3 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      ) : filteredRequests.length === 0 ? (
+      {/* Hold new/updated rows until catalog matches so optional meta arrives with them */}
+      {needsMeta && !matchingReady && !publishedRef.current ? null : filteredRequests.length === 0 ? (
         <div
           className={cn(
             'bg-card/50 border border-border/80 rounded-2xl p-8 text-center my-2 space-y-2',
@@ -388,7 +527,7 @@ export const RequestTab: React.FC<RequestTabProps> = ({
       ) : (
         <div className={cn('space-y-2.5', listExiting && 'motion-panel-exit')}>
           {filteredRequests.map(req => {
-            const matchingTrack = matchedByRequestId?.get(req.id);
+            const matchingTrack = listMatched?.get(req.id);
             return (
               <div
                 key={req.id}

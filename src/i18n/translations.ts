@@ -99,6 +99,10 @@ export const nl = {
   'requests.clearConfirmTitle': 'Verzoekjes verwijderen?',
   'requests.clearConfirmBody':
     'Weet je zeker dat je alle verzoekjes uit deze lijst wilt verwijderen? Dit kan niet ongedaan worden gemaakt.',
+  'requests.sortOrder': 'Volgorde',
+  'requests.sortOrderHint': 'Op volgorde van aanvragen, oudste bovenaan',
+  'requests.sortTitle': 'Titel',
+  'requests.sortArtist': 'Artiest',
 
   // DJ dashboard
   'dj.toDownload': 'Te Downloaden Nummers ({count})',
@@ -389,6 +393,10 @@ export const en: { [K in keyof typeof nl]: string } = {
   'requests.clearConfirmTitle': 'Delete requests?',
   'requests.clearConfirmBody':
     'Are you sure you want to delete all requests from this list? This cannot be undone.',
+  'requests.sortOrder': 'Order',
+  'requests.sortOrderHint': 'By request time, oldest first',
+  'requests.sortTitle': 'Title',
+  'requests.sortArtist': 'Artist',
 
   'dj.toDownload': 'Tracks to download ({count})',
   'dj.toDownloadHint': 'Requested tracks that are not on your USB yet',
