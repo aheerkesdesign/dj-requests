@@ -9,7 +9,8 @@ interface TrackListProps {
   searchQuery: string;
   requests?: TrackRequest[];
   isOwner?: boolean;
-  allowRequests?: boolean;
+  /** Missing-track prompts only. In-library request buttons stay available either way. */
+  allowDownloadRequests?: boolean;
   visibleFields?: TrackFieldVisibility;
   onRequestModalOpen: () => void;
   onRequestSimilar: (artist: string, title: string) => Promise<void> | void;
@@ -20,7 +21,7 @@ export const TrackList: React.FC<TrackListProps> = ({
   searchQuery,
   requests = [],
   isOwner = false,
-  allowRequests = true,
+  allowDownloadRequests = true,
   visibleFields = DEFAULT_TRACK_FIELD_VISIBILITY,
   onRequestModalOpen,
   onRequestSimilar
@@ -67,14 +68,14 @@ export const TrackList: React.FC<TrackListProps> = ({
               ? t('tracks.noneForQuery', { query: searchQuery })
               : t('tracks.noneInSelection')}
           </h3>
-          {!isOwner && allowRequests && (
+          {!isOwner && allowDownloadRequests && searchQuery.trim() && (
             <p className="text-xs text-zinc-400">
               {t('tracks.notOnUsb')}
             </p>
           )}
         </div>
 
-        {!isOwner && allowRequests && (
+        {!isOwner && allowDownloadRequests && searchQuery.trim() && (
           <div className="pt-2">
             <button
               onClick={onRequestModalOpen}
@@ -96,7 +97,7 @@ export const TrackList: React.FC<TrackListProps> = ({
           track={track}
           searchHighlight={searchQuery}
           isAlreadyRequested={isTrackRequested(track)}
-          onRequestSimilar={allowRequests ? onRequestSimilar : undefined}
+          onRequestSimilar={onRequestSimilar}
           visibleFields={visibleFields}
         />
       ))}

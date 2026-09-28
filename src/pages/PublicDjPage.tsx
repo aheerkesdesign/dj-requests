@@ -42,7 +42,7 @@ import { AccountModal } from '../components/AccountModal';
 import { ShareModal } from '../components/ShareModal';
 import { DJDashboard } from '../components/DJDashboard';
 import { PlaylistFilterModal } from '../components/PlaylistFilterModal';
-import { Disc3, PlusCircle, ListFilter } from 'lucide-react';
+import { Disc3, ListFilter } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { useI18n } from '../i18n/LanguageContext';
 
@@ -476,7 +476,7 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
           <main className="max-w-4xl mx-auto px-4 pt-4 space-y-4">
             {activeTab === 'tracks' && (
               <div className="space-y-4">
-                {isOwner ? (
+                {isOwner && (
                   <div className="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-3.5 sm:p-4 shadow-md flex items-center justify-between gap-3 flex-wrap">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
@@ -512,27 +512,7 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
                       <span>{t('public.filterPlaylistsBtn')}</span>
                     </button>
                   </div>
-                ) : normalizeLibrarySettings(currentLibrary.librarySettings).enableDownloadRequests ? (
-                  <div className="bg-gradient-to-r from-emerald-950/80 via-zinc-900 to-cyan-950/80 border border-emerald-500/30 rounded-2xl p-4 shadow-md flex items-center justify-between gap-3 flex-wrap">
-                    <div className="space-y-1 max-w-lg">
-                      <div className="text-xs font-bold text-emerald-400 uppercase tracking-wider">
-                        {t('public.trackNotFound')}
-                      </div>
-                      <h2 className="text-sm font-bold text-zinc-100">
-                        {t('public.requestNextTime')}
-                      </h2>
-                      <p className="text-xs text-zinc-300 leading-relaxed">
-                        {t('public.requestHint')}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => handleOpenRequestPrefilled()}
-                      className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 text-zinc-950 font-bold text-xs flex items-center gap-1.5"
-                    >
-                      <PlusCircle className="w-4 h-4" /> {t('public.requestTrack')}
-                    </button>
-                  </div>
-                ) : null}
+                )}
 
                 <div className="sticky top-[118px] z-20 bg-zinc-950/95 backdrop-blur-md py-3 border-b border-zinc-800/60 shadow-lg -mx-4 px-4 sm:mx-0 sm:px-0">
                   <SearchBarAndFilters
@@ -549,7 +529,7 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
                   searchQuery={filters.searchQuery}
                   requests={requests}
                   isOwner={isOwner}
-                  allowRequests={normalizeLibrarySettings(currentLibrary.librarySettings).enableDownloadRequests}
+                  allowDownloadRequests={normalizeLibrarySettings(currentLibrary.librarySettings).enableDownloadRequests}
                   visibleFields={
                     (currentLibrary.trackDisplayPrefs ?? DEFAULT_TRACK_DISPLAY_PREFS)[
                       isOwner ? 'dj' : 'viewers'
