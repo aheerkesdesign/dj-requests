@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { normalizeLibrarySettings, normalizeRequestSortBy } from './types';
+import {
+  normalizeLibrarySettings,
+  normalizeRequestButtonStyle,
+  normalizeRequestSortBy,
+} from './types';
 
 describe('normalizeRequestSortBy', () => {
   it('accepts known sort values', () => {
@@ -13,10 +17,23 @@ describe('normalizeRequestSortBy', () => {
   });
 });
 
+describe('normalizeRequestButtonStyle', () => {
+  it('accepts icon style', () => {
+    expect(normalizeRequestButtonStyle('icon')).toBe('icon');
+  });
+
+  it('defaults to text for missing or invalid values', () => {
+    expect(normalizeRequestButtonStyle('text')).toBe('text');
+    expect(normalizeRequestButtonStyle(undefined)).toBe('text');
+    expect(normalizeRequestButtonStyle('pill')).toBe('text');
+  });
+});
+
 describe('normalizeLibrarySettings', () => {
   it('defaults show flags to true when missing', () => {
     const settings = normalizeLibrarySettings({});
     expect(settings.requestSortBy).toBe('order');
+    expect(settings.requestButtonStyle).toBe('text');
     expect(settings.showStartScreen).toBe(true);
     expect(settings.showPlayedDeclinedToGuests).toBe(true);
     expect(settings.showDjTips).toBe(true);
@@ -25,6 +42,12 @@ describe('normalizeLibrarySettings', () => {
 
   it('preserves a stored sort preference', () => {
     expect(normalizeLibrarySettings({ requestSortBy: 'artist' }).requestSortBy).toBe('artist');
+  });
+
+  it('preserves a stored request button style', () => {
+    expect(normalizeLibrarySettings({ requestButtonStyle: 'icon' }).requestButtonStyle).toBe(
+      'icon'
+    );
   });
 
   it('keeps other settings when normalizing sort', () => {

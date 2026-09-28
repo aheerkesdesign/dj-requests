@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { isTrackInLibrary, findTrackInLibrary, playlistIdsForTrack } from './library';
+import {
+  isTrackInLibrary,
+  findTrackInLibrary,
+  playlistIdsForTrack,
+  hasPresentMetaValue,
+} from './library';
 import type { Playlist, Track } from '../types';
 
 function track(partial: Partial<Track> & Pick<Track, 'name' | 'artist'>): Track {
@@ -15,6 +20,26 @@ function track(partial: Partial<Track> & Pick<Track, 'name' | 'artist'>): Track 
     ...partial,
   };
 }
+
+describe('hasPresentMetaValue', () => {
+  it('rejects empty and placeholder zeros', () => {
+    expect(hasPresentMetaValue(undefined)).toBe(false);
+    expect(hasPresentMetaValue(null)).toBe(false);
+    expect(hasPresentMetaValue('')).toBe(false);
+    expect(hasPresentMetaValue('   ')).toBe(false);
+    expect(hasPresentMetaValue(0)).toBe(false);
+    expect(hasPresentMetaValue('0')).toBe(false);
+    expect(hasPresentMetaValue('00')).toBe(false);
+    expect(hasPresentMetaValue('0.0')).toBe(false);
+  });
+
+  it('accepts real values', () => {
+    expect(hasPresentMetaValue('House')).toBe(true);
+    expect(hasPresentMetaValue('1983')).toBe(true);
+    expect(hasPresentMetaValue(128)).toBe(true);
+    expect(hasPresentMetaValue('007')).toBe(true);
+  });
+});
 
 describe('isTrackInLibrary', () => {
   const tracks = [

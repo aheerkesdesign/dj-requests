@@ -280,6 +280,7 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
                     isOwner={isOwner}
                     allowDownloadRequests={librarySettings.enableDownloadRequests}
                     visibleFields={visibleFields}
+                    requestButtonStyle={librarySettings.requestButtonStyle}
                     onRequestModalOpen={() => handleOpenRequestPrefilled()}
                     onRequestSimilar={(artist, title) => handleSubmitRequest(title, artist)}
                   />

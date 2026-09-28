@@ -1,5 +1,5 @@
 import React from 'react';
-import { Track, TrackRequest, TrackFieldVisibility, DEFAULT_TRACK_FIELD_VISIBILITY } from '../types';
+import { Track, TrackRequest, TrackFieldVisibility, DEFAULT_TRACK_FIELD_VISIBILITY, type RequestButtonStyle } from '../types';
 import { TrackCard } from './TrackCard';
 import { SearchX, PlusCircle, Disc3, ChevronDown } from 'lucide-react';
 import { useI18n } from '../i18n/LanguageContext';
@@ -12,6 +12,7 @@ interface TrackListProps {
   /** Missing-track prompts only. In-library request buttons stay available either way. */
   allowDownloadRequests?: boolean;
   visibleFields?: TrackFieldVisibility;
+  requestButtonStyle?: RequestButtonStyle;
   totalCount?: number;
   listKey?: string;
   loading?: boolean;
@@ -28,6 +29,7 @@ export const TrackList: React.FC<TrackListProps> = ({
   isOwner = false,
   allowDownloadRequests = true,
   visibleFields = DEFAULT_TRACK_FIELD_VISIBILITY,
+  requestButtonStyle = 'text',
   totalCount,
   listKey = '',
   loading = false,
@@ -116,6 +118,7 @@ export const TrackList: React.FC<TrackListProps> = ({
           isAlreadyRequested={isTrackRequested(track)}
           onRequestSimilar={onRequestSimilar}
           visibleFields={visibleFields}
+          requestButtonStyle={requestButtonStyle}
         />
       ))}
 

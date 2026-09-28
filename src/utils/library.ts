@@ -1,5 +1,20 @@
 import { Playlist, Track } from '../types';
 
+/**
+ * True when optional track meta is worth showing.
+ * Treats null/empty/whitespace and placeholder zeros ("0", 0, "0.0") as missing.
+ */
+export function hasPresentMetaValue(value: unknown): boolean {
+  if (value == null) return false;
+  if (typeof value === 'number') {
+    return Number.isFinite(value) && value !== 0;
+  }
+  const text = String(value).trim();
+  if (!text) return false;
+  if (/^0+(?:\.0+)?$/.test(text)) return false;
+  return true;
+}
+
 /** Playlist ids this track belongs to, matching the client-side playlist filter. */
 export function playlistIdsForTrack(track: Track, playlists: Playlist[]): string[] {
   const names = new Set(track.playlists || []);

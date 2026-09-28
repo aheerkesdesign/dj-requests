@@ -9,6 +9,7 @@ import {
   LibrarySettings,
   DEFAULT_LIBRARY_SETTINGS,
   normalizeLibrarySettings,
+  type RequestButtonStyle,
 } from '../types';
 import { errorMessage } from '../utils/errors';
 import { ModalShell } from './ModalShell';
@@ -247,7 +248,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               onToggle={() => setRequestsOpen((v) => !v)}
             />
             {requestsOpen && (
-              <div className="rounded-xl bg-background/80 border border-border/80 p-3.5 space-y-3">
+              <div className="rounded-xl bg-background/80 border border-border/80 p-3.5 space-y-4">
                 {renderToggleRow(
                   settings.enableDownloadRequests,
                   () => toggleSetting('enableDownloadRequests'),
@@ -260,6 +261,36 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   t('settings.showDjTips'),
                   t('settings.showDjTipsHint')
                 )}
+                <div className="border-t border-border/60" />
+                <div className="space-y-2">
+                  <div>
+                    <label
+                      htmlFor="request-button-style"
+                      className="text-xs font-medium text-foreground block"
+                    >
+                      {t('settings.requestButtonStyle')}
+                    </label>
+                    <span className="text-[11px] text-muted-foreground mt-0.5 block">
+                      {t('settings.requestButtonStyleHint')}
+                    </span>
+                  </div>
+                  <select
+                    id="request-button-style"
+                    disabled={!allowEdit}
+                    value={settings.requestButtonStyle}
+                    onChange={(e) =>
+                      allowEdit &&
+                      setSettings((prev) => ({
+                        ...prev,
+                        requestButtonStyle: e.target.value as RequestButtonStyle,
+                      }))
+                    }
+                    className="w-full rounded-lg border border-border bg-card px-3 py-2 text-xs font-medium text-foreground outline-none transition-colors focus:border-primary/60 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="text">{t('settings.requestButtonStyleText')}</option>
+                    <option value="icon">{t('settings.requestButtonStyleIcon')}</option>
+                  </select>
+                </div>
               </div>
             )}
           </section>

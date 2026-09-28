@@ -1,4 +1,5 @@
 import { Track, Playlist, PlaylistNode, USBLibrary } from '../types';
+import { hasPresentMetaValue } from './library';
 
 /**
  * Format total time in seconds to MM:SS or HH:MM:SS
@@ -157,14 +158,17 @@ export function parseRekordboxXML(xmlContent: string, libraryName: string = 'Mij
     const name = el.getAttribute('Name') || 'Onbekend Nummer';
     const artist = el.getAttribute('Artist') || 'Onbekende Artiest';
     const composer = el.getAttribute('Composer') || '';
-    const album = el.getAttribute('Album') || '';
+    const albumRaw = el.getAttribute('Album') || '';
+    const album = hasPresentMetaValue(albumRaw) ? albumRaw.trim() : '';
     const genreRaw = el.getAttribute('Genre') || '';
-    const genre = genreRaw === 'Algemeen' ? '' : genreRaw;
+    const genre =
+      genreRaw === 'Algemeen' || !hasPresentMetaValue(genreRaw) ? '' : genreRaw.trim();
     const bpmRaw = parseFloat(el.getAttribute('AverageBpm') || '0');
     const bpm = Math.round(bpmRaw * 10) / 10;
     const tonality = el.getAttribute('Tonality') || 'N/A';
     const duration = parseInt(el.getAttribute('TotalTime') || '0', 10);
-    const year = el.getAttribute('Year') || '';
+    const yearRaw = el.getAttribute('Year') || '';
+    const year = hasPresentMetaValue(yearRaw) ? yearRaw.trim() : '';
     const comments = el.getAttribute('Comments') || '';
     const rating = parseInt(el.getAttribute('Rating') || '0', 10);
     const dateAdded = el.getAttribute('DateAdded') || '';

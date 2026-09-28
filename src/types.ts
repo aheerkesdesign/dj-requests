@@ -132,6 +132,12 @@ export function normalizeRequestSortBy(value: unknown): RequestSortBy {
     : 'order';
 }
 
+export type RequestButtonStyle = 'text' | 'icon';
+
+export function normalizeRequestButtonStyle(value: unknown): RequestButtonStyle {
+  return value === 'icon' ? 'icon' : 'text';
+}
+
 export interface LibrarySettings {
   enableDownloadRequests: boolean;
   /** When true, guests see the start screen before the library. */
@@ -143,6 +149,8 @@ export interface LibrarySettings {
   pageDefaultLocale: 'nl' | 'en' | 'auto';
   /** DJ requests-tab sort preference (synced via library_settings). */
   requestSortBy: RequestSortBy;
+  /** Track-card request control: labeled button or icon-only. */
+  requestButtonStyle: RequestButtonStyle;
 }
 
 export const DEFAULT_LIBRARY_SETTINGS: LibrarySettings = {
@@ -152,6 +160,7 @@ export const DEFAULT_LIBRARY_SETTINGS: LibrarySettings = {
   showDjTips: true,
   pageDefaultLocale: 'auto',
   requestSortBy: 'order',
+  requestButtonStyle: 'text',
 };
 
 /** Prefer new show* keys; fall back to inverting legacy hide/skip keys. */
@@ -180,6 +189,7 @@ export function normalizeLibrarySettings(raw: unknown): LibrarySettings {
         ? src.pageDefaultLocale
         : 'auto',
     requestSortBy: normalizeRequestSortBy(src.requestSortBy),
+    requestButtonStyle: normalizeRequestButtonStyle(src.requestButtonStyle),
   };
 }
 

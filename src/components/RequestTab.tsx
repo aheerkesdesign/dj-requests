@@ -25,6 +25,7 @@ import {
   prefersReducedMotion,
 } from '../hooks/useMotionPresence';
 import { cn } from '@/lib/utils';
+import { hasPresentMetaValue } from '../utils/library';
 
 export type { RequestSortBy };
 
@@ -203,9 +204,9 @@ const SwipeableRequestCard: React.FC<SwipeableRequestCardProps> = ({
   const isDeclined = req.status === 'declined';
   const isMuted = isPlayed || isDeclined;
 
-  const showAlbum = visibleFields.album && Boolean(matchingTrack?.album);
-  const showBpm = visibleFields.bpm && Boolean(matchingTrack?.bpm);
-  const showKey = visibleFields.key && Boolean(matchingTrack?.key);
+  const showAlbum = visibleFields.album && hasPresentMetaValue(matchingTrack?.album);
+  const showBpm = visibleFields.bpm && hasPresentMetaValue(matchingTrack?.bpm);
+  const showKey = visibleFields.key && hasPresentMetaValue(matchingTrack?.key) && matchingTrack?.key !== 'N/A';
   const showMeta = showAlbum || showBpm || showKey;
 
   const swipeProgress = Math.min(1, Math.abs(offsetX) / SWIPE_THRESHOLD);
@@ -426,23 +427,23 @@ export const RequestTab: React.FC<RequestTabProps> = ({
     if (displaySortBy === 'bpm') {
       const bpmA = trackA?.bpm;
       const bpmB = trackB?.bpm;
-      const hasA = typeof bpmA === 'number' && Number.isFinite(bpmA);
-      const hasB = typeof bpmB === 'number' && Number.isFinite(bpmB);
+      const hasA = hasPresentMetaValue(bpmA);
+      const hasB = hasPresentMetaValue(bpmB);
       if (!hasA && !hasB) return 0;
       if (!hasA) return 1;
       if (!hasB) return -1;
-      return bpmA - bpmB;
+      return (bpmA as number) - (bpmB as number);
     }
 
     if (displaySortBy === 'duration') {
       const durA = trackA?.duration;
       const durB = trackB?.duration;
-      const hasA = typeof durA === 'number' && Number.isFinite(durA);
-      const hasB = typeof durB === 'number' && Number.isFinite(durB);
+      const hasA = hasPresentMetaValue(durA);
+      const hasB = hasPresentMetaValue(durB);
       if (!hasA && !hasB) return 0;
       if (!hasA) return 1;
       if (!hasB) return -1;
-      return durA - durB;
+      return (durA as number) - (durB as number);
     }
 
     const textA = (
@@ -455,7 +456,7 @@ export const RequestTab: React.FC<RequestTabProps> = ({
             : displaySortBy === 'year'
               ? trackA?.year
               : undefined
-    )?.toString().trim() ?? '';
+    );
     const textB = (
       displaySortBy === 'album'
         ? trackB?.album
@@ -466,12 +467,17 @@ export const RequestTab: React.FC<RequestTabProps> = ({
             : displaySortBy === 'year'
               ? trackB?.year
               : undefined
-    )?.toString().trim() ?? '';
+    );
 
-    if (!textA && !textB) return 0;
-    if (!textA) return 1;
-    if (!textB) return -1;
-    return textA.localeCompare(textB, undefined, { sensitivity: 'base', numeric: true });
+    const hasA = hasPresentMetaValue(textA) && (displaySortBy !== 'key' || textA !== 'N/A');
+    const hasB = hasPresentMetaValue(textB) && (displaySortBy !== 'key' || textB !== 'N/A');
+    if (!hasA && !hasB) return 0;
+    if (!hasA) return 1;
+    if (!hasB) return -1;
+    return String(textA).trim().localeCompare(String(textB).trim(), undefined, {
+      sensitivity: 'base',
+      numeric: true,
+    });
   };
 
   const sortedRequests = [...displayUsbRequests].sort((a, b) => {

@@ -1,10 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Track, TrackFieldVisibility, DEFAULT_TRACK_FIELD_VISIBILITY } from '../types';
-import { PlusCircle, Check } from 'lucide-react';
+import {
+  Track,
+  TrackFieldVisibility,
+  DEFAULT_TRACK_FIELD_VISIBILITY,
+  type RequestButtonStyle,
+} from '../types';
+import { Plus, PlusCircle, Check } from 'lucide-react';
 import { useI18n } from '../i18n/LanguageContext';
 import { CamelotBadge } from './CamelotBadge';
 import { BpmBadge } from './BpmBadge';
 import { errorMessage } from '../utils/errors';
+import { hasPresentMetaValue } from '../utils/library';
 import { cn } from '@/lib/utils';
 
 interface TrackCardProps {
@@ -13,6 +19,7 @@ interface TrackCardProps {
   isAlreadyRequested?: boolean;
   onRequestSimilar?: (artist: string, title: string) => Promise<void> | void;
   visibleFields?: TrackFieldVisibility;
+  requestButtonStyle?: RequestButtonStyle;
 }
 
 export const TrackCard: React.FC<TrackCardProps> = ({
@@ -21,6 +28,7 @@ export const TrackCard: React.FC<TrackCardProps> = ({
   isAlreadyRequested = false,
   onRequestSimilar,
   visibleFields = DEFAULT_TRACK_FIELD_VISIBILITY,
+  requestButtonStyle = 'text',
 }) => {
   const { t } = useI18n();
   const [requestedLocally, setRequestedLocally] = useState(false);
@@ -34,6 +42,7 @@ export const TrackCard: React.FC<TrackCardProps> = ({
   }, [isAlreadyRequested]);
 
   const isRequested = isAlreadyRequested || requestedLocally;
+  const iconOnly = requestButtonStyle === 'icon';
 
   const handleRequest = async () => {
     if (isRequested || isLoading || !onRequestSimilar) return;
@@ -65,12 +74,12 @@ export const TrackCard: React.FC<TrackCardProps> = ({
     );
   };
 
-  const showAlbum = visibleFields.album && Boolean(track.album);
-  const showBpm = visibleFields.bpm && Boolean(track.bpm);
-  const showKey = visibleFields.key && Boolean(track.key);
-  const showGenre = visibleFields.genre && Boolean(track.genre);
-  const showDuration = visibleFields.duration && Boolean(track.durationFormatted);
-  const showYear = visibleFields.year && Boolean(track.year);
+  const showAlbum = visibleFields.album && hasPresentMetaValue(track.album);
+  const showBpm = visibleFields.bpm && hasPresentMetaValue(track.bpm);
+  const showKey = visibleFields.key && hasPresentMetaValue(track.key) && track.key !== 'N/A';
+  const showGenre = visibleFields.genre && hasPresentMetaValue(track.genre);
+  const showDuration = visibleFields.duration && hasPresentMetaValue(track.duration);
+  const showYear = visibleFields.year && hasPresentMetaValue(track.year);
   const showMeta = showAlbum || showBpm || showKey || showGenre || showDuration || showYear;
 
   return (
@@ -135,42 +144,72 @@ export const TrackCard: React.FC<TrackCardProps> = ({
 
       {onRequestSimilar && (
         <button
+          type="button"
           onClick={handleRequest}
           disabled={isRequested || isLoading}
           onAnimationEnd={() => setConfirmPulse(false)}
+          aria-label={isRequested ? t('trackCard.requested') : t('trackCard.requestTitle')}
+          title={isRequested ? t('trackCard.requested') : t('trackCard.requestTitle')}
           className={cn(
-            'relative grid shrink-0 place-items-center overflow-hidden rounded-full px-3.5 py-1.5 text-xs font-semibold motion-colors',
+            'relative grid shrink-0 place-items-center overflow-hidden motion-colors',
+            iconOnly
+              ? 'size-11 rounded-xl'
+              : 'rounded-full px-3.5 py-1.5 text-xs font-semibold',
             isRequested
               ? 'cursor-default border border-border bg-secondary text-muted-foreground'
               : 'border border-primary/40 bg-primary/10 text-primary hover:bg-primary/20',
             confirmPulse && 'motion-request-confirm'
           )}
-          title={isRequested ? t('trackCard.requested') : t('trackCard.requestTitle')}
         >
-          <span
-            aria-hidden={isRequested}
-            className={cn(
-              'col-start-1 row-start-1 flex items-center gap-1.5 whitespace-nowrap transition-[opacity,transform] duration-200 ease-out',
-              isRequested
-                ? 'pointer-events-none scale-95 opacity-0'
-                : 'scale-100 opacity-100'
-            )}
-          >
-            <PlusCircle className="h-3.5 w-3.5" />
-            <span>{t('trackCard.request')}</span>
-          </span>
-          <span
-            aria-hidden={!isRequested}
-            className={cn(
-              'col-start-1 row-start-1 flex items-center gap-1.5 whitespace-nowrap transition-[opacity,transform] duration-200 ease-out',
-              isRequested
-                ? 'scale-100 opacity-100'
-                : 'pointer-events-none scale-95 opacity-0'
-            )}
-          >
-            <Check className="h-3.5 w-3.5 text-muted-foreground" />
-            <span>{t('trackCard.requested')}</span>
-          </span>
+          {iconOnly ? (
+            <>
+              <Plus
+                aria-hidden
+                className={cn(
+                  'col-start-1 row-start-1 h-6 w-6 transition-[opacity,transform] duration-200 ease-out',
+                  isRequested
+                    ? 'pointer-events-none scale-75 opacity-0'
+                    : 'scale-100 opacity-100'
+                )}
+              />
+              <Check
+                aria-hidden
+                className={cn(
+                  'col-start-1 row-start-1 h-6 w-6 transition-[opacity,transform] duration-200 ease-out',
+                  isRequested
+                    ? 'scale-100 opacity-100'
+                    : 'pointer-events-none scale-75 opacity-0'
+                )}
+              />
+            </>
+          ) : (
+            <>
+              <span
+                aria-hidden={isRequested}
+                className={cn(
+                  'col-start-1 row-start-1 flex items-center gap-1.5 whitespace-nowrap transition-[opacity,transform] duration-200 ease-out',
+                  isRequested
+                    ? 'pointer-events-none scale-95 opacity-0'
+                    : 'scale-100 opacity-100'
+                )}
+              >
+                <PlusCircle className="h-3.5 w-3.5" />
+                <span>{t('trackCard.request')}</span>
+              </span>
+              <span
+                aria-hidden={!isRequested}
+                className={cn(
+                  'col-start-1 row-start-1 flex items-center gap-1.5 whitespace-nowrap transition-[opacity,transform] duration-200 ease-out',
+                  isRequested
+                    ? 'scale-100 opacity-100'
+                    : 'pointer-events-none scale-95 opacity-0'
+                )}
+              >
+                <Check className="h-3.5 w-3.5 text-muted-foreground" />
+                <span>{t('trackCard.requested')}</span>
+              </span>
+            </>
+          )}
         </button>
       )}
     </div>

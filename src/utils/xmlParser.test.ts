@@ -39,6 +39,22 @@ describe('parseRekordboxXML', () => {
     expect(library.playlists[0].trackIds).toEqual(['10']);
   });
 
+  it('drops placeholder zero year/album/genre values', () => {
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<DJ_PLAYLISTS>
+  <COLLECTION Entries="1">
+    <TRACK TrackID="1" Name="Untitled" Artist="DJ" Album="0" Genre="0" AverageBpm="0" Tonality="" TotalTime="0" Year="0" />
+  </COLLECTION>
+  <PLAYLISTS>
+    <NODE Type="0" Name="ROOT" />
+  </PLAYLISTS>
+</DJ_PLAYLISTS>`;
+    const track = parseRekordboxXML(xml, 'USB', 'Alex').tracks[0];
+    expect(track.album).toBe('');
+    expect(track.genre).toBe('');
+    expect(track.year).toBe('');
+  });
+
   it('rejects XML the parser flags as invalid', () => {
     expect(() => parseRekordboxXML('<not xml')).toThrow(/Ongeldig XML/);
   });
