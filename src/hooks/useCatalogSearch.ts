@@ -29,7 +29,11 @@ export function useCatalogSearch({
   const [catalogTracks, setCatalogTracks] = useState<Track[]>([]);
   const [catalogTotal, setCatalogTotal] = useState(0);
   const [catalogLoading, setCatalogLoading] = useState(false);
+  /** List key for which `catalogTracks` is a completed first-page result. */
+  const [resolvedListKey, setResolvedListKey] = useState<string | null>(null);
   const searchRequest = useRef(0);
+  const resolvedListKeyRef = useRef<string | null>(null);
+  resolvedListKeyRef.current = resolvedListKey;
 
   const activeSelectedPlaylistIds = useMemo(() => {
     if (!currentLibrary?.playlists) return [];
@@ -46,18 +50,43 @@ export function useCatalogSearch({
     return allSelected ? null : activeSelectedPlaylistIds;
   }, [currentLibrary, activeSelectedPlaylistIds]);
 
-  const catalogListKey = `${filters.searchQuery}|${filters.sortBy}|${filters.sortOrder}|${
-    playlistIdsForSearch?.join(',') ?? 'all'
-  }`;
+  const catalogListKey = `${currentLibrary?.id ?? ''}|${currentLibrary?.trackCount ?? 0}|${
+    filters.searchQuery
+  }|${filters.sortBy}|${filters.sortOrder}|${playlistIdsForSearch?.join(',') ?? 'all'}`;
+
+  const shouldSearch = Boolean(currentLibrary?.id) && (ownerMode || viewMode === 'library');
+  const catalogReady = shouldSearch && resolvedListKey === catalogListKey;
+  const showTracks = catalogReady;
 
   useEffect(() => {
-    if (!currentLibrary?.id) return;
-    const requestId = ++searchRequest.current;
-    if (!ownerMode && viewMode !== 'library') return;
+    if (!shouldSearch || !currentLibrary?.id) {
+      searchRequest.current += 1;
+      setCatalogTracks([]);
+      setCatalogTotal(0);
+      setCatalogLoading(false);
+      setResolvedListKey(null);
+      return;
+    }
+
+    // Already have a complete page for this key (e.g. Strict Mode remount) — don't flash empty.
+    if (resolvedListKeyRef.current === catalogListKey) {
+      setCatalogLoading(false);
+      return;
+    }
 
     const libraryId = currentLibrary.id;
+    const requestId = ++searchRequest.current;
+    const listKey = catalogListKey;
     setCatalogLoading(true);
+
+    // Debounce only free-text search; playlist/sort/library changes fetch immediately.
+    const delayMs = filters.searchQuery.trim() ? 300 : 0;
     const handle = window.setTimeout(() => {
+      // Hide rows before replacing so we never paint a stale page mid-transition.
+      setResolvedListKey(null);
+      setCatalogTracks([]);
+      setCatalogTotal(0);
+
       void (async () => {
         try {
           const page = await searchLibraryTracks(libraryId, {
@@ -71,33 +100,28 @@ export function useCatalogSearch({
           if (searchRequest.current !== requestId) return;
           setCatalogTracks(page.tracks);
           setCatalogTotal(page.total);
+          setResolvedListKey(listKey);
         } catch (err) {
           console.error(err);
           if (searchRequest.current !== requestId) return;
           setCatalogTracks([]);
           setCatalogTotal(0);
+          setResolvedListKey(listKey);
         } finally {
           if (searchRequest.current === requestId) setCatalogLoading(false);
         }
       })();
-    }, 300);
+    }, delayMs);
 
     return () => {
       window.clearTimeout(handle);
     };
-  }, [
-    currentLibrary?.id,
-    currentLibrary?.trackCount,
-    filters.searchQuery,
-    filters.sortBy,
-    filters.sortOrder,
-    playlistIdsForSearch,
-    ownerMode,
-    viewMode,
-  ]);
+  }, [shouldSearch, currentLibrary?.id, catalogListKey, filters.searchQuery, playlistIdsForSearch]);
 
   const loadMoreTracks = async () => {
-    if (!currentLibrary?.id || catalogLoading || catalogTracks.length >= catalogTotal) return;
+    if (!currentLibrary?.id || catalogLoading || !catalogReady || catalogTracks.length >= catalogTotal) {
+      return;
+    }
     const requestId = searchRequest.current;
     setCatalogLoading(true);
     try {
@@ -122,9 +146,10 @@ export function useCatalogSearch({
   return {
     filters,
     setFilters,
-    catalogTracks,
-    catalogTotal,
-    catalogLoading,
+    catalogTracks: showTracks ? catalogTracks : [],
+    catalogTotal: showTracks ? catalogTotal : 0,
+    catalogLoading: shouldSearch && !catalogReady,
+    catalogReady,
     catalogListKey,
     activeSelectedPlaylistIds,
     loadMoreTracks,

@@ -175,8 +175,10 @@
     animation: motion-fade-out var(--duration-motion-fast) ease-out forwards;
   }
 
+  /* opacity: 0 + both → first paint is empty; no flash before the fade starts */
   .motion-panel-enter {
-    animation: motion-fade-in-from-top var(--duration-motion-slow) var(--ease-motion) forwards;
+    opacity: 0;
+    animation: motion-fade-in-from-top var(--duration-motion-slow) var(--ease-motion) both;
   }
 
   .motion-request-confirm {
@@ -184,7 +186,8 @@
   }
 
   .motion-overlay-enter {
-    animation: motion-overlay-fade-in var(--duration-motion) ease-out forwards;
+    opacity: 0;
+    animation: motion-overlay-fade-in var(--duration-motion) ease-out both;
   }
 
   .motion-overlay-exit {
@@ -192,7 +195,8 @@
   }
 
   .motion-modal-enter {
-    animation: motion-fade-in-from-top var(--duration-motion-slow) var(--ease-motion) forwards;
+    opacity: 0;
+    animation: motion-fade-in-from-top var(--duration-motion-slow) var(--ease-motion) both;
   }
 
   .motion-modal-exit {
@@ -238,5 +242,11 @@
   .motion-modal-enter,
   .motion-modal-exit {
     animation: none !important;
+  }
+
+  .motion-panel-enter,
+  .motion-overlay-enter,
+  .motion-modal-enter {
+    opacity: 1;
   }
 }

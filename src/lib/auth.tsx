@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from './supabase';
 import type { Profile } from '../types';
@@ -19,45 +19,44 @@ async function fetchProfileRow(userId: string) {
   return supabase.from('profiles').select(PROFILE_COLUMNS).eq('id', userId).maybeSingle();
 }
 
+async function resolveProfile(userId: string): Promise<Profile | null> {
+  let { data, error } = await fetchProfileRow(userId);
+
+  if (error) {
+    console.error('Kon profiel niet laden:', error);
+    return null;
+  }
+
+  if (!data) {
+    const { error: ensureError } = await supabase.rpc('ensure_my_profile');
+    if (ensureError) {
+      console.error('Kon profiel niet aanmaken:', ensureError);
+      return null;
+    }
+    ({ data, error } = await fetchProfileRow(userId));
+    if (error || !data) {
+      console.error('Profiel nog steeds niet beschikbaar:', error);
+      return null;
+    }
+  }
+
+  return mapProfile(data);
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [authReady, setAuthReady] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(false);
 
-  const loadProfile = async (userId: string) => {
-    let { data, error } = await fetchProfileRow(userId);
-
-    if (error) {
-      console.error('Kon profiel niet laden:', error);
+  const refreshProfile = useCallback(async () => {
+    const userId = session?.user?.id;
+    if (!userId) {
       setProfile(null);
       return;
     }
-
-    if (!data) {
-      const { error: ensureError } = await supabase.rpc('ensure_my_profile');
-      if (ensureError) {
-        console.error('Kon profiel niet aanmaken:', ensureError);
-        setProfile(null);
-        return;
-      }
-      ({ data, error } = await fetchProfileRow(userId));
-      if (error || !data) {
-        console.error('Profiel nog steeds niet beschikbaar:', error);
-        setProfile(null);
-        return;
-      }
-    }
-
-    setProfile(mapProfile(data));
-  };
-
-  const refreshProfile = async () => {
-    if (!session?.user?.id) {
-      setProfile(null);
-      return;
-    }
-    await loadProfile(session.user.id);
-  };
+    setProfile(await resolveProfile(userId));
+  }, [session?.user?.id]);
 
   useEffect(() => {
     let mounted = true;
@@ -65,23 +64,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     supabase.auth.getSession().then(({ data }) => {
       if (!mounted) return;
       setSession(data.session);
-      if (data.session?.user) {
-        loadProfile(data.session.user.id).finally(() => {
-          if (mounted) setLoading(false);
-        });
-      } else {
-        setLoading(false);
-      }
+      setAuthReady(true);
     });
 
     const { data: sub } = supabase.auth.onAuthStateChange((_event, nextSession) => {
       setSession(nextSession);
-      if (nextSession?.user) {
-        void loadProfile(nextSession.user.id);
-      } else {
-        setProfile(null);
-      }
-      setLoading(false);
+      setAuthReady(true);
     });
 
     return () => {
@@ -89,6 +77,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       sub.subscription.unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    if (!authReady) return;
+
+    let cancelled = false;
+    const userId = session?.user?.id;
+
+    if (!userId) {
+      setProfile(null);
+      setProfileLoading(false);
+      return;
+    }
+
+    setProfileLoading(true);
+    void resolveProfile(userId)
+      .then((nextProfile) => {
+        if (!cancelled) setProfile(nextProfile);
+      })
+      .finally(() => {
+        if (!cancelled) setProfileLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authReady, session?.user?.id]);
+
+  const loading = !authReady || profileLoading;
 
   const value = useMemo<AuthContextValue>(
     () => ({
@@ -102,7 +118,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setProfile(null);
       },
     }),
-    [session, profile, loading]
+    [session, profile, loading, refreshProfile]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

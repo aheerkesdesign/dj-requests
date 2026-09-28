@@ -6,7 +6,7 @@ import {
   TrackFieldVisibility,
   DEFAULT_TRACK_FIELD_VISIBILITY,
 } from '../types';
-import { Clock, Music2, CheckCheck, Trash2, Search, Ban } from 'lucide-react';
+import { Clock, Music2, CheckCheck, Trash2, Search, Ban, Disc3 } from 'lucide-react';
 import { useI18n } from '../i18n/LanguageContext';
 import { CamelotBadge } from './CamelotBadge';
 import { BpmBadge } from './BpmBadge';
@@ -14,9 +14,14 @@ import { ModalShell } from './ModalShell';
 import { useClearListSequence, useExitingIds } from '../hooks/useMotionPresence';
 import { cn } from '@/lib/utils';
 
+function needsMatchedTrackMeta(visibleFields: TrackFieldVisibility): boolean {
+  return Boolean(visibleFields.album || visibleFields.bpm || visibleFields.key);
+}
 interface RequestTabProps {
   requests: TrackRequest[];
   matchedByRequestId?: Map<string, Track>;
+  /** False while catalog matches for optional BPM/key/album fields are still loading. */
+  matchingReady?: boolean;
   onOpenRequestModal: () => void;
   isOwner: boolean;
   visibleFields?: TrackFieldVisibility;
@@ -180,6 +185,7 @@ const SwipeableRequestCard: React.FC<SwipeableRequestCardProps> = ({
 export const RequestTab: React.FC<RequestTabProps> = ({
   requests,
   matchedByRequestId,
+  matchingReady = true,
   onOpenRequestModal,
   isOwner,
   visibleFields = DEFAULT_TRACK_FIELD_VISIBILITY,
@@ -196,6 +202,8 @@ export const RequestTab: React.FC<RequestTabProps> = ({
   const { beginAfterModalClose, listExiting, emptyEntering } = useClearListSequence(() => {
     onClearVerzoekjes?.();
   });
+
+  const waitForMatches = needsMatchedTrackMeta(visibleFields) && !matchingReady;
 
   // Filter requests to show ONLY playable tracks (in the DJ's library)
   const usbRequests = requests.filter(r => r.kind === 'playable');
@@ -355,8 +363,12 @@ export const RequestTab: React.FC<RequestTabProps> = ({
         </div>
       )}
 
-      {/* Requests List */}
-      {filteredRequests.length === 0 ? (
+      {/* Requests List — wait for catalog matches so BPM/key/album appear with the row */}
+      {waitForMatches ? (
+        <div className="flex justify-center py-10">
+          <Disc3 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      ) : filteredRequests.length === 0 ? (
         <div
           className={cn(
             'bg-card/50 border border-border/80 rounded-2xl p-8 text-center my-2 space-y-2',

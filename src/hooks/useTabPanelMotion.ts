@@ -5,7 +5,7 @@ const EXIT_MS = 150;
 /**
  * Delays tab content swap so the outgoing panel can fade out,
  * then the incoming panel fades in from the top.
- * Skips animation on the initial mount.
+ * Skips animation on the initial mount — page load fade is handled by PublicDjPage.
  */
 export function useTabPanelMotion<T extends string>(activeTab: T) {
   const [displayTab, setDisplayTab] = useState(activeTab);

@@ -26,21 +26,32 @@ export function useRequestsState({
   setRequests,
 }: UseRequestsStateArgs) {
   const [matchedTracks, setMatchedTracks] = useState<Track[]>([]);
+  const [matchingReady, setMatchingReady] = useState(false);
 
   useEffect(() => {
-    if (!currentLibrary?.id) return;
+    if (!currentLibrary?.id) {
+      setMatchedTracks([]);
+      setMatchingReady(true);
+      return;
+    }
+
     let cancelled = false;
     const libraryId = currentLibrary.id;
+    setMatchingReady(false);
     void (async () => {
       try {
         const tracks = await matchRequestTracks(
           libraryId,
           requests.map((request) => ({ title: request.title, artist: request.artist }))
         );
-        if (!cancelled) setMatchedTracks(tracks);
+        if (cancelled) return;
+        setMatchedTracks(tracks);
       } catch (err) {
         console.error(err);
-        if (!cancelled) setMatchedTracks([]);
+        if (cancelled) return;
+        setMatchedTracks([]);
+      } finally {
+        if (!cancelled) setMatchingReady(true);
       }
     })();
     return () => {
@@ -122,6 +133,7 @@ export function useRequestsState({
 
   return {
     matchedByRequestId,
+    matchingReady,
     handleSubmitRequest,
     handleUpdateStatus,
     handleDeleteRequest,

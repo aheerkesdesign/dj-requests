@@ -107,7 +107,7 @@ export const TrackList: React.FC<TrackListProps> = ({
   }
 
   return (
-    <div className="space-y-2">
+    <div key={listKey} className="space-y-2">
       {displayedTracks.map(track => (
         <TrackCard
           key={track.id}

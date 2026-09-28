@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import {
-  DEFAULT_TRACK_DISPLAY_PREFS,
   normalizeLibrarySettings,
+  normalizeTrackDisplayPrefs,
   TrackRequest,
 } from '../types';
 import { Header } from '../components/Header';
@@ -63,8 +63,14 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
     setRequests,
   });
 
+  const visibleFields = useMemo(() => {
+    const prefs = normalizeTrackDisplayPrefs(currentLibrary?.trackDisplayPrefs);
+    return prefs[isOwner ? 'dj' : 'viewers'];
+  }, [currentLibrary?.trackDisplayPrefs, isOwner]);
+
   const {
     matchedByRequestId,
+    matchingReady,
     handleSubmitRequest,
     handleUpdateStatus,
     handleDeleteRequest,
@@ -78,6 +84,7 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
     catalogTracks,
     catalogTotal,
     catalogLoading,
+    catalogReady,
     catalogListKey,
     activeSelectedPlaylistIds,
     loadMoreTracks,
@@ -113,13 +120,33 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [isRequestOpen, setIsRequestOpen] = useState(false);
   const [prefilledRequest, setPrefilledRequest] = useState({ artist: '', title: '' });
+  /** When true, keep the loading shell until the first library paint can fade in cleanly. */
+  const [holdEnterUntilReady, setHoldEnterUntilReady] = useState(true);
 
   const handleOpenRequestPrefilled = (artist = '', title = '') => {
     setPrefilledRequest({ artist, title: title || filters.searchQuery });
     setIsRequestOpen(true);
   };
 
-  if (loading) {
+  useEffect(() => {
+    if (loading) setHoldEnterUntilReady(true);
+  }, [loading]);
+
+  useEffect(() => {
+    if (viewMode === 'library') setHoldEnterUntilReady(true);
+  }, [viewMode]);
+
+  // Block only the first library reveal (not later searches / tab switches).
+  const blockingInitialEnter =
+    holdEnterUntilReady && viewMode === 'library' && activeTab === 'tracks' && !catalogReady;
+
+  useEffect(() => {
+    if (!loading && currentLibrary && !blockingInitialEnter) {
+      setHoldEnterUntilReady(false);
+    }
+  }, [loading, currentLibrary, blockingInitialEnter]);
+
+  if (loading || blockingInitialEnter) {
     return (
       <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center py-20 text-center space-y-3">
         <Disc3 className="w-12 h-12 text-primary animate-spin mx-auto" />
@@ -142,7 +169,7 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary selection:text-primary-foreground pb-16">
+    <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary selection:text-primary-foreground pb-16 motion-panel-enter">
       {viewMode === 'start' ? (
         <StartScreen
           library={currentLibrary}
@@ -225,11 +252,7 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
                     requests={requests}
                     isOwner={isOwner}
                     allowDownloadRequests={normalizeLibrarySettings(currentLibrary.librarySettings).enableDownloadRequests}
-                    visibleFields={
-                      (currentLibrary.trackDisplayPrefs ?? DEFAULT_TRACK_DISPLAY_PREFS)[
-                        isOwner ? 'dj' : 'viewers'
-                      ]
-                    }
+                    visibleFields={visibleFields}
                     onRequestModalOpen={() => handleOpenRequestPrefilled()}
                     onRequestSimilar={(artist, title) => handleSubmitRequest(title, artist)}
                   />
@@ -240,13 +263,10 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
                 <RequestTab
                   requests={requests}
                   matchedByRequestId={matchedByRequestId}
+                  matchingReady={matchingReady}
                   onOpenRequestModal={() => handleOpenRequestPrefilled()}
                   isOwner={isOwner}
-                  visibleFields={
-                    (currentLibrary.trackDisplayPrefs ?? DEFAULT_TRACK_DISPLAY_PREFS)[
-                      isOwner ? 'dj' : 'viewers'
-                    ]
-                  }
+                  visibleFields={visibleFields}
                   hidePlayedDeclined={
                     normalizeLibrarySettings(currentLibrary.librarySettings).hidePlayedDeclinedFromGuests
                   }
