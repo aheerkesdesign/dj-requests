@@ -67,7 +67,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     }));
   };
 
-  const toggleSetting = <K extends keyof LibrarySettings>(key: K) => {
+  const toggleSetting = (
+    key: {
+      [K in keyof LibrarySettings]: LibrarySettings[K] extends boolean ? K : never;
+    }[keyof LibrarySettings]
+  ) => {
     if (!allowEdit) return;
     setSettings((prev) => ({ ...prev, [key]: !prev[key] }));
   };

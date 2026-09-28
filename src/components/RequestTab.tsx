@@ -5,6 +5,7 @@ import {
   Track,
   TrackFieldVisibility,
   DEFAULT_TRACK_FIELD_VISIBILITY,
+  type RequestSortBy,
 } from '../types';
 import { Clock, Music2, CheckCheck, Trash2, Ban } from 'lucide-react';
 import { useI18n } from '../i18n/LanguageContext';
@@ -23,6 +24,8 @@ import {
 } from '../hooks/useMotionPresence';
 import { cn } from '@/lib/utils';
 
+export type { RequestSortBy };
+
 function needsMatchedTrackMeta(visibleFields: TrackFieldVisibility): boolean {
   return Boolean(
     visibleFields.album ||
@@ -33,12 +36,6 @@ function needsMatchedTrackMeta(visibleFields: TrackFieldVisibility): boolean {
       visibleFields.year
   );
 }
-
-export type RequestSortBy =
-  | 'order'
-  | 'title'
-  | 'artist'
-  | keyof TrackFieldVisibility;
 
 const OPTIONAL_SORT_FIELDS: (keyof TrackFieldVisibility)[] = [
   'album',

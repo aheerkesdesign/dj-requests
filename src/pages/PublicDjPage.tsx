@@ -103,6 +103,7 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
   const {
     handleSavePlaylistFilter,
     handleSaveTrackDisplayPrefs,
+    handleSaveRequestSortBy,
     handleUpdateLibraryDetails,
     handleUploadSuccess,
   } = useLibraryMutations({
@@ -128,6 +129,17 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
   const [requestSortBy, setRequestSortBy] = useState<RequestSortBy>('order');
   /** When true, keep the loading shell until the first library paint can fade in cleanly. */
   const [holdEnterUntilReady, setHoldEnterUntilReady] = useState(true);
+
+  // DJ sort preference lives in library_settings (synced across devices via DB + realtime).
+  useEffect(() => {
+    if (!ownerMode) return;
+    setRequestSortBy(librarySettings.requestSortBy);
+  }, [ownerMode, librarySettings.requestSortBy]);
+
+  const handleRequestSortByChange = (sortBy: RequestSortBy) => {
+    setRequestSortBy(sortBy);
+    if (ownerMode) void handleSaveRequestSortBy(sortBy);
+  };
 
   const handleOpenRequestPrefilled = (artist = '', title = '') => {
     setPrefilledRequest({ artist, title: title || filters.searchQuery });
@@ -288,7 +300,7 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
                   onDeleteRequest={handleDeleteRequest}
                   onClearVerzoekjes={handleClearVerzoekjes}
                   sortBy={requestSortBy}
-                  onSortByChange={setRequestSortBy}
+                  onSortByChange={handleRequestSortByChange}
                 />
               )}
 

@@ -74,6 +74,22 @@ export function useLibraryMutations({
     });
   };
 
+  const handleSaveRequestSortBy = async (sortBy: LibrarySettings['requestSortBy']) => {
+    if (!currentLibrary || !isOwner) return;
+    const nextSettings = normalizeLibrarySettings({
+      ...currentLibrary.librarySettings,
+      requestSortBy: sortBy,
+    });
+    setCurrentLibrary((prev) =>
+      prev ? { ...prev, librarySettings: nextSettings } : prev
+    );
+    try {
+      await updateLibraryDetails(currentLibrary.id, { librarySettings: nextSettings });
+    } catch (err) {
+      console.error('Fout bij opslaan van sorteervoorkeur:', err);
+    }
+  };
+
   const handleUpdateLibraryDetails = async (updates: {
     name?: string;
     djName?: string;
@@ -140,6 +156,7 @@ export function useLibraryMutations({
   return {
     handleSavePlaylistFilter,
     handleSaveTrackDisplayPrefs,
+    handleSaveRequestSortBy,
     handleUpdateLibraryDetails,
     handleUploadSuccess,
   };

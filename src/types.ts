@@ -108,6 +108,30 @@ export function normalizeTrackDisplayPrefs(raw: unknown): TrackDisplayPrefs {
 }
 
 /** Library-level behavior settings (request controls, guest experience, language). */
+export type RequestSortBy =
+  | 'order'
+  | 'title'
+  | 'artist'
+  | keyof TrackFieldVisibility;
+
+const VALID_REQUEST_SORTS = new Set<string>([
+  'order',
+  'title',
+  'artist',
+  'album',
+  'bpm',
+  'key',
+  'genre',
+  'duration',
+  'year',
+]);
+
+export function normalizeRequestSortBy(value: unknown): RequestSortBy {
+  return typeof value === 'string' && VALID_REQUEST_SORTS.has(value)
+    ? (value as RequestSortBy)
+    : 'order';
+}
+
 export interface LibrarySettings {
   enableDownloadRequests: boolean;
   skipStartScreen: boolean;
@@ -115,6 +139,8 @@ export interface LibrarySettings {
   /** When true, hide DJ instructional tips (swipe hint, download hint, upload how-to). */
   hideDjTips: boolean;
   pageDefaultLocale: 'nl' | 'en' | 'auto';
+  /** DJ requests-tab sort preference (synced via library_settings). */
+  requestSortBy: RequestSortBy;
 }
 
 export const DEFAULT_LIBRARY_SETTINGS: LibrarySettings = {
@@ -123,6 +149,7 @@ export const DEFAULT_LIBRARY_SETTINGS: LibrarySettings = {
   hidePlayedDeclinedFromGuests: false,
   hideDjTips: false,
   pageDefaultLocale: 'auto',
+  requestSortBy: 'order',
 };
 
 export function normalizeLibrarySettings(raw: unknown): LibrarySettings {
@@ -136,6 +163,7 @@ export function normalizeLibrarySettings(raw: unknown): LibrarySettings {
       src.pageDefaultLocale === 'nl' || src.pageDefaultLocale === 'en'
         ? src.pageDefaultLocale
         : 'auto',
+    requestSortBy: normalizeRequestSortBy(src.requestSortBy),
   };
 }
 
