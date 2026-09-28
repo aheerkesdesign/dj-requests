@@ -10,12 +10,14 @@ interface DJDashboardProps {
   requests: TrackRequest[];
   onDeleteRequest: (requestId: string) => void;
   onClearToDownloadRequests?: () => void;
+  hideDjTips?: boolean;
 }
 
 export const DJDashboard: React.FC<DJDashboardProps> = ({
   requests,
   onDeleteRequest,
   onClearToDownloadRequests,
+  hideDjTips = false,
 }) => {
   const { t } = useI18n();
   const [confirmClearToDownload, setConfirmClearToDownload] = React.useState(false);
@@ -42,9 +44,11 @@ export const DJDashboard: React.FC<DJDashboardProps> = ({
               <Download className="w-4 h-4 text-primary" />
               {t('dj.toDownload', { count: toDownloadRequests.length })}
             </h3>
-            <span className="text-xs text-muted-foreground font-normal">
-              {t('dj.toDownloadHint')}
-            </span>
+            {!hideDjTips && (
+              <span className="text-xs text-muted-foreground font-normal">
+                {t('dj.toDownloadHint')}
+              </span>
+            )}
           </div>
 
           {toDownloadRequests.length > 0 && (

@@ -250,6 +250,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   t('settings.enableDownloadRequests'),
                   t('settings.enableDownloadRequestsHint')
                 )}
+                {renderToggleRow(
+                  settings.hideDjTips,
+                  () => toggleSetting('hideDjTips'),
+                  t('settings.hideDjTips'),
+                  t('settings.hideDjTipsHint')
+                )}
               </div>
             )}
           </section>

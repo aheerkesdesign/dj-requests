@@ -26,6 +26,7 @@ interface RequestTabProps {
   isOwner: boolean;
   visibleFields?: TrackFieldVisibility;
   hidePlayedDeclined?: boolean;
+  hideDjTips?: boolean;
   onUpdateStatus: (requestId: string, status: RequestStatus) => void;
   onDeleteRequest: (requestId: string) => void;
   onClearVerzoekjes?: () => void;
@@ -190,6 +191,7 @@ export const RequestTab: React.FC<RequestTabProps> = ({
   isOwner,
   visibleFields = DEFAULT_TRACK_FIELD_VISIBILITY,
   hidePlayedDeclined = false,
+  hideDjTips = false,
   onUpdateStatus,
   onDeleteRequest,
   onClearVerzoekjes
@@ -357,7 +359,7 @@ export const RequestTab: React.FC<RequestTabProps> = ({
       </div>
 
       {/* DJ Swipe Tip banner */}
-      {isOwner && usbRequests.length > 0 && (
+      {isOwner && !hideDjTips && usbRequests.length > 0 && (
         <div className="bg-card/80 border border-border/80 rounded-xl px-3.5 py-2 text-xs text-foreground">
           <span>{t('requests.djTip')}</span>
         </div>

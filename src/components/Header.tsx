@@ -15,6 +15,8 @@ interface HeaderProps {
   onOpenShare: () => void;
   onGoToStartScreen: () => void;
   isOwner: boolean;
+  /** Owner-only Downloads tab; hide when download requests are disabled. */
+  showDjTab?: boolean;
   activeTab: LibraryTab;
   setActiveTab: (tab: LibraryTab) => void;
 }
@@ -27,6 +29,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenShare,
   onGoToStartScreen,
   isOwner,
+  showDjTab = true,
   activeTab,
   setActiveTab,
 }) => {
@@ -37,7 +40,7 @@ export const Header: React.FC<HeaderProps> = ({
       { id: 'tracks', label: t('header.tracks') },
       { id: 'requests', label: t('header.requests') },
     ];
-    if (isOwner) {
+    if (isOwner && showDjTab) {
       base.push({
         id: 'dj',
         label: t('header.djManage'),
@@ -45,7 +48,7 @@ export const Header: React.FC<HeaderProps> = ({
       });
     }
     return base;
-  }, [isOwner, t]);
+  }, [isOwner, showDjTab, t]);
 
   const activeIndex = Math.max(
     0,

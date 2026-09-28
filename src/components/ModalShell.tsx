@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { cn } from '@/lib/utils';
 import { usePresence } from '../hooks/useMotionPresence';
 
@@ -14,6 +15,8 @@ interface ModalShellProps {
 
 /**
  * Shared popup shell with motion-kit enter/exit fades.
+ * Portaled to document.body so `fixed` centers on the viewport even when a
+ * parent has transform/filter (e.g. tab panel motion).
  */
 export function ModalShell({
   open,
@@ -27,7 +30,7 @@ export function ModalShell({
 
   if (!present) return null;
 
-  return (
+  return createPortal(
     <div
       className={cn(
         'fixed inset-0 z-50 flex items-center justify-center p-4',
@@ -37,6 +40,7 @@ export function ModalShell({
       )}
     >
       <div className={cn(panelMotion, panelClassName)}>{children}</div>
-    </div>
+    </div>,
+    document.body
   );
 }

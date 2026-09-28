@@ -68,6 +68,11 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
     return prefs[isOwner ? 'dj' : 'viewers'];
   }, [currentLibrary?.trackDisplayPrefs, isOwner]);
 
+  const librarySettings = useMemo(
+    () => normalizeLibrarySettings(currentLibrary?.librarySettings),
+    [currentLibrary?.librarySettings]
+  );
+
   const {
     matchedByRequestId,
     matchingReady,
@@ -146,6 +151,12 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
     }
   }, [loading, currentLibrary, blockingInitialEnter]);
 
+  useEffect(() => {
+    if (activeTab === 'dj' && !librarySettings.enableDownloadRequests) {
+      setActiveTab('tracks');
+    }
+  }, [activeTab, librarySettings.enableDownloadRequests, setActiveTab]);
+
   if (loading || blockingInitialEnter) {
     return (
       <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center py-20 text-center space-y-3">
@@ -188,6 +199,7 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
             onOpenShare={() => setIsShareOpen(true)}
             onGoToStartScreen={() => setViewMode('start')}
             isOwner={isOwner}
+            showDjTab={librarySettings.enableDownloadRequests}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
           />
@@ -251,7 +263,7 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
                     searchQuery={filters.searchQuery}
                     requests={requests}
                     isOwner={isOwner}
-                    allowDownloadRequests={normalizeLibrarySettings(currentLibrary.librarySettings).enableDownloadRequests}
+                    allowDownloadRequests={librarySettings.enableDownloadRequests}
                     visibleFields={visibleFields}
                     onRequestModalOpen={() => handleOpenRequestPrefilled()}
                     onRequestSimilar={(artist, title) => handleSubmitRequest(title, artist)}
@@ -267,20 +279,20 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
                   onOpenRequestModal={() => handleOpenRequestPrefilled()}
                   isOwner={isOwner}
                   visibleFields={visibleFields}
-                  hidePlayedDeclined={
-                    normalizeLibrarySettings(currentLibrary.librarySettings).hidePlayedDeclinedFromGuests
-                  }
+                  hidePlayedDeclined={librarySettings.hidePlayedDeclinedFromGuests}
+                  hideDjTips={librarySettings.hideDjTips}
                   onUpdateStatus={handleUpdateStatus}
                   onDeleteRequest={handleDeleteRequest}
                   onClearVerzoekjes={handleClearVerzoekjes}
                 />
               )}
 
-              {displayTab === 'dj' && isOwner && (
+              {displayTab === 'dj' && isOwner && librarySettings.enableDownloadRequests && (
                 <DJDashboard
                   requests={requests}
                   onDeleteRequest={handleDeleteRequest}
                   onClearToDownloadRequests={handleClearToDownloadRequests}
+                  hideDjTips={librarySettings.hideDjTips}
                 />
               )}
             </div>
@@ -304,6 +316,7 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
             currentLibrary={currentLibrary}
             onUploadSuccess={handleUploadSuccess}
             allowUpload={Boolean(user && currentLibrary.ownerId === user.id)}
+            hideDjTips={librarySettings.hideDjTips}
           />
           <SettingsModal
             isOpen={isSettingsOpen}

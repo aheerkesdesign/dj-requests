@@ -12,6 +12,7 @@ interface ImportModalProps {
   currentLibrary: USBLibrary | null;
   onUploadSuccess: (library: USBLibrary) => Promise<void>;
   allowUpload?: boolean;
+  hideDjTips?: boolean;
 }
 
 export const ImportModal: React.FC<ImportModalProps> = ({
@@ -20,6 +21,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({
   currentLibrary,
   onUploadSuccess,
   allowUpload = true,
+  hideDjTips = false,
 }) => {
   const { t } = useI18n();
   const [file, setFile] = useState<File | null>(null);
@@ -196,14 +198,16 @@ export const ImportModal: React.FC<ImportModalProps> = ({
               </div>
             )}
 
-            <div className="p-3 rounded-xl bg-background border border-border/80 text-[11px] text-foreground space-y-1">
-              <span className="font-bold text-primary block">{t('import.howTitle')}</span>
-              <p>{t('import.howStep1')}</p>
-              <p>{t('import.howStep2')}</p>
-              <p className="text-muted-foreground pt-0.5 border-t border-border/60 mt-1">
-                {t('import.howNote')}
-              </p>
-            </div>
+            {!hideDjTips && (
+              <div className="p-3 rounded-xl bg-background border border-border/80 text-[11px] text-foreground space-y-1">
+                <span className="font-bold text-primary block">{t('import.howTitle')}</span>
+                <p>{t('import.howStep1')}</p>
+                <p>{t('import.howStep2')}</p>
+                <p className="text-muted-foreground pt-0.5 border-t border-border/60 mt-1">
+                  {t('import.howNote')}
+                </p>
+              </div>
+            )}
 
             <div
               onDragEnter={handleDragEnter}

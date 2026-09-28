@@ -112,6 +112,8 @@ export interface LibrarySettings {
   enableDownloadRequests: boolean;
   skipStartScreen: boolean;
   hidePlayedDeclinedFromGuests: boolean;
+  /** When true, hide DJ instructional tips (swipe hint, download hint, upload how-to). */
+  hideDjTips: boolean;
   pageDefaultLocale: 'nl' | 'en' | 'auto';
 }
 
@@ -119,6 +121,7 @@ export const DEFAULT_LIBRARY_SETTINGS: LibrarySettings = {
   enableDownloadRequests: true,
   skipStartScreen: false,
   hidePlayedDeclinedFromGuests: false,
+  hideDjTips: false,
   pageDefaultLocale: 'auto',
 };
 
@@ -128,6 +131,7 @@ export function normalizeLibrarySettings(raw: unknown): LibrarySettings {
     enableDownloadRequests: src.enableDownloadRequests !== false,
     skipStartScreen: Boolean(src.skipStartScreen),
     hidePlayedDeclinedFromGuests: Boolean(src.hidePlayedDeclinedFromGuests),
+    hideDjTips: Boolean(src.hideDjTips),
     pageDefaultLocale:
       src.pageDefaultLocale === 'nl' || src.pageDefaultLocale === 'en'
         ? src.pageDefaultLocale
