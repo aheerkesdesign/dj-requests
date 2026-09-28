@@ -10,6 +10,9 @@ import { Clock, Music2, CheckCheck, Trash2, Search, Ban } from 'lucide-react';
 import { useI18n } from '../i18n/LanguageContext';
 import { CamelotBadge } from './CamelotBadge';
 import { BpmBadge } from './BpmBadge';
+import { ModalShell } from './ModalShell';
+import { useClearListSequence, useExitingIds } from '../hooks/useMotionPresence';
+import { cn } from '@/lib/utils';
 
 interface RequestTabProps {
   requests: TrackRequest[];
@@ -84,24 +87,24 @@ const SwipeableRequestCard: React.FC<SwipeableRequestCardProps> = ({
   const showKey = visibleFields.key && Boolean(matchingTrack?.key);
   const showMeta = showAlbum || showBpm || showKey;
 
-  let cardStyle = 'bg-zinc-900 border-zinc-800/80 hover:border-zinc-700/80';
+  let cardStyle = 'bg-card border-border/80 hover:border-border';
   if (offsetX > 30) {
-    cardStyle = 'bg-emerald-950/50 border-emerald-500/50';
+    cardStyle = 'bg-primary/15 border-primary/50';
   } else if (offsetX < -30) {
     cardStyle = 'bg-red-950/50 border-red-500/50';
   } else if (isPlayed) {
-    cardStyle = 'bg-zinc-900 border-emerald-800/70 opacity-80';
+    cardStyle = 'bg-card border-primary/30 opacity-80';
   } else if (isDeclined) {
-    cardStyle = 'bg-zinc-900 border-red-800/70 opacity-80';
+    cardStyle = 'bg-card border-red-800/70 opacity-80';
   }
 
   return (
     <div className="relative overflow-hidden rounded-xl select-none group">
       {isOwner && Math.abs(offsetX) > 0 && (
-        <div className="absolute inset-0 flex items-center justify-between px-4 rounded-xl text-xs font-bold bg-zinc-950 border border-zinc-800">
+        <div className="absolute inset-0 flex items-center justify-between px-4 rounded-xl text-xs font-bold bg-background border border-border">
           <div
             className={`flex items-center gap-1.5 transition-opacity duration-150 ${
-              offsetX > 20 ? 'opacity-100 text-emerald-400' : 'opacity-30 text-emerald-600'
+              offsetX > 20 ? 'opacity-100 text-primary' : 'opacity-30 text-primary/60'
             }`}
           >
             <CheckCheck className="w-5 h-5" />
@@ -137,31 +140,31 @@ const SwipeableRequestCard: React.FC<SwipeableRequestCardProps> = ({
       >
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <h3 className={`text-sm leading-snug truncate ${isMuted ? 'font-medium text-zinc-400' : 'font-bold text-zinc-100'}`}>
+            <h3 className={`text-sm leading-snug truncate ${isMuted ? 'font-medium text-muted-foreground' : 'font-bold text-foreground'}`}>
               {req.title}
             </h3>
             {getStatusBadge(req.status)}
           </div>
 
-          <p className={`text-xs truncate mt-1 ${isMuted ? 'text-zinc-500 font-normal' : 'text-zinc-400 font-medium'}`}>
+          <p className={`text-xs truncate mt-1 ${isMuted ? 'text-muted-foreground font-normal' : 'text-muted-foreground font-medium'}`}>
             {req.artist}
           </p>
 
           {showMeta && (
             <div className="flex items-center flex-wrap gap-x-2 gap-y-1 mt-1.5 min-w-0">
               {showAlbum && (
-                <span className={`text-xs truncate max-w-full ${isMuted ? 'text-zinc-600' : 'text-zinc-500'}`}>
+                <span className={`text-xs truncate max-w-full ${isMuted ? 'text-muted-foreground' : 'text-muted-foreground'}`}>
                   {matchingTrack!.album}
                 </span>
               )}
               {showAlbum && (showBpm || showKey) && (
-                <span className="text-zinc-700 text-xs" aria-hidden>
+                <span className="text-muted-foreground text-xs" aria-hidden>
                   ·
                 </span>
               )}
               {showBpm && <BpmBadge bpm={matchingTrack!.bpm} size="sm" />}
               {showBpm && showKey && (
-                <span className="text-zinc-700 text-xs" aria-hidden>
+                <span className="text-muted-foreground text-xs" aria-hidden>
                   ·
                 </span>
               )}
@@ -189,6 +192,10 @@ export const RequestTab: React.FC<RequestTabProps> = ({
   const [filterStatus, setFilterStatus] = React.useState<string>('all');
   const [searchFilter, setSearchFilter] = React.useState('');
   const [confirmClearVerzoekjes, setConfirmClearVerzoekjes] = React.useState(false);
+  const { requestExit, isExiting } = useExitingIds();
+  const { beginAfterModalClose, listExiting, emptyEntering } = useClearListSequence(() => {
+    onClearVerzoekjes?.();
+  });
 
   // Filter requests to show ONLY playable tracks (in the DJ's library)
   const usbRequests = requests.filter(r => r.kind === 'playable');
@@ -249,8 +256,8 @@ export const RequestTab: React.FC<RequestTabProps> = ({
         );
       case 'played':
         return (
-          <span className="inline-flex items-center gap-1 text-[11px] font-medium bg-emerald-950/50 text-emerald-400 border border-emerald-800/60 px-2 py-0.5 rounded-md">
-            <CheckCheck className="w-3 h-3 text-emerald-400" /> {t('requests.played')}
+          <span className="inline-flex items-center gap-1 text-[11px] font-medium bg-primary/15 text-primary border border-primary/30 px-2 py-0.5 rounded-md">
+            <CheckCheck className="w-3 h-3 text-primary" /> {t('requests.played')}
           </span>
         );
       case 'declined':
@@ -273,8 +280,8 @@ export const RequestTab: React.FC<RequestTabProps> = ({
             onClick={() => setFilterStatus('all')}
             className={`px-3 py-1 rounded-lg border font-medium transition-all ${
               filterStatus === 'all'
-                ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300'
-                : 'bg-zinc-900 border-zinc-800 text-zinc-400'
+                ? 'bg-primary/20 border-primary/50 text-primary'
+                : 'bg-card border-border text-muted-foreground'
             }`}
           >
             {t('requests.all', { count: usbRequests.length })}
@@ -285,7 +292,7 @@ export const RequestTab: React.FC<RequestTabProps> = ({
             className={`px-3 py-1 rounded-lg border font-medium transition-all ${
               filterStatus === 'pending'
                 ? 'bg-amber-950/80 border-amber-600 text-amber-300'
-                : 'bg-zinc-900 border-zinc-800 text-zinc-400'
+                : 'bg-card border-border text-muted-foreground'
             }`}
           >
             {t('requests.pending')}
@@ -295,8 +302,8 @@ export const RequestTab: React.FC<RequestTabProps> = ({
             onClick={() => setFilterStatus('played')}
             className={`px-3 py-1 rounded-lg border font-medium transition-all ${
               filterStatus === 'played'
-                ? 'bg-emerald-950/80 border-emerald-600 text-emerald-300'
-                : 'bg-zinc-900 border-zinc-800 text-zinc-400'
+                ? 'bg-primary/15 border-primary/60 text-primary'
+                : 'bg-card border-border text-muted-foreground'
             }`}
           >
             {t('requests.played')}
@@ -307,7 +314,7 @@ export const RequestTab: React.FC<RequestTabProps> = ({
             className={`px-3 py-1 rounded-lg border font-medium transition-all ${
               filterStatus === 'declined'
                 ? 'bg-red-950/80 border-red-600 text-red-300'
-                : 'bg-zinc-900 border-zinc-800 text-zinc-400'
+                : 'bg-card border-border text-muted-foreground'
             }`}
           >
             {t('requests.declined')}
@@ -317,13 +324,13 @@ export const RequestTab: React.FC<RequestTabProps> = ({
         {/* Right Controls: Quick Search & Clear All for DJ */}
         <div className="flex items-center gap-2">
           <div className="relative min-w-[160px] flex-1 sm:flex-initial">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
             <input
               type="text"
               value={searchFilter}
               onChange={e => setSearchFilter(e.target.value)}
               placeholder={t('requests.searchPlaceholder')}
-              className="w-full pl-8 pr-3 py-1 rounded-lg bg-zinc-900 border border-zinc-800 text-xs text-zinc-200 outline-none focus:border-emerald-500"
+              className="w-full pl-8 pr-3 py-1 rounded-lg bg-card border border-border text-xs text-foreground outline-none focus:border-primary/40"
             />
           </div>
 
@@ -343,80 +350,87 @@ export const RequestTab: React.FC<RequestTabProps> = ({
 
       {/* DJ Swipe Tip banner */}
       {isOwner && usbRequests.length > 0 && (
-        <div className="bg-zinc-900/80 border border-zinc-800/80 rounded-xl px-3.5 py-2 text-xs text-zinc-300">
+        <div className="bg-card/80 border border-border/80 rounded-xl px-3.5 py-2 text-xs text-foreground">
           <span>{t('requests.djTip')}</span>
         </div>
       )}
 
       {/* Requests List */}
       {filteredRequests.length === 0 ? (
-        <div className="bg-zinc-900/50 border border-zinc-800/80 rounded-2xl p-8 text-center my-2 space-y-2">
-          <Music2 className="w-10 h-10 text-zinc-600 mx-auto" />
+        <div
+          className={cn(
+            'bg-card/50 border border-border/80 rounded-2xl p-8 text-center my-2 space-y-2',
+            emptyEntering && 'motion-panel-enter'
+          )}
+        >
+          <Music2 className="w-10 h-10 text-muted-foreground mx-auto" />
           <div className="max-w-xs mx-auto">
-            <h4 className="text-sm font-bold text-zinc-200">{t('requests.emptyCategory')}</h4>
-            <p className="text-xs text-zinc-400 mt-1">
+            <h4 className="text-sm font-bold text-foreground">{t('requests.emptyCategory')}</h4>
+            <p className="text-xs text-muted-foreground mt-1">
               {t('requests.empty')}
             </p>
           </div>
         </div>
       ) : (
-        <div className="space-y-2.5">
+        <div className={cn('space-y-2.5', listExiting && 'motion-panel-exit')}>
           {filteredRequests.map(req => {
             const matchingTrack = matchedByRequestId?.get(req.id);
             return (
-              <SwipeableRequestCard
+              <div
                 key={req.id}
-                req={req}
-                matchingTrack={matchingTrack}
-                isOwner={isOwner}
-                visibleFields={visibleFields}
-                onUpdateStatus={onUpdateStatus}
-                onDeleteRequest={onDeleteRequest}
-                getStatusBadge={getStatusBadge}
-              />
+                className={cn(isExiting(req.id) && 'motion-panel-exit')}
+              >
+                <SwipeableRequestCard
+                  req={req}
+                  matchingTrack={matchingTrack}
+                  isOwner={isOwner}
+                  visibleFields={visibleFields}
+                  onUpdateStatus={onUpdateStatus}
+                  onDeleteRequest={onDeleteRequest}
+                  getStatusBadge={getStatusBadge}
+                />
+              </div>
             );
           })}
         </div>
       )}
 
-      {/* Popup Modal for Confirming Clear Verzoekjes */}
-      {confirmClearVerzoekjes && (
-        <div className="fixed inset-0 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 max-w-sm w-full space-y-4 shadow-2xl relative text-left">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-red-950/80 text-red-400 border border-red-800/60 shrink-0">
-                <Trash2 className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="font-bold text-sm text-zinc-100">{t('requests.clearConfirmTitle')}</h3>
-                <p className="text-xs text-zinc-400 mt-0.5">
-                  {t('requests.clearConfirmBody')}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-end gap-2 pt-2">
-              <button
-                type="button"
-                onClick={() => setConfirmClearVerzoekjes(false)}
-                className="px-4 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold transition-colors"
-              >
-                {t('common.cancel')}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setConfirmClearVerzoekjes(false);
-                  onClearVerzoekjes?.();
-                }}
-                className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-bold transition-colors shadow-xs"
-              >
-                {t('common.yesClearAll')}
-              </button>
-            </div>
+      <ModalShell
+        open={confirmClearVerzoekjes}
+        panelClassName="bg-card border border-border rounded-2xl p-5 max-w-sm w-full space-y-4 shadow-2xl relative text-left"
+      >
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 rounded-xl bg-red-950/80 text-red-400 border border-red-800/60 shrink-0">
+            <Trash2 className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="font-bold text-sm text-foreground">{t('requests.clearConfirmTitle')}</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {t('requests.clearConfirmBody')}
+            </p>
           </div>
         </div>
-      )}
+
+        <div className="flex items-center justify-end gap-2 pt-2">
+          <button
+            type="button"
+            onClick={() => setConfirmClearVerzoekjes(false)}
+            className="px-4 py-2 rounded-xl bg-secondary hover:bg-secondary/80 text-foreground text-xs font-semibold transition-colors"
+          >
+            {t('common.cancel')}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setConfirmClearVerzoekjes(false);
+              beginAfterModalClose();
+            }}
+            className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-bold transition-colors shadow-xs"
+          >
+            {t('common.yesClearAll')}
+          </button>
+        </div>
+      </ModalShell>
     </div>
   );
 };

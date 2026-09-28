@@ -25,6 +25,8 @@ import { useLibraryLoader } from '../hooks/useLibraryLoader';
 import { useCatalogSearch } from '../hooks/useCatalogSearch';
 import { useRequestsState } from '../hooks/useRequestsState';
 import { useLibraryMutations } from '../hooks/useLibraryMutations';
+import { useTabPanelMotion } from '../hooks/useTabPanelMotion';
+import { cn } from '@/lib/utils';
 
 interface PublicDjPageProps {
   /** When true, treat as owner dashboard embed (auth session) */
@@ -39,6 +41,7 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
   const isOwner = ownerMode;
 
   const { viewMode, setViewMode, activeTab, setActiveTab } = useDjPageNavigation(ownerMode);
+  const { displayTab, panelClassName } = useTabPanelMotion(activeTab);
   const [requests, setRequests] = useState<TrackRequest[]>([]);
 
   const {
@@ -118,20 +121,20 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col items-center justify-center py-20 text-center space-y-3">
-        <Disc3 className="w-12 h-12 text-emerald-400 animate-spin mx-auto" />
-        <p className="text-xs font-semibold text-zinc-400">{t('public.loadingLibrary')}</p>
+      <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center py-20 text-center space-y-3">
+        <Disc3 className="w-12 h-12 text-primary animate-spin mx-auto" />
+        <p className="text-xs font-semibold text-muted-foreground">{t('public.loadingLibrary')}</p>
       </div>
     );
   }
 
   if (notFound || !currentLibrary) {
     return (
-      <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col items-center justify-center p-6 text-center space-y-3">
+      <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center p-6 text-center space-y-3">
         <h1 className="text-xl font-bold">
           {ownerMode ? t('public.profileNotFound') : t('public.djNotFound')}
         </h1>
-        <p className="text-sm text-zinc-400 max-w-md">
+        <p className="text-sm text-muted-foreground max-w-md">
           {ownerMode ? t('public.profileMissingHelp') : t('public.pageMissing')}
         </p>
       </div>
@@ -139,7 +142,7 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 font-sans selection:bg-emerald-500 selection:text-zinc-950 pb-16">
+    <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary selection:text-primary-foreground pb-16">
       {viewMode === 'start' ? (
         <StartScreen
           library={currentLibrary}
@@ -163,102 +166,104 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
           />
 
           <main className="max-w-4xl mx-auto px-4 pt-4 space-y-4">
-            {activeTab === 'tracks' && (
-              <div className="space-y-4">
-                {isOwner && (
-                  <div className="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-3.5 sm:p-4 shadow-md flex items-center justify-between gap-3 flex-wrap">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
-                        <ListFilter className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h2 className="text-sm font-bold text-zinc-100">{t('public.filterPlaylists')}</h2>
-                          {currentLibrary.playlists?.length > 0 && (
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                              {t('playlist.activeCount', {
-                                selected: activeSelectedPlaylistIds.length,
-                                total: currentLibrary.playlists.length,
-                              })}
-                            </span>
-                          )}
+            <div key={displayTab} className={cn(panelClassName)}>
+              {displayTab === 'tracks' && (
+                <div className="space-y-4">
+                  {isOwner && (
+                    <div className="bg-card/90 border border-border rounded-2xl p-3.5 sm:p-4 shadow-md flex items-center justify-between gap-3 flex-wrap">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center shrink-0">
+                          <ListFilter className="w-5 h-5" />
                         </div>
-                        <p className="text-xs text-zinc-400">
-                          {activeSelectedPlaylistIds.length === (currentLibrary.playlists?.length || 0)
-                            ? t('public.allPlaylistsVisible')
-                            : t('public.playlistsSelected', {
-                                selected: activeSelectedPlaylistIds.length,
-                                total: currentLibrary.playlists?.length || 0,
-                              })}
-                        </p>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h2 className="text-sm font-bold text-foreground">{t('public.filterPlaylists')}</h2>
+                            {currentLibrary.playlists?.length > 0 && (
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                                {t('playlist.activeCount', {
+                                  selected: activeSelectedPlaylistIds.length,
+                                  total: currentLibrary.playlists.length,
+                                })}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            {activeSelectedPlaylistIds.length === (currentLibrary.playlists?.length || 0)
+                              ? t('public.allPlaylistsVisible')
+                              : t('public.playlistsSelected', {
+                                  selected: activeSelectedPlaylistIds.length,
+                                  total: currentLibrary.playlists?.length || 0,
+                                })}
+                          </p>
+                        </div>
                       </div>
+                      <button
+                        onClick={() => setIsPlaylistFilterOpen(true)}
+                        className="px-4 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow-md flex items-center gap-2"
+                      >
+                        <ListFilter className="w-4 h-4" />
+                        <span>{t('public.filterPlaylistsBtn')}</span>
+                      </button>
                     </div>
-                    <button
-                      onClick={() => setIsPlaylistFilterOpen(true)}
-                      className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 text-zinc-950 font-bold text-xs shadow-md flex items-center gap-2"
-                    >
-                      <ListFilter className="w-4 h-4" />
-                      <span>{t('public.filterPlaylistsBtn')}</span>
-                    </button>
-                  </div>
-                )}
+                  )}
 
-                <div className="sticky top-[118px] z-20 bg-zinc-950/95 backdrop-blur-md py-3 border-b border-zinc-800/60 shadow-lg -mx-4 px-4 sm:mx-0 sm:px-0">
-                  <SearchBarAndFilters
-                    filters={filters}
-                    onFilterChange={(updated) => setFilters((prev) => ({ ...prev, ...updated }))}
+                  <div className="sticky top-[118px] z-20 bg-background/95 backdrop-blur-md py-3 border-b border-border/60 shadow-lg -mx-4 px-4 sm:mx-0 sm:px-0">
+                    <SearchBarAndFilters
+                      filters={filters}
+                      onFilterChange={(updated) => setFilters((prev) => ({ ...prev, ...updated }))}
+                    />
+                  </div>
+
+                  <TrackList
+                    tracks={catalogTracks}
+                    totalCount={catalogTotal}
+                    listKey={catalogListKey}
+                    loading={catalogLoading && catalogTracks.length === 0}
+                    loadingMore={catalogLoading && catalogTracks.length > 0}
+                    onLoadMore={() => void loadMoreTracks()}
+                    searchQuery={filters.searchQuery}
+                    requests={requests}
+                    isOwner={isOwner}
+                    allowDownloadRequests={normalizeLibrarySettings(currentLibrary.librarySettings).enableDownloadRequests}
+                    visibleFields={
+                      (currentLibrary.trackDisplayPrefs ?? DEFAULT_TRACK_DISPLAY_PREFS)[
+                        isOwner ? 'dj' : 'viewers'
+                      ]
+                    }
+                    onRequestModalOpen={() => handleOpenRequestPrefilled()}
+                    onRequestSimilar={(artist, title) => handleSubmitRequest(title, artist)}
                   />
                 </div>
+              )}
 
-                <TrackList
-                  tracks={catalogTracks}
-                  totalCount={catalogTotal}
-                  listKey={catalogListKey}
-                  loading={catalogLoading && catalogTracks.length === 0}
-                  loadingMore={catalogLoading && catalogTracks.length > 0}
-                  onLoadMore={() => void loadMoreTracks()}
-                  searchQuery={filters.searchQuery}
+              {displayTab === 'requests' && (
+                <RequestTab
                   requests={requests}
+                  matchedByRequestId={matchedByRequestId}
+                  onOpenRequestModal={() => handleOpenRequestPrefilled()}
                   isOwner={isOwner}
-                  allowDownloadRequests={normalizeLibrarySettings(currentLibrary.librarySettings).enableDownloadRequests}
                   visibleFields={
                     (currentLibrary.trackDisplayPrefs ?? DEFAULT_TRACK_DISPLAY_PREFS)[
                       isOwner ? 'dj' : 'viewers'
                     ]
                   }
-                  onRequestModalOpen={() => handleOpenRequestPrefilled()}
-                  onRequestSimilar={(artist, title) => handleSubmitRequest(title, artist)}
+                  hidePlayedDeclined={
+                    normalizeLibrarySettings(currentLibrary.librarySettings).hidePlayedDeclinedFromGuests
+                  }
+                  onUpdateStatus={handleUpdateStatus}
+                  onDeleteRequest={handleDeleteRequest}
+                  onClearVerzoekjes={handleClearVerzoekjes}
                 />
-              </div>
-            )}
+              )}
 
-            {activeTab === 'requests' && (
-              <RequestTab
-                requests={requests}
-                matchedByRequestId={matchedByRequestId}
-                onOpenRequestModal={() => handleOpenRequestPrefilled()}
-                isOwner={isOwner}
-                visibleFields={
-                  (currentLibrary.trackDisplayPrefs ?? DEFAULT_TRACK_DISPLAY_PREFS)[
-                    isOwner ? 'dj' : 'viewers'
-                  ]
-                }
-                hidePlayedDeclined={
-                  normalizeLibrarySettings(currentLibrary.librarySettings).hidePlayedDeclinedFromGuests
-                }
-                onUpdateStatus={handleUpdateStatus}
-                onDeleteRequest={handleDeleteRequest}
-                onClearVerzoekjes={handleClearVerzoekjes}
-              />
-            )}
-
-            {activeTab === 'dj' && isOwner && (
-              <DJDashboard
-                requests={requests}
-                onDeleteRequest={handleDeleteRequest}
-                onClearToDownloadRequests={handleClearToDownloadRequests}
-              />
-            )}
+              {displayTab === 'dj' && isOwner && (
+                <DJDashboard
+                  requests={requests}
+                  onDeleteRequest={handleDeleteRequest}
+                  onClearToDownloadRequests={handleClearToDownloadRequests}
+                />
+              )}
+            </div>
           </main>
         </>
       )}

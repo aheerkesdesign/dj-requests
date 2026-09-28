@@ -24,7 +24,7 @@ export function getCamelotColor(keyStr: string): { bg: string; text: string; bor
     case 10: return { bg: 'bg-amber-950/60', text: 'text-amber-300', border: 'border-amber-700/50' };
     case 11: return { bg: 'bg-orange-950/60', text: 'text-orange-300', border: 'border-orange-700/50' };
     case 12: return { bg: 'bg-rose-950/60', text: 'text-rose-300', border: 'border-rose-700/50' };
-    default: return { bg: 'bg-zinc-800/80', text: 'text-zinc-300', border: 'border-zinc-700/50' };
+    default: return { bg: 'bg-secondary', text: 'text-muted-foreground', border: 'border-border' };
   }
 }
 

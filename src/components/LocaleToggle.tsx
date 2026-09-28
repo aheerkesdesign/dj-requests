@@ -1,4 +1,5 @@
 import { useI18n } from '../i18n/LanguageContext';
+import { cn } from '@/lib/utils';
 
 interface LocaleToggleProps {
   className?: string;
@@ -12,7 +13,10 @@ export function LocaleToggle({ className = '' }: LocaleToggleProps) {
     <button
       type="button"
       onClick={toggleLocale}
-      className={`min-w-[2.25rem] px-2 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-800 transition-colors text-[11px] font-bold tracking-wide ${className}`.trim()}
+      className={cn(
+        'motion-colors min-w-[2.25rem] rounded-lg border border-border bg-card px-2.5 py-2 font-heading text-xs font-semibold tracking-wide text-muted-foreground hover:bg-secondary hover:text-foreground',
+        className
+      )}
       title={t('common.language')}
       aria-label={t('common.language')}
     >

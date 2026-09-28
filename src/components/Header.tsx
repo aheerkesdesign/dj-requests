@@ -1,8 +1,11 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { USBLibrary } from '../types';
 import { Disc3, Settings, Share2, CircleUserRound, Import } from 'lucide-react';
 import { useI18n } from '../i18n/LanguageContext';
 import { LocaleToggle } from './LocaleToggle';
+import { cn } from '@/lib/utils';
+
+type LibraryTab = 'tracks' | 'requests' | 'dj';
 
 interface HeaderProps {
   currentLibrary: USBLibrary | null;
@@ -12,8 +15,8 @@ interface HeaderProps {
   onOpenShare: () => void;
   onGoToStartScreen: () => void;
   isOwner: boolean;
-  activeTab: 'tracks' | 'requests' | 'dj';
-  setActiveTab: (tab: 'tracks' | 'requests' | 'dj') => void;
+  activeTab: LibraryTab;
+  setActiveTab: (tab: LibraryTab) => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -29,30 +32,51 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const { t } = useI18n();
 
+  const tabs = useMemo(() => {
+    const base: { id: LibraryTab; label: string; title?: string }[] = [
+      { id: 'tracks', label: t('header.tracks') },
+      { id: 'requests', label: t('header.requests') },
+    ];
+    if (isOwner) {
+      base.push({
+        id: 'dj',
+        label: t('header.djManage'),
+        title: t('header.djManageTitle'),
+      });
+    }
+    return base;
+  }, [isOwner, t]);
+
+  const activeIndex = Math.max(
+    0,
+    tabs.findIndex((tab) => tab.id === activeTab)
+  );
+  const tabCount = tabs.length;
+
   return (
-    <header className="sticky top-0 z-30 bg-zinc-950/95 backdrop-blur-md border-b border-zinc-800/80 px-4 py-3 text-zinc-100 shadow-md">
-      <div className="max-w-4xl mx-auto">
+    <header className="sticky top-0 z-30 border-b border-border/80 bg-background/95 px-4 py-3 text-foreground backdrop-blur-md">
+      <div className="mx-auto max-w-4xl">
         <div className="flex items-center justify-between gap-2">
           <div
             onClick={onGoToStartScreen}
-            className="flex items-center gap-2.5 min-w-0 cursor-pointer group"
+            className="motion-press group flex min-w-0 cursor-pointer items-center gap-2.5"
             title={t('header.backToStart')}
           >
             {(currentLibrary?.logoUrl || '/favicon.png') ? (
-              <div className="w-10 h-10 rounded-xl overflow-hidden bg-zinc-900 border border-zinc-800 shrink-0 flex items-center justify-center p-0.5 shadow-md group-hover:border-emerald-500/50 transition-colors">
+              <div className="motion-colors flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-card p-0.5 group-hover:border-primary/40">
                 <img
                   src={currentLibrary?.logoUrl || '/favicon.png'}
                   alt={currentLibrary?.djName || 'DJ Logo'}
-                  className="w-full h-full object-contain rounded-lg"
+                  className="h-full w-full rounded-lg object-contain"
                 />
               </div>
             ) : (
-              <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-cyan-600 text-zinc-950 shadow-md shadow-emerald-500/20 shrink-0 group-hover:scale-105 transition-transform">
-                <Disc3 className="w-6 h-6 animate-spin-slow" />
+              <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground transition-transform group-hover:scale-105">
+                <Disc3 className="h-6 w-6 animate-spin-slow" />
               </div>
             )}
             <div className="min-w-0">
-              <h1 className="text-base font-bold text-zinc-100 truncate leading-tight group-hover:text-emerald-400 transition-colors">
+              <h1 className="motion-colors truncate font-heading text-base font-bold leading-tight tracking-tight text-foreground group-hover:text-primary">
                 {currentLibrary?.djName
                   ? t('header.libraryOf', { name: currentLibrary.djName })
                   : t('header.library')}
@@ -60,85 +84,79 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 shrink-0">
+          <div className="flex shrink-0 items-center gap-1.5">
             <LocaleToggle />
 
             <button
               onClick={onOpenShare}
-              className="p-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-zinc-950 transition-colors shadow-sm"
+              className="motion-colors rounded-lg border border-border bg-card p-2 text-primary hover:bg-secondary"
               title={t('header.shareTitle')}
               aria-label={t('header.shareAria')}
             >
-              <Share2 className="w-4 h-4" />
+              <Share2 className="h-4 w-4" />
             </button>
 
             {isOwner && (
               <>
                 <button
                   onClick={onOpenImport}
-                  className="p-2 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-800 transition-colors"
+                  className="motion-colors rounded-lg border border-border bg-card p-2 text-muted-foreground hover:bg-secondary hover:text-foreground"
                   title={t('header.importTitle')}
                   aria-label={t('header.importAria')}
                 >
-                  <Import className="w-4 h-4" />
+                  <Import className="h-4 w-4" />
                 </button>
                 <button
                   onClick={onOpenSettings}
-                  className="p-2 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-800 transition-colors"
+                  className="motion-colors rounded-lg border border-border bg-card p-2 text-muted-foreground hover:bg-secondary hover:text-foreground"
                   title={t('header.settingsTitle')}
                   aria-label={t('header.settingsAria')}
                 >
-                  <Settings className="w-4 h-4" />
+                  <Settings className="h-4 w-4" />
                 </button>
                 <button
                   onClick={onOpenAccount}
-                  className="p-2 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-800 transition-colors"
+                  className="motion-colors rounded-lg border border-border bg-card p-2 text-muted-foreground hover:bg-secondary hover:text-foreground"
                   title={t('header.accountTitle')}
                   aria-label={t('header.accountAria')}
                 >
-                  <CircleUserRound className="w-4 h-4" />
+                  <CircleUserRound className="h-4 w-4" />
                 </button>
               </>
             )}
           </div>
         </div>
 
-        <nav className="flex items-center justify-around gap-2 mt-3 border-t border-zinc-800/60 pt-2">
-          <button
-            onClick={() => setActiveTab('tracks')}
-            className={`flex-1 py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center transition-all ${
-              activeTab === 'tracks'
-                ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
-                : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/60'
-            }`}
-          >
-            <span className="truncate">{t('header.tracks')}</span>
-          </button>
+        <nav
+          className="relative mt-3 grid rounded-xl border border-border/80 bg-card p-1"
+          style={{ gridTemplateColumns: `repeat(${tabCount}, minmax(0, 1fr))` }}
+        >
+          <div
+            aria-hidden
+            className="motion-tab-indicator pointer-events-none absolute top-1 bottom-1 left-1 z-0 rounded-lg border border-primary/40 bg-secondary"
+            style={{
+              width: `calc((100% - 0.5rem) / ${tabCount})`,
+              transform: `translateX(${activeIndex * 100}%)`,
+            }}
+          />
 
-          <button
-            onClick={() => setActiveTab('requests')}
-            className={`flex-1 py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center transition-all ${
-              activeTab === 'requests'
-                ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
-                : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/60'
-            }`}
-          >
-            <span className="truncate">{t('header.requests')}</span>
-          </button>
-
-          {isOwner && (
-            <button
-              onClick={() => setActiveTab('dj')}
-              className={`flex-1 py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center transition-all ${
-                activeTab === 'dj'
-                  ? 'bg-cyan-500/15 text-cyan-400 border border-cyan-500/30'
-                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/60'
-              }`}
-              title={t('header.djManageTitle')}
-            >
-              <span className="truncate">{t('header.djManage')}</span>
-            </button>
-          )}
+          {tabs.map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id)}
+                title={tab.title}
+                className={cn(
+                  'relative z-10 flex items-center justify-center rounded-lg px-3 py-2 font-heading text-sm font-semibold motion-colors',
+                  isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                )}
+              >
+                <span className="truncate">{tab.label}</span>
+              </button>
+            );
+          })}
         </nav>
       </div>
     </header>

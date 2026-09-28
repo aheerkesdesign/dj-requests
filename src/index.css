@@ -1,1 +1,242 @@
 @import "tailwindcss";
+@import "@fontsource-variable/plus-jakarta-sans";
+@import "@fontsource-variable/space-grotesk";
+
+@theme {
+  --color-background: #0a0c10;
+  --color-foreground: #f4f4f5;
+  --color-muted: #0f1218;
+  --color-muted-foreground: #8e95a5;
+  --color-card: #151922;
+  --color-card-foreground: #f4f4f5;
+  --color-secondary: #1e2330;
+  --color-secondary-foreground: #f4f4f5;
+  --color-primary: #00ffb2;
+  --color-primary-foreground: #0a0c10;
+  --color-accent: #00ffb2;
+  --color-accent-foreground: #0a0c10;
+  --color-destructive: #ff3366;
+  --color-destructive-foreground: #ffffff;
+  --color-border: rgb(255 255 255 / 0.08);
+  --color-input: rgb(255 255 255 / 0.08);
+  --color-ring: #00ffb2;
+  --color-popover: #151922;
+  --color-popover-foreground: #f4f4f5;
+
+  --font-sans: "Plus Jakarta Sans Variable", "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "Space Grotesk Variable", "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Space Grotesk Variable", "Space Grotesk", ui-monospace, monospace;
+
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1rem;
+  --radius-3xl: 1.5rem;
+
+  --animate-spin-slow: spin 8s linear infinite;
+
+  --ease-motion: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-motion-fast: 150ms;
+  --duration-motion: 200ms;
+  --duration-motion-slow: 250ms;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply min-h-svh bg-background text-foreground font-sans antialiased;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior: none;
+  }
+
+  #root {
+    @apply min-h-svh;
+  }
+
+  ::selection {
+    @apply bg-primary text-primary-foreground;
+  }
+
+  /* Global press feedback — same scale on every clickable control.
+     Uses the `scale` property (not transform) so layout translates keep working. */
+  :where(
+    button:not(:disabled):not([aria-disabled='true']),
+    a[href],
+    summary,
+    [role='button']:not([aria-disabled='true']),
+    input[type='button']:not(:disabled),
+    input[type='submit']:not(:disabled),
+    input[type='reset']:not(:disabled),
+    .motion-press
+  ) {
+    transform-origin: center center;
+    transition-property: scale, color, background-color, border-color, opacity, box-shadow, filter;
+    transition-duration: var(--duration-motion-fast);
+    transition-timing-function: ease-out;
+  }
+
+  :where(
+    button:not(:disabled):not([aria-disabled='true']),
+    a[href],
+    summary,
+    [role='button']:not([aria-disabled='true']),
+    input[type='button']:not(:disabled),
+    input[type='submit']:not(:disabled),
+    input[type='reset']:not(:disabled),
+    .motion-press
+  ):active {
+    scale: 0.95;
+  }
+}
+
+/* ─── Motion kit ─────────────────────────────────────────────── */
+
+@layer utilities {
+  .motion-colors {
+    transition:
+      color var(--duration-motion) ease-out,
+      background-color var(--duration-motion) ease-out,
+      border-color var(--duration-motion) ease-out,
+      opacity var(--duration-motion) ease-out,
+      scale var(--duration-motion-fast) ease-out;
+  }
+
+  .motion-tab-indicator {
+    transition: transform var(--duration-motion) var(--ease-motion);
+  }
+
+  .search-glow {
+    transition: box-shadow var(--duration-motion) ease-out;
+  }
+
+  .search-glow:focus-within {
+    box-shadow: 0 0 16px -2px rgb(0 255 178 / 0.25);
+  }
+}
+
+@keyframes motion-fade-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+@keyframes motion-fade-in-from-top {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes motion-request-confirm {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(0.96);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes motion-overlay-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes motion-overlay-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@layer utilities {
+  .motion-panel-exit {
+    animation: motion-fade-out var(--duration-motion-fast) ease-out forwards;
+  }
+
+  .motion-panel-enter {
+    animation: motion-fade-in-from-top var(--duration-motion-slow) var(--ease-motion) forwards;
+  }
+
+  .motion-request-confirm {
+    animation: motion-request-confirm var(--duration-motion-slow) var(--ease-motion);
+  }
+
+  .motion-overlay-enter {
+    animation: motion-overlay-fade-in var(--duration-motion) ease-out forwards;
+  }
+
+  .motion-overlay-exit {
+    animation: motion-overlay-fade-out var(--duration-motion-fast) ease-out forwards;
+  }
+
+  .motion-modal-enter {
+    animation: motion-fade-in-from-top var(--duration-motion-slow) var(--ease-motion) forwards;
+  }
+
+  .motion-modal-exit {
+    animation: motion-fade-out var(--duration-motion-fast) ease-out forwards;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :where(
+    button:not(:disabled):not([aria-disabled='true']),
+    a[href],
+    summary,
+    [role='button']:not([aria-disabled='true']),
+    input[type='button']:not(:disabled),
+    input[type='submit']:not(:disabled),
+    input[type='reset']:not(:disabled),
+    .motion-press
+  ):active {
+    scale: none;
+  }
+
+  :where(
+    button,
+    a[href],
+    summary,
+    [role='button'],
+    input[type='button'],
+    input[type='submit'],
+    input[type='reset'],
+    .motion-press
+  ),
+  .motion-tab-indicator,
+  .motion-colors,
+  .search-glow {
+    transition: none !important;
+  }
+
+  .motion-panel-exit,
+  .motion-panel-enter,
+  .motion-request-confirm,
+  .motion-overlay-enter,
+  .motion-overlay-exit,
+  .motion-modal-enter,
+  .motion-modal-exit {
+    animation: none !important;
+  }
+}

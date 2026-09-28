@@ -5,6 +5,7 @@ import { useI18n } from '../i18n/LanguageContext';
 import { CamelotBadge } from './CamelotBadge';
 import { BpmBadge } from './BpmBadge';
 import { errorMessage } from '../utils/errors';
+import { cn } from '@/lib/utils';
 
 interface TrackCardProps {
   track: Track;
@@ -24,6 +25,7 @@ export const TrackCard: React.FC<TrackCardProps> = ({
   const { t } = useI18n();
   const [requestedLocally, setRequestedLocally] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [confirmPulse, setConfirmPulse] = useState(false);
 
   useEffect(() => {
     if (!isAlreadyRequested) {
@@ -36,11 +38,13 @@ export const TrackCard: React.FC<TrackCardProps> = ({
   const handleRequest = async () => {
     if (isRequested || isLoading || !onRequestSimilar) return;
     setRequestedLocally(true);
+    setConfirmPulse(true);
     setIsLoading(true);
     try {
       await onRequestSimilar(track.artist, track.name);
     } catch (err: unknown) {
       setRequestedLocally(false);
+      setConfirmPulse(false);
       alert(errorMessage(err, t('trackCard.requestError')));
     } finally {
       setIsLoading(false);
@@ -52,7 +56,7 @@ export const TrackCard: React.FC<TrackCardProps> = ({
     const parts = text.split(new RegExp(`(${searchHighlight.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'));
     return parts.map((part, i) =>
       part.toLowerCase() === searchHighlight.toLowerCase() ? (
-        <mark key={i} className="bg-emerald-500/30 text-emerald-200 font-semibold px-0.5 rounded">
+        <mark key={i} className="rounded bg-primary/30 px-0.5 font-semibold text-primary">
           {part}
         </mark>
       ) : (
@@ -70,60 +74,60 @@ export const TrackCard: React.FC<TrackCardProps> = ({
   const showMeta = showAlbum || showBpm || showKey || showGenre || showDuration || showYear;
 
   return (
-    <div className="bg-zinc-900/80 hover:bg-zinc-800/90 border border-zinc-800/80 hover:border-zinc-700/80 rounded-xl px-4 py-3 transition-all duration-200 flex items-center justify-between gap-3 shadow-sm">
+    <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3 motion-colors hover:border-secondary">
       <div className="min-w-0 flex-1">
-        <h3 className="text-sm font-bold text-zinc-100 truncate leading-snug">
+        <h3 className="truncate text-sm font-semibold leading-snug tracking-tight text-foreground">
           {highlightText(track.name)}
         </h3>
-        <p className="text-xs text-zinc-400 font-medium truncate mt-0.5">
+        <p className="mt-0.5 truncate text-xs text-muted-foreground">
           {highlightText(track.artist)}
         </p>
         {showMeta && (
-          <div className="flex items-center flex-wrap gap-x-2 gap-y-1 mt-1.5 min-w-0">
+          <div className="mt-1.5 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
             {showAlbum && (
-              <span className="text-xs text-zinc-500 truncate max-w-full">
+              <span className="max-w-full truncate text-xs text-muted-foreground/70">
                 {highlightText(track.album!)}
               </span>
             )}
             {showAlbum && (showBpm || showKey) && (
-              <span className="text-zinc-700 text-xs" aria-hidden>
+              <span className="text-xs text-muted-foreground/40" aria-hidden>
                 ·
               </span>
             )}
             {showBpm && <BpmBadge bpm={track.bpm} size="sm" />}
             {showBpm && showKey && (
-              <span className="text-zinc-700 text-xs" aria-hidden>
+              <span className="text-xs text-muted-foreground/40" aria-hidden>
                 ·
               </span>
             )}
             {showKey && <CamelotBadge keyString={track.key} size="sm" />}
             {(showBpm || showKey) && (showGenre || showDuration || showYear) && (
-              <span className="text-zinc-700 text-xs" aria-hidden>
+              <span className="text-xs text-muted-foreground/40" aria-hidden>
                 ·
               </span>
             )}
             {showGenre && (
-              <span className="text-xs text-zinc-500 truncate max-w-full">
+              <span className="max-w-full truncate text-xs text-muted-foreground/70">
                 {track.genre}
               </span>
             )}
             {showGenre && (showDuration || showYear) && (
-              <span className="text-zinc-700 text-xs" aria-hidden>
+              <span className="text-xs text-muted-foreground/40" aria-hidden>
                 ·
               </span>
             )}
             {showDuration && (
-              <span className="text-xs font-mono tabular-nums text-zinc-400">
+              <span className="font-heading text-xs tabular-nums text-muted-foreground">
                 {track.durationFormatted}
               </span>
             )}
             {showDuration && showYear && (
-              <span className="text-zinc-700 text-xs" aria-hidden>
+              <span className="text-xs text-muted-foreground/40" aria-hidden>
                 ·
               </span>
             )}
             {showYear && (
-              <span className="text-xs text-zinc-500">{track.year}</span>
+              <span className="text-xs text-muted-foreground/70">{track.year}</span>
             )}
           </div>
         )}
@@ -133,24 +137,40 @@ export const TrackCard: React.FC<TrackCardProps> = ({
         <button
           onClick={handleRequest}
           disabled={isRequested || isLoading}
-          className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
+          onAnimationEnd={() => setConfirmPulse(false)}
+          className={cn(
+            'relative grid shrink-0 place-items-center overflow-hidden rounded-full px-3.5 py-1.5 text-xs font-semibold motion-colors',
             isRequested
-              ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 cursor-default'
-              : 'bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 active:scale-95'
-          }`}
+              ? 'cursor-default border border-border bg-secondary text-muted-foreground'
+              : 'border border-primary/40 bg-primary/10 text-primary hover:bg-primary/20',
+            confirmPulse && 'motion-request-confirm'
+          )}
           title={isRequested ? t('trackCard.requested') : t('trackCard.requestTitle')}
         >
-          {isRequested ? (
-            <>
-              <Check className="w-3.5 h-3.5 text-emerald-400" />
-              <span>{t('trackCard.requested')}</span>
-            </>
-          ) : (
-            <>
-              <PlusCircle className="w-3.5 h-3.5" />
-              <span>{t('trackCard.request')}</span>
-            </>
-          )}
+          <span
+            aria-hidden={isRequested}
+            className={cn(
+              'col-start-1 row-start-1 flex items-center gap-1.5 whitespace-nowrap transition-[opacity,transform] duration-200 ease-out',
+              isRequested
+                ? 'pointer-events-none scale-95 opacity-0'
+                : 'scale-100 opacity-100'
+            )}
+          >
+            <PlusCircle className="h-3.5 w-3.5" />
+            <span>{t('trackCard.request')}</span>
+          </span>
+          <span
+            aria-hidden={!isRequested}
+            className={cn(
+              'col-start-1 row-start-1 flex items-center gap-1.5 whitespace-nowrap transition-[opacity,transform] duration-200 ease-out',
+              isRequested
+                ? 'scale-100 opacity-100'
+                : 'pointer-events-none scale-95 opacity-0'
+            )}
+          >
+            <Check className="h-3.5 w-3.5 text-muted-foreground" />
+            <span>{t('trackCard.requested')}</span>
+          </span>
         </button>
       )}
     </div>

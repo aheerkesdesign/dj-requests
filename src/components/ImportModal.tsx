@@ -4,6 +4,7 @@ import { parseRekordboxXML } from '../utils/xmlParser';
 import { USBLibrary } from '../types';
 import { useI18n } from '../i18n/LanguageContext';
 import { errorMessage } from '../utils/errors';
+import { ModalShell } from './ModalShell';
 
 interface ImportModalProps {
   isOpen: boolean;
@@ -39,8 +40,6 @@ export const ImportModal: React.FC<ImportModalProps> = ({
       dragDepthRef.current = 0;
     }
   }, [isOpen]);
-
-  if (!isOpen) return null;
 
   const processFile = (selectedFile: File) => {
     if (!selectedFile.name.endsWith('.xml') && !selectedFile.name.endsWith('.txt')) {
@@ -149,22 +148,24 @@ export const ImportModal: React.FC<ImportModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-      <div className="w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden text-zinc-100 my-auto max-h-[90vh] flex flex-col">
-        <div className="px-5 py-4 border-b border-zinc-800 bg-zinc-950/80 flex items-center justify-between shrink-0">
+    <ModalShell
+      open={isOpen}
+      panelClassName="w-full max-w-lg bg-card border border-border rounded-2xl shadow-2xl overflow-hidden text-foreground my-auto max-h-[90vh] flex flex-col"
+    >
+        <div className="px-5 py-4 border-b border-border bg-background/80 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-emerald-950 border border-emerald-800/80 text-emerald-400">
+            <div className="p-2 rounded-xl bg-primary/10 border border-primary/30 text-primary">
               <Import className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-bold text-sm text-zinc-100">{t('import.title')}</h3>
-              <p className="text-[11px] text-zinc-400">{t('import.subtitle')}</p>
+              <h3 className="font-bold text-sm text-foreground">{t('import.title')}</h3>
+              <p className="text-[11px] text-muted-foreground">{t('import.subtitle')}</p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="p-1.5 text-zinc-400 hover:text-zinc-100 rounded-lg hover:bg-zinc-800 transition-colors"
+            className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-secondary transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -180,26 +181,26 @@ export const ImportModal: React.FC<ImportModalProps> = ({
             )}
 
             {currentLibrary && (
-              <div className="p-3.5 rounded-xl bg-zinc-950/80 border border-zinc-800/80 text-xs text-zinc-400 space-y-1">
-                <div className="font-semibold text-zinc-200">{t('import.status')}</div>
+              <div className="p-3.5 rounded-xl bg-background/80 border border-border/80 text-xs text-muted-foreground space-y-1">
+                <div className="font-semibold text-foreground">{t('import.status')}</div>
                 <div className="grid grid-cols-2 gap-2 text-[11px] font-mono pt-1">
                   <div>
-                    <span className="text-zinc-500">{t('import.tracks')}</span>{' '}
-                    <strong className="text-emerald-400">{currentLibrary.trackCount}</strong>
+                    <span className="text-muted-foreground">{t('import.tracks')}</span>{' '}
+                    <strong className="text-primary">{currentLibrary.trackCount}</strong>
                   </div>
                   <div>
-                    <span className="text-zinc-500">{t('import.playlists')}</span>{' '}
-                    <strong className="text-cyan-400">{currentLibrary.playlistCount}</strong>
+                    <span className="text-muted-foreground">{t('import.playlists')}</span>{' '}
+                    <strong className="text-muted-foreground">{currentLibrary.playlistCount}</strong>
                   </div>
                 </div>
               </div>
             )}
 
-            <div className="p-3 rounded-xl bg-zinc-950 border border-zinc-800/80 text-[11px] text-zinc-300 space-y-1">
-              <span className="font-bold text-emerald-400 block">{t('import.howTitle')}</span>
+            <div className="p-3 rounded-xl bg-background border border-border/80 text-[11px] text-foreground space-y-1">
+              <span className="font-bold text-primary block">{t('import.howTitle')}</span>
               <p>{t('import.howStep1')}</p>
               <p>{t('import.howStep2')}</p>
-              <p className="text-zinc-400 pt-0.5 border-t border-zinc-800/60 mt-1">
+              <p className="text-muted-foreground pt-0.5 border-t border-border/60 mt-1">
                 {t('import.howNote')}
               </p>
             </div>
@@ -211,30 +212,30 @@ export const ImportModal: React.FC<ImportModalProps> = ({
               onDrop={handleDrop}
               className={`border-2 border-dashed rounded-2xl p-5 text-center transition-colors space-y-2 ${
                 isDragging
-                  ? 'border-emerald-400 bg-emerald-950/50 ring-2 ring-emerald-500/30'
-                  : 'border-zinc-700/80 hover:border-emerald-500 bg-zinc-950/60'
+                  ? 'border-primary bg-primary/10 ring-2 ring-primary/30'
+                  : 'border-border hover:border-primary/40 bg-background/60'
               }`}
             >
               <Upload
                 className={`w-8 h-8 mx-auto transition-colors ${
-                  isDragging ? 'text-emerald-300' : 'text-emerald-400'
+                  isDragging ? 'text-primary' : 'text-primary'
                 }`}
               />
               <div>
-                <p className="text-xs font-bold text-zinc-200">
+                <p className="text-xs font-bold text-foreground">
                   {isDragging
                     ? t('import.dropHere')
                     : file
                       ? file.name
                       : t('import.selectFile')}
                 </p>
-                <p className="text-[10px] text-zinc-500 mt-0.5">
+                <p className="text-[10px] text-muted-foreground mt-0.5">
                   {t('import.supportsXml')}
                 </p>
               </div>
 
               <div className="flex items-center justify-center pt-1">
-                <label className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-zinc-950 font-bold text-xs cursor-pointer shadow-sm">
+                <label className="px-4 py-2 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs cursor-pointer shadow-sm">
                   {t('import.chooseFile')}
                   <input
                     type="file"
@@ -247,18 +248,18 @@ export const ImportModal: React.FC<ImportModalProps> = ({
             </div>
 
             {parsedPreview && (
-              <div className="p-3 rounded-xl bg-emerald-950/40 border border-emerald-800/60 space-y-1.5 text-xs text-emerald-200">
-                <div className="font-bold flex items-center gap-1.5 text-emerald-400">
+              <div className="p-3 rounded-xl bg-primary/10 border border-primary/30 space-y-1.5 text-xs text-primary">
+                <div className="font-bold flex items-center gap-1.5 text-primary">
                   <Check className="w-4 h-4" /> {t('import.xmlParsed')}
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-[11px] font-mono pt-1">
                   <div>
-                    <span className="text-zinc-400">{t('import.totalTracks')}</span>{' '}
-                    <strong className="text-emerald-300">{parsedPreview.trackCount}</strong>
+                    <span className="text-muted-foreground">{t('import.totalTracks')}</span>{' '}
+                    <strong className="text-primary">{parsedPreview.trackCount}</strong>
                   </div>
                   <div>
-                    <span className="text-zinc-400">{t('import.playlists')}</span>{' '}
-                    <strong className="text-cyan-300">{parsedPreview.playlistCount}</strong>
+                    <span className="text-muted-foreground">{t('import.playlists')}</span>{' '}
+                    <strong className="text-muted-foreground">{parsedPreview.playlistCount}</strong>
                   </div>
                 </div>
               </div>
@@ -266,24 +267,23 @@ export const ImportModal: React.FC<ImportModalProps> = ({
           </form>
         </div>
 
-        <div className="p-4 border-t border-zinc-800 bg-zinc-950/80 flex items-center justify-end gap-2 shrink-0">
+        <div className="p-4 border-t border-border bg-background/80 flex items-center justify-end gap-2 shrink-0">
           <button
             type="submit"
             form="import-library-form"
             disabled={isUploading || !xmlContent || !allowUpload}
-            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-zinc-950 font-bold text-xs shadow-md shadow-emerald-500/20 disabled:opacity-40"
+            className="px-5 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs shadow-md disabled:opacity-40"
           >
             {isUploading ? t('import.uploading') : t('import.saveChanges')}
           </button>
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-xs font-semibold text-zinc-300"
+            className="px-4 py-2 rounded-xl bg-secondary hover:bg-secondary/80 text-xs font-semibold text-foreground"
           >
             {t('common.close')}
           </button>
         </div>
-      </div>
-    </div>
+    </ModalShell>
   );
 };

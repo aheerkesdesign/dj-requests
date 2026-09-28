@@ -10,11 +10,10 @@ export default function LandingPage() {
   const { t } = useI18n();
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(16,185,129,0.15),_transparent_55%)] pointer-events-none" />
+    <div className="min-h-screen bg-background text-foreground">
       <header className="relative max-w-5xl mx-auto px-4 py-5 flex items-center justify-between">
         <div className="flex items-center gap-2 tracking-tight">
-          <Disc3 className="w-6 h-6 text-emerald-400" />
+          <Disc3 className="w-6 h-6 text-primary" />
           <BrandName />
         </div>
         <div className="flex items-center gap-2">
@@ -22,18 +21,18 @@ export default function LandingPage() {
           {user ? (
             <Link
               to="/dashboard"
-              className="px-4 py-2 rounded-xl bg-emerald-500 text-zinc-950 text-xs font-bold"
+              className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold"
             >
               {t('landing.dashboard')}
             </Link>
           ) : (
             <>
-              <Link to="/login" className="px-3 py-2 text-xs font-semibold text-zinc-300 hover:text-white">
+              <Link to="/login" className="px-3 py-2 text-xs font-semibold text-foreground hover:text-white">
                 {t('landing.login')}
               </Link>
               <Link
                 to="/signup"
-                className="px-4 py-2 rounded-xl bg-emerald-500 text-zinc-950 text-xs font-bold"
+                className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold"
               >
                 {t('landing.signup')}
               </Link>
@@ -44,11 +43,11 @@ export default function LandingPage() {
 
       <main className="relative max-w-5xl mx-auto px-4 pt-16 pb-24 space-y-16">
         <section className="max-w-2xl space-y-5">
-          <p className="text-emerald-400 text-xs font-bold uppercase tracking-widest">{t('landing.forDjs')}</p>
-          <h1 className="text-4xl sm:text-5xl font-black tracking-tight leading-tight">
+          <p className="font-heading text-primary text-xs font-semibold uppercase tracking-[0.06em]">{t('landing.forDjs')}</p>
+          <h1 className="font-heading text-4xl sm:text-5xl font-bold tracking-tight leading-tight">
             {t('landing.hero')}
           </h1>
-          <p className="text-zinc-400 text-sm sm:text-base leading-relaxed">
+          <p className="text-muted-foreground text-sm sm:text-base leading-relaxed">
             {t('landing.heroBody')}
           </p>
           <div className="flex flex-wrap gap-3 pt-2">
@@ -56,13 +55,13 @@ export default function LandingPage() {
               <>
                 <Link
                   to="/dashboard"
-                  className="px-5 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 text-zinc-950 text-sm font-bold"
+                  className="px-5 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-bold"
                 >
                   {t('landing.toDashboard')}
                 </Link>
                 <Link
                   to={`/d/${profile.slug}`}
-                  className="px-5 py-3 rounded-xl border border-zinc-700 text-sm font-semibold text-zinc-200"
+                  className="px-5 py-3 rounded-xl border border-border text-sm font-semibold text-foreground"
                 >
                   {t('landing.viewPublic')}
                 </Link>
@@ -71,13 +70,13 @@ export default function LandingPage() {
               <>
                 <Link
                   to="/signup"
-                  className="px-5 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 text-zinc-950 text-sm font-bold"
+                  className="px-5 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-bold"
                 >
                   {t('landing.startFree')}
                 </Link>
                 <Link
                   to="/login"
-                  className="px-5 py-3 rounded-xl border border-zinc-700 text-sm font-semibold text-zinc-200"
+                  className="px-5 py-3 rounded-xl border border-border text-sm font-semibold text-foreground"
                 >
                   {t('landing.hasAccount')}
                 </Link>
@@ -104,10 +103,10 @@ export default function LandingPage() {
               body: t('landing.featurePageBody'),
             },
           ].map(({ icon: Icon, title, body }) => (
-            <div key={title} className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5 space-y-2">
-              <Icon className="w-5 h-5 text-emerald-400" />
+            <div key={title} className="rounded-2xl border border-border bg-card/60 p-5 space-y-2">
+              <Icon className="w-5 h-5 text-primary" />
               <h3 className="font-bold text-sm">{title}</h3>
-              <p className="text-xs text-zinc-400 leading-relaxed">{body}</p>
+              <p className="text-xs text-muted-foreground leading-relaxed">{body}</p>
             </div>
           ))}
         </section>

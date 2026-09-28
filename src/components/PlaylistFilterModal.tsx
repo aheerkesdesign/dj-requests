@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { Playlist, PlaylistNode } from '../types';
 import { useI18n } from '../i18n/LanguageContext';
+import { ModalShell } from './ModalShell';
 
 interface PlaylistFilterModalProps {
   isOpen: boolean;
@@ -119,10 +120,10 @@ const TreeNodeItem: React.FC<{
         <div
           className={`flex items-center justify-between p-2.5 rounded-xl border transition-all ${
             isAll
-              ? 'bg-emerald-950/30 border-emerald-500/40 text-zinc-100'
+              ? 'bg-primary/30 border-primary/40 text-foreground'
               : isSome
-              ? 'bg-emerald-950/15 border-emerald-500/20 text-zinc-200'
-              : 'bg-zinc-900/60 border-zinc-800/80 text-zinc-400'
+              ? 'bg-primary/15 border-primary/20 text-foreground'
+              : 'bg-card/60 border-border/80 text-muted-foreground'
           }`}
           style={{ paddingLeft: `${Math.max(10, level * 16)}px` }}
         >
@@ -131,11 +132,11 @@ const TreeNodeItem: React.FC<{
             <button
               type="button"
               onClick={() => onToggleFolderCollapse(node.id)}
-              className="p-1 rounded hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 transition-colors"
+              className="p-1 rounded hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
               title={isCollapsed ? t('playlist.openFolder') : t('playlist.closeFolder')}
             >
               {isCollapsed ? (
-                <ChevronRight className="w-4 h-4 text-zinc-400" />
+                <ChevronRight className="w-4 h-4 text-muted-foreground" />
               ) : (
                 <ChevronDown className="w-4 h-4 text-amber-400" />
               )}
@@ -145,22 +146,24 @@ const TreeNodeItem: React.FC<{
             <button
               type="button"
               onClick={() => onToggleNodeSelect(node)}
-              className="flex items-center gap-2 cursor-pointer select-none text-left"
+              className="flex w-fit max-w-full items-center gap-2 cursor-pointer select-none text-left"
             >
-              {isAll ? (
-                <CheckSquare className="w-5 h-5 text-emerald-400 shrink-0" />
-              ) : isSome ? (
-                <MinusSquare className="w-5 h-5 text-emerald-400/80 shrink-0" />
-              ) : (
-                <Square className="w-5 h-5 text-zinc-600 shrink-0" />
-              )}
+              <span className="pointer-events-none inline-flex h-5 w-5 shrink-0 items-center justify-center">
+                {isAll ? (
+                  <CheckSquare className="h-5 w-5 text-primary" />
+                ) : isSome ? (
+                  <MinusSquare className="h-5 w-5 text-primary/80" />
+                ) : (
+                  <Square className="h-5 w-5 text-muted-foreground" />
+                )}
+              </span>
 
               <FolderOpen className="w-4 h-4 text-amber-400 shrink-0" />
-              <span className="text-xs font-bold truncate text-zinc-100">{node.name}</span>
+              <span className="text-xs font-bold truncate text-foreground">{node.name}</span>
             </button>
           </div>
 
-          <span className="text-[11px] font-semibold text-zinc-400 shrink-0 ml-2 bg-zinc-950/60 px-2 py-0.5 rounded-md border border-zinc-800/60">
+          <span className="text-[11px] font-semibold text-muted-foreground shrink-0 ml-2 bg-background/60 px-2 py-0.5 rounded-md border border-border/60">
             {t('playlist.activeCount', { selected: selectedCount, total: childPlaylistIds.length })}
           </span>
         </div>
@@ -191,26 +194,26 @@ const TreeNodeItem: React.FC<{
   return (
     <label
       onClick={() => onToggleNodeSelect(node)}
-      className={`flex items-center justify-between p-2.5 rounded-xl border transition-all cursor-pointer select-none ${
+      className={`motion-press flex items-center justify-between p-2.5 rounded-xl border transition-all cursor-pointer select-none ${
         isChecked
-          ? 'bg-emerald-950/20 border-emerald-500/40 text-zinc-100'
-          : 'bg-zinc-900/40 border-zinc-800/80 text-zinc-400 hover:border-zinc-700 hover:text-zinc-300'
+          ? 'bg-primary/20 border-primary/40 text-foreground'
+          : 'bg-card/40 border-border/80 text-muted-foreground hover:border-border hover:text-foreground'
       }`}
       style={{ paddingLeft: `${Math.max(10, level * 16)}px` }}
     >
       <div className="flex items-center gap-2.5 min-w-0">
-        <div className="shrink-0">
+        <span className="pointer-events-none inline-flex h-5 w-5 shrink-0 items-center justify-center">
           {isChecked ? (
-            <CheckSquare className="w-5 h-5 text-emerald-400" />
+            <CheckSquare className="h-5 w-5 text-primary" />
           ) : (
-            <Square className="w-5 h-5 text-zinc-600" />
+            <Square className="h-5 w-5 text-muted-foreground" />
           )}
-        </div>
-        <ListMusic className="w-4 h-4 text-cyan-400 shrink-0" />
+        </span>
+        <ListMusic className="w-4 h-4 text-primary shrink-0" />
         <span className="text-xs font-semibold truncate">{node.name}</span>
       </div>
 
-      <span className="text-[11px] font-medium text-zinc-500 shrink-0 ml-2">
+      <span className="text-[11px] font-medium text-muted-foreground shrink-0 ml-2">
         {node.trackCount || 0} {(node.trackCount === 1) ? t('playlist.track') : t('playlist.tracks')}
       </span>
     </label>
@@ -250,8 +253,6 @@ export const PlaylistFilterModal: React.FC<PlaylistFilterModalProps> = ({
       .map(node => filterTreeNode(node, searchQuery))
       .filter((node): node is PlaylistNode => node !== null);
   }, [treeNodes, searchQuery]);
-
-  if (!isOpen) return null;
 
   const totalCount = playlists.length;
   const selectedCount = tempSelected.size;
@@ -314,49 +315,54 @@ export const PlaylistFilterModal: React.FC<PlaylistFilterModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+    <ModalShell
+      open={isOpen}
+      overlayTone="muted"
+      panelClassName="relative w-full max-w-lg bg-card border border-border rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]"
+    >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-800 bg-zinc-900/90">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border bg-card/90">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center">
+            <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center">
               <ListFilter className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-zinc-100 leading-snug">{t('playlist.filterTitle')}</h2>
-              <p className="text-xs text-zinc-400">
+              <h2 className="text-base font-bold text-foreground leading-snug">{t('playlist.filterTitle')}</h2>
+              <p className="text-xs text-muted-foreground">
                 {t('playlist.filterSubtitle')}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 transition-colors"
+            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Master Toggle & Search Bar */}
-        <div className="p-4 bg-zinc-950/60 border-b border-zinc-800/80 space-y-3">
+        <div className="p-4 bg-background/60 border-b border-border/80 space-y-3">
           {/* Master Checkbox Row */}
-          <div className="flex items-center justify-between bg-zinc-900/80 border border-zinc-800 p-3 rounded-xl">
+          <div className="flex items-center justify-between bg-card/80 border border-border p-3 rounded-xl">
             <button
               type="button"
               onClick={handleToggleAll}
-              className="flex items-center gap-3 text-sm font-bold text-zinc-100 hover:text-emerald-400 transition-colors cursor-pointer select-none"
+              className="flex w-fit max-w-full items-center gap-3 text-sm font-bold text-foreground hover:text-primary transition-colors cursor-pointer select-none"
             >
-              {isAllSelected ? (
-                <CheckSquare className="w-5 h-5 text-emerald-400 shrink-0" />
-              ) : isSomeSelected ? (
-                <MinusSquare className="w-5 h-5 text-emerald-400/80 shrink-0" />
-              ) : (
-                <Square className="w-5 h-5 text-zinc-500 shrink-0" />
-              )}
+              <span className="pointer-events-none inline-flex h-5 w-5 shrink-0 items-center justify-center">
+                {isAllSelected ? (
+                  <CheckSquare className="h-5 w-5 text-primary" />
+                ) : isSomeSelected ? (
+                  <MinusSquare className="h-5 w-5 text-primary/80" />
+                ) : (
+                  <Square className="h-5 w-5 text-muted-foreground" />
+                )}
+              </span>
               <span>{isAllSelected ? t('playlist.deselectAll') : t('playlist.selectAll')}</span>
             </button>
 
-            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-primary/10 text-primary border border-primary/20">
               {t('playlist.activeCount', { selected: selectedCount, total: totalCount })}
             </span>
           </div>
@@ -364,13 +370,13 @@ export const PlaylistFilterModal: React.FC<PlaylistFilterModalProps> = ({
           {/* Search Input for playlists/folders */}
           {playlists.length > 4 && (
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 placeholder={t('playlist.searchPlaceholder')}
-                className="w-full pl-9 pr-3 py-1.5 rounded-lg bg-zinc-900 border border-zinc-800 text-xs text-zinc-200 placeholder-zinc-500 outline-none focus:border-emerald-500"
+                className="w-full pl-9 pr-3 py-1.5 rounded-lg bg-card border border-border text-xs text-foreground placeholder:text-muted-foreground outline-none focus:border-primary/40"
               />
             </div>
           )}
@@ -379,12 +385,12 @@ export const PlaylistFilterModal: React.FC<PlaylistFilterModalProps> = ({
         {/* Tree List */}
         <div className="p-4 overflow-y-auto space-y-2 flex-1 custom-scrollbar">
           {playlists.length === 0 ? (
-            <div className="py-12 text-center text-zinc-500 text-xs space-y-2">
-              <Music className="w-8 h-8 mx-auto text-zinc-600" />
+            <div className="py-12 text-center text-muted-foreground text-xs space-y-2">
+              <Music className="w-8 h-8 mx-auto text-muted-foreground" />
               <p>{t('playlist.noneInLibrary')}</p>
             </div>
           ) : filteredTreeNodes.length === 0 ? (
-            <div className="py-8 text-center text-zinc-500 text-xs">
+            <div className="py-8 text-center text-muted-foreground text-xs">
               {t('playlist.noneForQuery', { query: searchQuery })}
             </div>
           ) : (
@@ -403,24 +409,23 @@ export const PlaylistFilterModal: React.FC<PlaylistFilterModalProps> = ({
         </div>
 
         {/* Footer Actions */}
-        <div className="px-5 py-3.5 border-t border-zinc-800 bg-zinc-900/90 flex items-center justify-end gap-2.5">
+        <div className="px-5 py-3.5 border-t border-border bg-card/90 flex items-center justify-end gap-2.5">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl border border-zinc-800 hover:bg-zinc-800 text-zinc-300 font-semibold text-xs transition-colors"
+            className="px-4 py-2 rounded-xl border border-border hover:bg-secondary text-foreground font-semibold text-xs transition-colors"
           >
             {t('common.cancel')}
           </button>
           <button
             type="button"
             onClick={handleApply}
-            className="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-zinc-950 font-extrabold text-xs shadow-md shadow-emerald-500/20 flex items-center gap-1.5 transition-all cursor-pointer hover:opacity-90 active:scale-95"
+            className="px-5 py-2 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs shadow-md flex items-center gap-1.5 cursor-pointer hover:opacity-90"
           >
             <Check className="w-4 h-4 stroke-[3]" />
             <span>{t('playlist.apply')}</span>
           </button>
         </div>
-      </div>
-    </div>
+    </ModalShell>
   );
 };

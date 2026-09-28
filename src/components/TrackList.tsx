@@ -1,7 +1,7 @@
 import React from 'react';
 import { Track, TrackRequest, TrackFieldVisibility, DEFAULT_TRACK_FIELD_VISIBILITY } from '../types';
 import { TrackCard } from './TrackCard';
-import { SearchX, PlusCircle, Disc3 } from 'lucide-react';
+import { SearchX, PlusCircle, Disc3, ChevronDown } from 'lucide-react';
 import { useI18n } from '../i18n/LanguageContext';
 
 interface TrackListProps {
@@ -67,26 +67,26 @@ export const TrackList: React.FC<TrackListProps> = ({
   if (loading && tracks.length === 0) {
     return (
       <div className="flex justify-center py-10">
-        <Disc3 className="w-8 h-8 text-emerald-400 animate-spin" />
+        <Disc3 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   if (tracks.length === 0) {
     return (
-      <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-2xl p-8 text-center my-4 space-y-3 shadow-inner">
-        <div className="w-16 h-16 rounded-2xl bg-zinc-800/80 text-cyan-400 mx-auto flex items-center justify-center border border-zinc-700/60">
-          <SearchX className="w-8 h-8" />
+      <div className="my-4 space-y-3 rounded-2xl border border-border bg-card/60 p-8 text-center">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-border bg-secondary text-primary">
+          <SearchX className="h-8 w-8" />
         </div>
 
-        <div className="max-w-md mx-auto space-y-1">
-          <h3 className="text-base font-bold text-zinc-100">
+        <div className="mx-auto max-w-md space-y-1">
+          <h3 className="text-base font-semibold tracking-tight text-foreground">
             {searchQuery
               ? t('tracks.noneForQuery', { query: searchQuery })
               : t('tracks.noneInSelection')}
           </h3>
           {!isOwner && allowDownloadRequests && searchQuery.trim() && (
-            <p className="text-xs text-zinc-400">
+            <p className="text-xs text-muted-foreground">
               {t('tracks.notOnUsb')}
             </p>
           )}
@@ -96,9 +96,9 @@ export const TrackList: React.FC<TrackListProps> = ({
           <div className="pt-2">
             <button
               onClick={onRequestModalOpen}
-              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-zinc-950 font-bold text-sm shadow-lg shadow-emerald-500/20 inline-flex items-center gap-2 transition-all"
+              className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-heading font-bold text-primary-foreground transition-all hover:bg-primary/90"
             >
-              <PlusCircle className="w-4 h-4" /> {t('tracks.requestThis')}
+              <PlusCircle className="h-4 w-4" /> {t('tracks.requestThis')}
             </button>
           </div>
         )}
@@ -107,7 +107,7 @@ export const TrackList: React.FC<TrackListProps> = ({
   }
 
   return (
-    <div className="space-y-2.5">
+    <div className="space-y-2">
       {displayedTracks.map(track => (
         <TrackCard
           key={track.id}
@@ -119,7 +119,6 @@ export const TrackList: React.FC<TrackListProps> = ({
         />
       ))}
 
-      {/* Show More Button if list is large */}
       {hasMore && (
         <div className="pt-3 text-center">
           <button
@@ -129,7 +128,7 @@ export const TrackList: React.FC<TrackListProps> = ({
               if (onLoadMore) onLoadMore();
               else setVisibleCount((prev) => prev + 50);
             }}
-            className="w-full py-2.5 px-4 rounded-xl bg-zinc-900 border border-zinc-800 hover:bg-zinc-800/90 text-xs font-semibold text-zinc-300 hover:text-white transition-colors disabled:opacity-60"
+            className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-border bg-card px-4 py-2.5 text-xs font-semibold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:opacity-60"
           >
             {loadingMore
               ? t('common.loading')
@@ -137,6 +136,7 @@ export const TrackList: React.FC<TrackListProps> = ({
                   shown: onLoadMore ? tracks.length : Math.min(visibleCount, tracks.length),
                   total,
                 })}
+            {!loadingMore && <ChevronDown className="h-3.5 w-3.5" />}
           </button>
         </div>
       )}

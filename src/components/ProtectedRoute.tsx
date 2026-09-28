@@ -16,8 +16,8 @@ export function ProtectedRoute({ children, requireProfile = false }: ProtectedRo
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center">
-        <Disc3 className="w-10 h-10 text-emerald-400 animate-spin" />
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
+        <Disc3 className="w-10 h-10 text-primary animate-spin" />
       </div>
     );
   }
@@ -26,21 +26,21 @@ export function ProtectedRoute({ children, requireProfile = false }: ProtectedRo
 
   if (requireProfile && !profile) {
     return (
-      <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col items-center justify-center p-6 text-center space-y-4">
-        <Disc3 className="w-10 h-10 text-emerald-400" />
+      <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center p-6 text-center space-y-4">
+        <Disc3 className="w-10 h-10 text-primary" />
         <h1 className="text-lg font-bold">{t('dashboard.profileFailed')}</h1>
-        <p className="text-sm text-zinc-400 max-w-md">{t('dashboard.profileHelp')}</p>
+        <p className="text-sm text-muted-foreground max-w-md">{t('dashboard.profileHelp')}</p>
         <button
           type="button"
           onClick={() => window.location.reload()}
-          className="px-4 py-2 rounded-xl bg-emerald-500 text-zinc-950 text-xs font-bold"
+          className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold"
         >
           {t('common.refresh')}
         </button>
         <button
           type="button"
           onClick={() => void signOut()}
-          className="text-xs text-zinc-500 underline"
+          className="text-xs text-muted-foreground underline"
         >
           {t('common.logout')}
         </button>

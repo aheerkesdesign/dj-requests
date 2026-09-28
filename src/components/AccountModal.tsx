@@ -5,6 +5,7 @@ import { USBLibrary, SocialLinks } from '../types';
 import { useAuth } from '../lib/auth';
 import { useI18n } from '../i18n/LanguageContext';
 import { errorMessage } from '../utils/errors';
+import { ModalShell } from './ModalShell';
 
 const EMPTY_SOCIALS: SocialLinks = {
   instagram: '',
@@ -77,8 +78,6 @@ export const AccountModal: React.FC<AccountModalProps> = ({
       setError('');
     }
   }, [isOpen, currentLibrary]);
-
-  if (!isOpen) return null;
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -224,22 +223,24 @@ export const AccountModal: React.FC<AccountModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-      <div className="w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden text-zinc-100 my-auto max-h-[90vh] flex flex-col">
-        <div className="px-5 py-4 border-b border-zinc-800 bg-zinc-950/80 flex items-center justify-between shrink-0">
+    <ModalShell
+      open={isOpen}
+      panelClassName="w-full max-w-lg bg-card border border-border rounded-2xl shadow-2xl overflow-hidden text-foreground my-auto max-h-[90vh] flex flex-col"
+    >
+        <div className="px-5 py-4 border-b border-border bg-background/80 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-emerald-950 border border-emerald-800/80 text-emerald-400">
+            <div className="p-2 rounded-xl bg-primary/10 border border-primary/30 text-primary">
               <User className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-bold text-sm text-zinc-100">{t('account.title')}</h3>
-              <p className="text-[11px] text-zinc-400">{t('account.subtitle')}</p>
+              <h3 className="font-bold text-sm text-foreground">{t('account.title')}</h3>
+              <p className="text-[11px] text-muted-foreground">{t('account.subtitle')}</p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="p-1.5 text-zinc-400 hover:text-zinc-100 rounded-lg hover:bg-zinc-800 transition-colors"
+            className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-secondary transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -256,8 +257,8 @@ export const AccountModal: React.FC<AccountModalProps> = ({
 
             <div className="space-y-3">
               <div>
-                <label className="block text-xs font-semibold text-zinc-300 mb-1 flex items-center gap-1.5">
-                  <User className="w-3.5 h-3.5 text-emerald-400" /> {t('account.djName')}
+                <label className="block text-xs font-semibold text-foreground mb-1 flex items-center gap-1.5">
+                  <User className="w-3.5 h-3.5 text-primary" /> {t('account.djName')}
                 </label>
                 <input
                   type="text"
@@ -266,48 +267,48 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                   onChange={(e) => setDjName(e.target.value)}
                   disabled={!allowProfileEdit}
                   placeholder={t('account.djNamePlaceholder')}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-950 border border-zinc-800 text-xs text-zinc-100 outline-none focus:border-emerald-500 transition-colors disabled:opacity-50"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-background border border-border text-xs text-foreground outline-none focus:border-primary/40 transition-colors disabled:opacity-50"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-300 mb-1 flex items-center gap-1.5">
-                  <Globe className="w-3.5 h-3.5 text-emerald-400" /> {t('account.slug')}
+                <label className="block text-xs font-semibold text-foreground mb-1 flex items-center gap-1.5">
+                  <Globe className="w-3.5 h-3.5 text-primary" /> {t('account.slug')}
                 </label>
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] text-zinc-500 font-mono shrink-0">/d/</span>
+                  <span className="text-[10px] text-muted-foreground font-mono shrink-0">/d/</span>
                   <input
                     type="text"
                     value={slug}
                     onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
                     disabled={!allowProfileEdit}
                     placeholder="dj-alex"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-950 border border-zinc-800 text-xs text-zinc-100 font-mono outline-none focus:border-emerald-500 transition-colors disabled:opacity-50"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-background border border-border text-xs text-foreground font-mono outline-none focus:border-primary/40 transition-colors disabled:opacity-50"
                   />
                 </div>
-                <span className="text-[10px] text-zinc-500 block mt-1">
+                <span className="text-[10px] text-muted-foreground block mt-1">
                   {t('account.slugHint')}
                 </span>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-300 mb-1 flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-emerald-400" /> {t('account.logo')}
+                <label className="block text-xs font-semibold text-foreground mb-1 flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-primary" /> {t('account.logo')}
                 </label>
-                <div className="flex items-center gap-3 bg-zinc-950/90 border border-zinc-800 p-3 rounded-xl">
+                <div className="flex items-center gap-3 bg-background/90 border border-border p-3 rounded-xl">
                   {logoUrl ? (
-                    <div className="w-12 h-12 rounded-xl overflow-hidden bg-zinc-900 border border-zinc-700 shrink-0 p-0.5 flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-xl overflow-hidden bg-card border border-border shrink-0 p-0.5 flex items-center justify-center">
                       <img src={logoUrl} alt="DJ Logo Preview" className="w-full h-full object-contain rounded-lg" />
                     </div>
                   ) : (
-                    <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-dashed border-zinc-700 shrink-0 flex items-center justify-center text-zinc-500">
-                      <Upload className="w-5 h-5 text-zinc-400" />
+                    <div className="w-12 h-12 rounded-xl bg-card border border-dashed border-border shrink-0 flex items-center justify-center text-muted-foreground">
+                      <Upload className="w-5 h-5 text-muted-foreground" />
                     </div>
                   )}
 
                   <div className="flex-1 min-w-0">
-                    <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-200 text-xs font-medium cursor-pointer transition-colors">
-                      <Upload className="w-3.5 h-3.5 text-emerald-400" />
+                    <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary hover:bg-secondary/80 border border-border text-foreground text-xs font-medium cursor-pointer transition-colors">
+                      <Upload className="w-3.5 h-3.5 text-primary" />
                       <span>{logoUrl ? t('account.changeLogo') : t('account.chooseImage')}</span>
                       <input
                         type="file"
@@ -316,7 +317,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                         className="hidden"
                       />
                     </label>
-                    <span className="text-[10px] text-zinc-500 block mt-1 leading-tight">
+                    <span className="text-[10px] text-muted-foreground block mt-1 leading-tight">
                       {t('account.logoHint')}
                     </span>
                   </div>
@@ -328,7 +329,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                         setLogoUrl('');
                         setLogoBlob(null);
                       }}
-                      className="ml-auto shrink-0 p-2 text-zinc-400 hover:text-red-400 rounded-lg hover:bg-zinc-800 transition-colors"
+                      className="ml-auto shrink-0 p-2 text-muted-foreground hover:text-red-400 rounded-lg hover:bg-secondary transition-colors"
                       title={t('account.removeLogo')}
                       aria-label={t('account.removeLogo')}
                     >
@@ -339,12 +340,12 @@ export const AccountModal: React.FC<AccountModalProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-300 mb-1 flex items-center gap-1.5">
-                  <ImageIcon className="w-3.5 h-3.5 text-emerald-400" /> {t('account.startImage')}
+                <label className="block text-xs font-semibold text-foreground mb-1 flex items-center gap-1.5">
+                  <ImageIcon className="w-3.5 h-3.5 text-primary" /> {t('account.startImage')}
                 </label>
-                <div className="flex items-center gap-3 bg-zinc-950/90 border border-zinc-800 p-3 rounded-xl">
+                <div className="flex items-center gap-3 bg-background/90 border border-border p-3 rounded-xl">
                   {startImageUrl ? (
-                    <div className="w-12 h-12 rounded-xl overflow-hidden bg-zinc-900 border border-zinc-700 shrink-0 p-0.5 flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-xl overflow-hidden bg-card border border-border shrink-0 p-0.5 flex items-center justify-center">
                       <img
                         src={startImageUrl}
                         alt="Startpagina preview"
@@ -352,14 +353,14 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                       />
                     </div>
                   ) : (
-                    <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-dashed border-zinc-700 shrink-0 flex items-center justify-center text-zinc-500">
-                      <ImageIcon className="w-5 h-5 text-zinc-400" />
+                    <div className="w-12 h-12 rounded-xl bg-card border border-dashed border-border shrink-0 flex items-center justify-center text-muted-foreground">
+                      <ImageIcon className="w-5 h-5 text-muted-foreground" />
                     </div>
                   )}
 
                   <div className="flex-1 min-w-0">
-                    <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-200 text-xs font-medium cursor-pointer transition-colors">
-                      <Upload className="w-3.5 h-3.5 text-emerald-400" />
+                    <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary hover:bg-secondary/80 border border-border text-foreground text-xs font-medium cursor-pointer transition-colors">
+                      <Upload className="w-3.5 h-3.5 text-primary" />
                       <span>{startImageUrl ? t('account.changePhoto') : t('account.choosePhoto')}</span>
                       <input
                         type="file"
@@ -368,7 +369,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                         className="hidden"
                       />
                     </label>
-                    <span className="text-[10px] text-zinc-500 block mt-1 leading-tight">
+                    <span className="text-[10px] text-muted-foreground block mt-1 leading-tight">
                       {t('account.startImageHint')}
                     </span>
                   </div>
@@ -380,7 +381,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                         setStartImageUrl('');
                         setStartImageBlob(null);
                       }}
-                      className="ml-auto shrink-0 p-2 text-zinc-400 hover:text-red-400 rounded-lg hover:bg-zinc-800 transition-colors"
+                      className="ml-auto shrink-0 p-2 text-muted-foreground hover:text-red-400 rounded-lg hover:bg-secondary transition-colors"
                       title={t('account.removeStartImage')}
                       aria-label={t('account.removeStartImage')}
                     >
@@ -391,98 +392,98 @@ export const AccountModal: React.FC<AccountModalProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-300 mb-1 flex items-center gap-1.5">
-                  <Share2 className="w-3.5 h-3.5 text-emerald-400" /> {t('account.socials')}
+                <label className="block text-xs font-semibold text-foreground mb-1 flex items-center gap-1.5">
+                  <Share2 className="w-3.5 h-3.5 text-primary" /> {t('account.socials')}
                 </label>
-                <div className="space-y-2 bg-zinc-950/70 border border-zinc-800 p-3 rounded-xl">
+                <div className="space-y-2 bg-background/70 border border-border p-3 rounded-xl">
                   <div>
-                    <span className="text-[10px] text-zinc-400 block mb-0.5">{t('account.socialInstagram')}</span>
+                    <span className="text-[10px] text-muted-foreground block mb-0.5">{t('account.socialInstagram')}</span>
                     <input
                       type="url"
                       value={socials.instagram || ''}
                       onChange={(e) => setSocials((s) => ({ ...s, instagram: e.target.value }))}
                       placeholder="https://instagram.com/jouwnaam"
-                      className="w-full px-3 py-1.5 rounded-lg bg-zinc-900 border border-zinc-800 text-xs text-zinc-200 outline-none focus:border-emerald-500"
+                      className="w-full px-3 py-1.5 rounded-lg bg-card border border-border text-xs text-foreground outline-none focus:border-primary/40"
                     />
                   </div>
                   <div>
-                    <span className="text-[10px] text-zinc-400 block mb-0.5">{t('account.socialTiktok')}</span>
+                    <span className="text-[10px] text-muted-foreground block mb-0.5">{t('account.socialTiktok')}</span>
                     <input
                       type="url"
                       value={socials.tiktok || ''}
                       onChange={(e) => setSocials((s) => ({ ...s, tiktok: e.target.value }))}
                       placeholder="https://tiktok.com/@jouwnaam"
-                      className="w-full px-3 py-1.5 rounded-lg bg-zinc-900 border border-zinc-800 text-xs text-zinc-200 outline-none focus:border-emerald-500"
+                      className="w-full px-3 py-1.5 rounded-lg bg-card border border-border text-xs text-foreground outline-none focus:border-primary/40"
                     />
                   </div>
                   <div>
-                    <span className="text-[10px] text-zinc-400 block mb-0.5">{t('account.socialYoutube')}</span>
+                    <span className="text-[10px] text-muted-foreground block mb-0.5">{t('account.socialYoutube')}</span>
                     <input
                       type="url"
                       value={socials.youtube || ''}
                       onChange={(e) => setSocials((s) => ({ ...s, youtube: e.target.value }))}
                       placeholder="https://youtube.com/@jouwnaam"
-                      className="w-full px-3 py-1.5 rounded-lg bg-zinc-900 border border-zinc-800 text-xs text-zinc-200 outline-none focus:border-emerald-500"
+                      className="w-full px-3 py-1.5 rounded-lg bg-card border border-border text-xs text-foreground outline-none focus:border-primary/40"
                     />
                   </div>
                   <div>
-                    <span className="text-[10px] text-zinc-400 block mb-0.5">{t('account.socialFacebook')}</span>
+                    <span className="text-[10px] text-muted-foreground block mb-0.5">{t('account.socialFacebook')}</span>
                     <input
                       type="url"
                       value={socials.facebook || ''}
                       onChange={(e) => setSocials((s) => ({ ...s, facebook: e.target.value }))}
                       placeholder="https://facebook.com/jouwnaam"
-                      className="w-full px-3 py-1.5 rounded-lg bg-zinc-900 border border-zinc-800 text-xs text-zinc-200 outline-none focus:border-emerald-500"
+                      className="w-full px-3 py-1.5 rounded-lg bg-card border border-border text-xs text-foreground outline-none focus:border-primary/40"
                     />
                   </div>
                   <div>
-                    <span className="text-[10px] text-zinc-400 block mb-0.5">{t('account.socialX')}</span>
+                    <span className="text-[10px] text-muted-foreground block mb-0.5">{t('account.socialX')}</span>
                     <input
                       type="url"
                       value={socials.x || ''}
                       onChange={(e) => setSocials((s) => ({ ...s, x: e.target.value }))}
                       placeholder="https://x.com/jouwnaam"
-                      className="w-full px-3 py-1.5 rounded-lg bg-zinc-900 border border-zinc-800 text-xs text-zinc-200 outline-none focus:border-emerald-500"
+                      className="w-full px-3 py-1.5 rounded-lg bg-card border border-border text-xs text-foreground outline-none focus:border-primary/40"
                     />
                   </div>
                   <div>
-                    <span className="text-[10px] text-zinc-400 block mb-0.5">{t('account.socialSpotify')}</span>
+                    <span className="text-[10px] text-muted-foreground block mb-0.5">{t('account.socialSpotify')}</span>
                     <input
                       type="url"
                       value={socials.spotify || ''}
                       onChange={(e) => setSocials((s) => ({ ...s, spotify: e.target.value }))}
                       placeholder="https://open.spotify.com/artist/..."
-                      className="w-full px-3 py-1.5 rounded-lg bg-zinc-900 border border-zinc-800 text-xs text-zinc-200 outline-none focus:border-emerald-500"
+                      className="w-full px-3 py-1.5 rounded-lg bg-card border border-border text-xs text-foreground outline-none focus:border-primary/40"
                     />
                   </div>
                   <div>
-                    <span className="text-[10px] text-zinc-400 block mb-0.5">{t('account.socialSoundcloud')}</span>
+                    <span className="text-[10px] text-muted-foreground block mb-0.5">{t('account.socialSoundcloud')}</span>
                     <input
                       type="url"
                       value={socials.soundcloud || ''}
                       onChange={(e) => setSocials((s) => ({ ...s, soundcloud: e.target.value }))}
                       placeholder="https://soundcloud.com/jouwnaam"
-                      className="w-full px-3 py-1.5 rounded-lg bg-zinc-900 border border-zinc-800 text-xs text-zinc-200 outline-none focus:border-emerald-500"
+                      className="w-full px-3 py-1.5 rounded-lg bg-card border border-border text-xs text-foreground outline-none focus:border-primary/40"
                     />
                   </div>
                   <div>
-                    <span className="text-[10px] text-zinc-400 block mb-0.5">{t('account.socialMixcloud')}</span>
+                    <span className="text-[10px] text-muted-foreground block mb-0.5">{t('account.socialMixcloud')}</span>
                     <input
                       type="url"
                       value={socials.mixcloud || ''}
                       onChange={(e) => setSocials((s) => ({ ...s, mixcloud: e.target.value }))}
                       placeholder="https://mixcloud.com/jouwnaam"
-                      className="w-full px-3 py-1.5 rounded-lg bg-zinc-900 border border-zinc-800 text-xs text-zinc-200 outline-none focus:border-emerald-500"
+                      className="w-full px-3 py-1.5 rounded-lg bg-card border border-border text-xs text-foreground outline-none focus:border-primary/40"
                     />
                   </div>
                   <div>
-                    <span className="text-[10px] text-zinc-400 block mb-0.5">{t('account.socialWebsite')}</span>
+                    <span className="text-[10px] text-muted-foreground block mb-0.5">{t('account.socialWebsite')}</span>
                     <input
                       type="url"
                       value={socials.website || ''}
                       onChange={(e) => setSocials((s) => ({ ...s, website: e.target.value }))}
                       placeholder="https://jouwwebsite.nl"
-                      className="w-full px-3 py-1.5 rounded-lg bg-zinc-900 border border-zinc-800 text-xs text-zinc-200 outline-none focus:border-emerald-500"
+                      className="w-full px-3 py-1.5 rounded-lg bg-card border border-border text-xs text-foreground outline-none focus:border-primary/40"
                     />
                   </div>
                 </div>
@@ -490,7 +491,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
             </div>
           </form>
 
-          <div className="mt-6 pt-4 border-t border-zinc-800">
+          <div className="mt-6 pt-4 border-t border-border">
             <button
               type="button"
               onClick={async () => {
@@ -498,31 +499,30 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                 await signOut();
                 navigate('/login', { replace: true });
               }}
-              className="w-full px-4 py-2.5 rounded-xl bg-zinc-950 border border-zinc-800 hover:border-red-800/60 hover:bg-red-950/40 text-zinc-300 hover:text-red-300 text-xs font-semibold inline-flex items-center justify-center gap-1.5 transition-colors"
+              className="w-full px-4 py-2.5 rounded-xl bg-background border border-border hover:border-red-800/60 hover:bg-red-950/40 text-foreground hover:text-red-300 text-xs font-semibold inline-flex items-center justify-center gap-1.5 transition-colors"
             >
               <LogOut className="w-3.5 h-3.5" /> {t('common.logout')}
             </button>
           </div>
         </div>
 
-        <div className="p-4 border-t border-zinc-800 bg-zinc-950/80 flex items-center justify-end gap-2 shrink-0">
+        <div className="p-4 border-t border-border bg-background/80 flex items-center justify-end gap-2 shrink-0">
           <button
             type="submit"
             form="account-form"
             disabled={isSaving || !allowProfileEdit}
-            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-zinc-950 font-bold text-xs shadow-md shadow-emerald-500/20 disabled:opacity-40"
+            className="px-5 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs shadow-md disabled:opacity-40"
           >
             {isSaving ? t('common.saving') : t('account.save')}
           </button>
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-xs font-semibold text-zinc-300"
+            className="px-4 py-2 rounded-xl bg-secondary hover:bg-secondary/80 text-xs font-semibold text-foreground"
           >
             {t('common.close')}
           </button>
         </div>
-      </div>
-    </div>
+    </ModalShell>
   );
 };
