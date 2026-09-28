@@ -1,7 +1,7 @@
 import React from 'react';
 import { Track, TrackRequest, TrackFieldVisibility, DEFAULT_TRACK_FIELD_VISIBILITY } from '../types';
 import { TrackCard } from './TrackCard';
-import { SearchX, PlusCircle } from 'lucide-react';
+import { SearchX, PlusCircle, Disc3 } from 'lucide-react';
 import { useI18n } from '../i18n/LanguageContext';
 
 interface TrackListProps {
@@ -12,6 +12,11 @@ interface TrackListProps {
   /** Missing-track prompts only. In-library request buttons stay available either way. */
   allowDownloadRequests?: boolean;
   visibleFields?: TrackFieldVisibility;
+  totalCount?: number;
+  listKey?: string;
+  loading?: boolean;
+  loadingMore?: boolean;
+  onLoadMore?: () => void;
   onRequestModalOpen: () => void;
   onRequestSimilar: (artist: string, title: string) => Promise<void> | void;
 }
@@ -23,17 +28,20 @@ export const TrackList: React.FC<TrackListProps> = ({
   isOwner = false,
   allowDownloadRequests = true,
   visibleFields = DEFAULT_TRACK_FIELD_VISIBILITY,
+  totalCount,
+  listKey = '',
+  loading = false,
+  loadingMore = false,
+  onLoadMore,
   onRequestModalOpen,
   onRequestSimilar
 }) => {
   const { t } = useI18n();
-  // Mobile Pagination / Infinite Chunk rendering for smooth performance with large XML libraries
   const [visibleCount, setVisibleCount] = React.useState(50);
 
-  // Reset pagination when search query or filter changes
   React.useEffect(() => {
     setVisibleCount(50);
-  }, [searchQuery, tracks.length]);
+  }, [searchQuery, listKey]);
 
   const isTrackRequested = (track: Track) => {
     if (!requests || requests.length === 0) return false;
@@ -52,8 +60,17 @@ export const TrackList: React.FC<TrackListProps> = ({
     });
   };
 
-  const displayedTracks = tracks.slice(0, visibleCount);
-  const hasMore = visibleCount < tracks.length;
+  const total = totalCount ?? tracks.length;
+  const displayedTracks = onLoadMore ? tracks : tracks.slice(0, visibleCount);
+  const hasMore = onLoadMore ? tracks.length < total : visibleCount < tracks.length;
+
+  if (loading && tracks.length === 0) {
+    return (
+      <div className="flex justify-center py-10">
+        <Disc3 className="w-8 h-8 text-emerald-400 animate-spin" />
+      </div>
+    );
+  }
 
   if (tracks.length === 0) {
     return (
@@ -106,10 +123,20 @@ export const TrackList: React.FC<TrackListProps> = ({
       {hasMore && (
         <div className="pt-3 text-center">
           <button
-            onClick={() => setVisibleCount(prev => prev + 50)}
-            className="w-full py-2.5 px-4 rounded-xl bg-zinc-900 border border-zinc-800 hover:bg-zinc-800/90 text-xs font-semibold text-zinc-300 hover:text-white transition-colors"
+            type="button"
+            disabled={loadingMore}
+            onClick={() => {
+              if (onLoadMore) onLoadMore();
+              else setVisibleCount((prev) => prev + 50);
+            }}
+            className="w-full py-2.5 px-4 rounded-xl bg-zinc-900 border border-zinc-800 hover:bg-zinc-800/90 text-xs font-semibold text-zinc-300 hover:text-white transition-colors disabled:opacity-60"
           >
-            {t('tracks.showMore', { shown: visibleCount, total: tracks.length })}
+            {loadingMore
+              ? t('common.loading')
+              : t('tracks.showMore', {
+                  shown: onLoadMore ? tracks.length : Math.min(visibleCount, tracks.length),
+                  total,
+                })}
           </button>
         </div>
       )}

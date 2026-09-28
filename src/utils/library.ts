@@ -1,4 +1,16 @@
-import { Track, TrackRequest } from '../types';
+import { Playlist, Track } from '../types';
+
+/** Playlist ids this track belongs to, matching the client-side playlist filter. */
+export function playlistIdsForTrack(track: Track, playlists: Playlist[]): string[] {
+  const names = new Set(track.playlists || []);
+  const ids: string[] = [];
+  for (const playlist of playlists) {
+    const byName = names.has(playlist.name);
+    const byId = Boolean(track.trackId && playlist.trackIds?.includes(track.trackId));
+    if (byName || byId) ids.push(playlist.id);
+  }
+  return ids;
+}
 
 export function isTrackInLibrary(
   request: { title: string; artist?: string },

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import {
   USBLibrary,
+  Track,
   TrackRequest,
   RequestStatus,
   RequestKind,
@@ -22,6 +23,10 @@ import {
   uploadLogo,
   uploadStartImage,
   fetchRequests,
+  searchLibraryTracks,
+  libraryHasTrack,
+  matchRequestTracks,
+  TRACK_PAGE_SIZE,
   submitRequest,
   updateRequestStatus,
   deleteRequest as apiDeleteRequest,
@@ -29,7 +34,6 @@ import {
   subscribeToRequests,
   subscribeToLibrary,
 } from '../utils/api';
-import { isTrackInLibrary } from '../utils/library';
 import { Header } from '../components/Header';
 import { StartScreen } from '../components/StartScreen';
 import { SearchBarAndFilters } from '../components/SearchBarAndFilters';
@@ -121,6 +125,11 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
     sortBy: 'title' as 'title' | 'artist',
     sortOrder: 'asc' as 'asc' | 'desc',
   });
+  const [catalogTracks, setCatalogTracks] = useState<Track[]>([]);
+  const [catalogTotal, setCatalogTotal] = useState(0);
+  const [catalogLoading, setCatalogLoading] = useState(false);
+  const [matchedTracks, setMatchedTracks] = useState<Track[]>([]);
+  const searchRequest = useRef(0);
 
   useEffect(() => {
     isPlaylistFilterOpenRef.current = isPlaylistFilterOpen;
@@ -311,7 +320,7 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
 
   const handleSubmitRequest = async (title: string, artist: string) => {
     if (!currentLibrary) return;
-    const kind: RequestKind = isTrackInLibrary({ title, artist }, currentLibrary.tracks)
+    const kind: RequestKind = (await libraryHasTrack(currentLibrary.id, title, artist))
       ? 'playable'
       : 'wishlist';
     const ls = normalizeLibrarySettings(currentLibrary.librarySettings);
@@ -385,47 +394,108 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
     return selectedPlaylistIds;
   }, [currentLibrary, selectedPlaylistIds]);
 
-  const filteredTracks = useMemo(() => {
-    if (!currentLibrary?.tracks) return [];
-    let result = [...currentLibrary.tracks];
+  const playlistIdsForSearch = useMemo(() => {
+    if (!currentLibrary?.playlists?.length) return null;
+    const allIds = currentLibrary.playlists.map((p) => p.id);
+    const allSelected =
+      activeSelectedPlaylistIds.length === allIds.length &&
+      allIds.every((id) => activeSelectedPlaylistIds.includes(id));
+    return allSelected ? null : activeSelectedPlaylistIds;
+  }, [currentLibrary, activeSelectedPlaylistIds]);
 
-    if (currentLibrary.playlists?.length > 0) {
-      const allPlaylistIds = currentLibrary.playlists.map((p) => p.id);
-      if (activeSelectedPlaylistIds.length < allPlaylistIds.length) {
-        if (activeSelectedPlaylistIds.length === 0) {
-          result = [];
-        } else {
-          const selectedPlaylists = currentLibrary.playlists.filter((p) =>
-            activeSelectedPlaylistIds.includes(p.id)
-          );
-          const selectedNames = new Set(selectedPlaylists.map((p) => p.name));
-          const selectedTrackIds = new Set(selectedPlaylists.flatMap((p) => p.trackIds));
-          result = result.filter(
-            (t) =>
-              (t.playlists && t.playlists.some((pName) => selectedNames.has(pName))) ||
-              (t.trackId && selectedTrackIds.has(t.trackId))
-          );
+  const catalogListKey = `${filters.searchQuery}|${filters.sortBy}|${filters.sortOrder}|${
+    playlistIdsForSearch?.join(',') ?? 'all'
+  }`;
+
+  useEffect(() => {
+    if (!currentLibrary?.id) return;
+    const requestId = ++searchRequest.current;
+    if (!ownerMode && viewMode !== 'library') return;
+
+    const libraryId = currentLibrary.id;
+    setCatalogLoading(true);
+    const handle = window.setTimeout(() => {
+      void (async () => {
+        try {
+          const page = await searchLibraryTracks(libraryId, {
+            query: filters.searchQuery,
+            playlistIds: playlistIdsForSearch,
+            sortBy: filters.sortBy,
+            sortOrder: filters.sortOrder,
+            offset: 0,
+            limit: TRACK_PAGE_SIZE,
+          });
+          if (searchRequest.current !== requestId) return;
+          setCatalogTracks(page.tracks);
+          setCatalogTotal(page.total);
+        } catch (err) {
+          console.error(err);
+          if (searchRequest.current !== requestId) return;
+          setCatalogTracks([]);
+          setCatalogTotal(0);
+        } finally {
+          if (searchRequest.current === requestId) setCatalogLoading(false);
         }
+      })();
+    }, 300);
+
+    return () => {
+      window.clearTimeout(handle);
+    };
+  }, [
+    currentLibrary?.id,
+    currentLibrary?.trackCount,
+    filters.searchQuery,
+    filters.sortBy,
+    filters.sortOrder,
+    playlistIdsForSearch,
+    ownerMode,
+    viewMode,
+  ]);
+
+  useEffect(() => {
+    if (!currentLibrary?.id) return;
+    let cancelled = false;
+    const libraryId = currentLibrary.id;
+    void (async () => {
+      try {
+        const tracks = await matchRequestTracks(
+          libraryId,
+          requests.map((request) => ({ title: request.title, artist: request.artist }))
+        );
+        if (!cancelled) setMatchedTracks(tracks);
+      } catch (err) {
+        console.error(err);
+        if (!cancelled) setMatchedTracks([]);
       }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [currentLibrary?.id, requests]);
+
+  const loadMoreTracks = async () => {
+    if (!currentLibrary?.id || catalogLoading || catalogTracks.length >= catalogTotal) return;
+    const requestId = searchRequest.current;
+    setCatalogLoading(true);
+    try {
+      const page = await searchLibraryTracks(currentLibrary.id, {
+        query: filters.searchQuery,
+        playlistIds: playlistIdsForSearch,
+        sortBy: filters.sortBy,
+        sortOrder: filters.sortOrder,
+        offset: catalogTracks.length,
+        limit: TRACK_PAGE_SIZE,
+      });
+      if (searchRequest.current !== requestId) return;
+      setCatalogTracks((prev) => [...prev, ...page.tracks]);
+      setCatalogTotal(page.total);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      if (searchRequest.current === requestId) setCatalogLoading(false);
     }
-
-    if (filters.searchQuery.trim()) {
-      const q = filters.searchQuery.toLowerCase().trim();
-      result = result.filter(
-        (t) => t.name.toLowerCase().includes(q) || t.artist.toLowerCase().includes(q)
-      );
-    }
-
-    result.sort((a, b) => {
-      const comp =
-        filters.sortBy === 'artist'
-          ? a.artist.localeCompare(b.artist)
-          : a.name.localeCompare(b.name);
-      return filters.sortOrder === 'asc' ? comp : -comp;
-    });
-
-    return result;
-  }, [currentLibrary, filters, activeSelectedPlaylistIds]);
+  };
 
   if (loading) {
     return (
@@ -518,14 +588,19 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
                   <SearchBarAndFilters
                     filters={filters}
                     onFilterChange={(updated) => setFilters((prev) => ({ ...prev, ...updated }))}
-                    totalTracksCount={currentLibrary.tracks.length || 0}
-                    filteredTracksCount={filteredTracks.length}
+                    totalTracksCount={currentLibrary.trackCount || 0}
+                    filteredTracksCount={catalogTotal}
                     onOpenRequestModal={() => handleOpenRequestPrefilled()}
                   />
                 </div>
 
                 <TrackList
-                  tracks={filteredTracks}
+                  tracks={catalogTracks}
+                  totalCount={catalogTotal}
+                  listKey={catalogListKey}
+                  loading={catalogLoading && catalogTracks.length === 0}
+                  loadingMore={catalogLoading && catalogTracks.length > 0}
+                  onLoadMore={() => void loadMoreTracks()}
                   searchQuery={filters.searchQuery}
                   requests={requests}
                   isOwner={isOwner}
@@ -544,7 +619,7 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
             {activeTab === 'requests' && (
               <RequestTab
                 requests={requests}
-                libraryTracks={currentLibrary.tracks}
+                libraryTracks={matchedTracks}
                 onOpenRequestModal={() => handleOpenRequestPrefilled()}
                 isOwner={isOwner}
                 visibleFields={

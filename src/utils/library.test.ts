@@ -1,0 +1,56 @@
+import { describe, expect, it } from 'vitest';
+import { isTrackInLibrary, playlistIdsForTrack } from './library';
+import type { Playlist, Track } from '../types';
+
+function track(partial: Partial<Track> & Pick<Track, 'name' | 'artist'>): Track {
+  return {
+    id: partial.id ?? 'tr-1',
+    trackId: partial.trackId ?? '1',
+    bpm: 0,
+    key: '8A',
+    duration: 0,
+    durationFormatted: '0:00',
+    rating: 0,
+    playlists: [],
+    ...partial,
+  };
+}
+
+describe('isTrackInLibrary', () => {
+  const tracks = [
+    track({ name: 'Blue Monday', artist: 'New Order', trackId: '10' }),
+    track({ id: 'tr-2', trackId: '11', name: 'Age of Love', artist: 'Age of Love' }),
+  ];
+
+  it('matches title and overlapping artist', () => {
+    expect(isTrackInLibrary({ title: 'Blue Monday', artist: 'New Order' }, tracks)).toBe(true);
+    expect(isTrackInLibrary({ title: 'Blue Monday', artist: 'Someone Else' }, tracks)).toBe(false);
+  });
+
+  it('matches a partial title when the artist overlaps', () => {
+    expect(isTrackInLibrary({ title: 'Monday', artist: 'New' }, tracks)).toBe(true);
+  });
+
+  it('is false for an empty catalog', () => {
+    expect(isTrackInLibrary({ title: 'Blue Monday', artist: 'New Order' }, [])).toBe(false);
+  });
+});
+
+describe('playlistIdsForTrack', () => {
+  const playlists: Playlist[] = [
+    { id: 'pl-a', name: 'Set', trackCount: 1, trackIds: ['10'] },
+    { id: 'pl-b', name: 'Other', trackCount: 0, trackIds: [] },
+  ];
+
+  it('includes playlists by Rekordbox track id or by name', () => {
+    expect(playlistIdsForTrack(track({ name: 'Blue Monday', artist: 'New Order', trackId: '10' }), playlists)).toEqual([
+      'pl-a',
+    ]);
+    expect(
+      playlistIdsForTrack(
+        track({ name: 'Loose', artist: 'DJ', trackId: '99', playlists: ['Other'] }),
+        playlists
+      )
+    ).toEqual(['pl-b']);
+  });
+});

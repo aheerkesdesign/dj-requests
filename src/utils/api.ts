@@ -15,6 +15,20 @@ import type {
   LibrarySettings,
 } from '../types';
 import { normalizeTrackDisplayPrefs, normalizeLibrarySettings } from '../types';
+import { playlistIdsForTrack } from './library';
+
+export const TRACK_PAGE_SIZE = 50;
+
+const LIBRARY_COLUMNS =
+  'id, owner_id, name, description, playlists, playlist_tree, selected_playlist_ids, track_count, playlist_count, track_display_prefs, library_settings, updated_at, created_at';
+
+function dedupeTracks(tracks: Track[]): Track[] {
+  const byKey = new Map<string, Track>();
+  for (const track of tracks) {
+    byKey.set(track.trackId || track.id, track);
+  }
+  return [...byKey.values()];
+}
 
 export function getClientId(): string {
   let id = localStorage.getItem('rekordbox_client_id');
@@ -58,10 +72,10 @@ function mapLibraryRow(
     startImageUrl: getLogoPublicUrl(profile?.start_image_path),
     socials: (profile?.socials || {}) as SocialLinks,
     description: lib.description || '',
-    trackCount: lib.track_count ?? (Array.isArray(lib.tracks) ? lib.tracks.length : 0),
+    trackCount: lib.track_count ?? 0,
     playlistCount: lib.playlist_count ?? (Array.isArray(lib.playlists) ? lib.playlists.length : 0),
     updatedAt: lib.updated_at,
-    tracks: (lib.tracks || []) as Track[],
+    tracks: [],
     playlists: (lib.playlists || []) as Playlist[],
     playlistTree: (lib.playlist_tree || undefined) as PlaylistNode[] | undefined,
     selectedPlaylistIds: lib.selected_playlist_ids ?? undefined,
@@ -84,7 +98,7 @@ export async function fetchLibraryBySlug(slug: string): Promise<USBLibrary | nul
 
   const { data: lib, error: libError } = await supabase
     .from('libraries')
-    .select('*')
+    .select(LIBRARY_COLUMNS)
     .eq('owner_id', profile.id)
     .maybeSingle();
 
@@ -106,7 +120,7 @@ export async function fetchMyLibrary(userId: string): Promise<USBLibrary | null>
 
   const { data: lib, error: libError } = await supabase
     .from('libraries')
-    .select('*')
+    .select(LIBRARY_COLUMNS)
     .eq('owner_id', userId)
     .maybeSingle();
 
@@ -117,7 +131,7 @@ export async function fetchMyLibrary(userId: string): Promise<USBLibrary | null>
 }
 
 export async function fetchLibrary(id: string): Promise<USBLibrary> {
-  const { data: lib, error } = await supabase.from('libraries').select('*').eq('id', id).maybeSingle();
+  const { data: lib, error } = await supabase.from('libraries').select(LIBRARY_COLUMNS).eq('id', id).maybeSingle();
   if (error) throw new Error(error.message);
   if (!lib) throw new Error('Bibliotheek niet gevonden');
 
@@ -134,13 +148,13 @@ export async function upsertMyLibraryCatalog(
   userId: string,
   libraryData: Partial<USBLibrary>
 ): Promise<USBLibrary> {
-  const tracks = libraryData.tracks || [];
+  const tracks = dedupeTracks(libraryData.tracks || []);
   const playlists = libraryData.playlists || [];
   const payload = {
     owner_id: userId,
     name: libraryData.name || 'Mijn USB Bibliotheek',
     description: libraryData.description || '',
-    tracks,
+    tracks: [],
     playlists,
     playlist_tree: libraryData.playlistTree ?? null,
     track_count: tracks.length,
@@ -160,15 +174,17 @@ export async function upsertMyLibraryCatalog(
       .from('libraries')
       .update(payload)
       .eq('id', existing.id)
-      .select('*')
+      .select(LIBRARY_COLUMNS)
       .single();
     if (error) throw new Error(error.message);
     lib = data;
   } else {
-    const { data, error } = await supabase.from('libraries').insert(payload).select('*').single();
+    const { data, error } = await supabase.from('libraries').insert(payload).select(LIBRARY_COLUMNS).single();
     if (error) throw new Error(error.message);
     lib = data;
   }
+
+  await replaceLibraryTracks(lib.id, tracks, playlists);
 
   // Clear requests on full library replace (matches previous single-upload UX)
   await supabase.from('requests').delete().eq('library_id', lib.id);
@@ -269,7 +285,84 @@ export async function uploadStartImage(userId: string, blob: Blob, ext = 'jpg'):
   return path;
 }
 
+const TRACK_INSERT_CHUNK = 400;
+
+async function replaceLibraryTracks(libraryId: string, tracks: Track[], playlists: Playlist[]): Promise<void> {
+  const { error: deleteError } = await supabase.from('library_tracks').delete().eq('library_id', libraryId);
+  if (deleteError) throw new Error(deleteError.message);
+
+  for (let i = 0; i < tracks.length; i += TRACK_INSERT_CHUNK) {
+    const rows = tracks.slice(i, i + TRACK_INSERT_CHUNK).map((track) => ({
+      library_id: libraryId,
+      track_key: track.trackId || track.id,
+      name: track.name || '',
+      artist: track.artist || '',
+      playlist_ids: playlistIdsForTrack(track, playlists),
+      data: track,
+    }));
+    const { error } = await supabase.from('library_tracks').insert(rows);
+    if (error) throw new Error(error.message);
+  }
+}
+
+export async function searchLibraryTracks(
+  libraryId: string,
+  options: {
+    query?: string;
+    playlistIds?: string[] | null;
+    sortBy?: 'title' | 'artist';
+    sortOrder?: 'asc' | 'desc';
+    limit?: number;
+    offset?: number;
+  } = {}
+): Promise<{ tracks: Track[]; total: number }> {
+  const { data, error } = await supabase.rpc('search_library_tracks', {
+    p_library_id: libraryId,
+    p_query: options.query ?? '',
+    p_playlist_ids: options.playlistIds ?? null,
+    p_sort: options.sortBy === 'artist' ? 'artist' : 'name',
+    p_order: options.sortOrder === 'desc' ? 'desc' : 'asc',
+    p_limit: options.limit ?? TRACK_PAGE_SIZE,
+    p_offset: options.offset ?? 0,
+  });
+  if (error) throw new Error(error.message);
+  const payload = (data ?? {}) as { tracks?: Track[]; total?: number };
+  return {
+    tracks: Array.isArray(payload.tracks) ? payload.tracks : [],
+    total: Number(payload.total ?? 0),
+  };
+}
+
+export async function libraryHasTrack(libraryId: string, title: string, artist: string): Promise<boolean> {
+  const { data, error } = await supabase.rpc('library_has_track', {
+    p_library_id: libraryId,
+    p_title: title,
+    p_artist: artist,
+  });
+  if (error) throw new Error(error.message);
+  return Boolean(data);
+}
+
+export async function matchRequestTracks(
+  libraryId: string,
+  requests: { title: string; artist?: string }[]
+): Promise<Track[]> {
+  if (requests.length === 0) return [];
+  const { data, error } = await supabase.rpc('match_request_tracks', {
+    p_library_id: libraryId,
+    p_requests: requests.map((request) => ({
+      title: request.title,
+      artist: request.artist ?? '',
+    })),
+  });
+  if (error) throw new Error(error.message);
+  return Array.isArray(data) ? (data as Track[]) : [];
+}
+
 export async function clearLibraryCatalog(libraryId: string): Promise<void> {
+  const { error: tracksError } = await supabase.from('library_tracks').delete().eq('library_id', libraryId);
+  if (tracksError) throw new Error(tracksError.message);
+
   const { error } = await supabase
     .from('libraries')
     .update({
