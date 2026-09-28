@@ -12,7 +12,15 @@ import { CamelotBadge } from './CamelotBadge';
 import { BpmBadge } from './BpmBadge';
 import { ModalShell } from './ModalShell';
 import { SearchBarAndFilters } from './SearchBarAndFilters';
-import { useArriveFromEmpty, useClearListSequence, useExitingIds, useRemoteListClear } from '../hooks/useMotionPresence';
+import {
+  useArriveFromEmpty,
+  useClearListSequence,
+  useEnteringIds,
+  useExitingIds,
+  useListFlipMotion,
+  useRemoteListClear,
+  useSortChangeMotion,
+} from '../hooks/useMotionPresence';
 import { cn } from '@/lib/utils';
 
 function needsMatchedTrackMeta(visibleFields: TrackFieldVisibility): boolean {
@@ -249,6 +257,12 @@ export const RequestTab: React.FC<RequestTabProps> = ({
   const { beginAfterModalClose, listExiting, emptyEntering, clearBusy } = useClearListSequence(() => {
     onClearVerzoekjes?.();
   });
+  const {
+    displaySortBy,
+    listMotionClass: sortListMotionClass,
+    sortMotionBusy,
+  } = useSortChangeMotion(sortBy);
+  const listContainerRef = React.useRef<HTMLDivElement>(null);
 
   const needsMeta = needsMatchedTrackMeta(visibleFields);
   // Keep the last fully-matched list on screen while new matches load — no spinner,
@@ -314,7 +328,7 @@ export const RequestTab: React.FC<RequestTabProps> = ({
     const trackA = listMatched?.get(a.id);
     const trackB = listMatched?.get(b.id);
 
-    if (sortBy === 'bpm') {
+    if (displaySortBy === 'bpm') {
       const bpmA = trackA?.bpm;
       const bpmB = trackB?.bpm;
       const hasA = typeof bpmA === 'number' && Number.isFinite(bpmA);
@@ -325,7 +339,7 @@ export const RequestTab: React.FC<RequestTabProps> = ({
       return bpmA - bpmB;
     }
 
-    if (sortBy === 'duration') {
+    if (displaySortBy === 'duration') {
       const durA = trackA?.duration;
       const durB = trackB?.duration;
       const hasA = typeof durA === 'number' && Number.isFinite(durA);
@@ -337,24 +351,24 @@ export const RequestTab: React.FC<RequestTabProps> = ({
     }
 
     const textA = (
-      sortBy === 'album'
+      displaySortBy === 'album'
         ? trackA?.album
-        : sortBy === 'key'
+        : displaySortBy === 'key'
           ? trackA?.key
-          : sortBy === 'genre'
+          : displaySortBy === 'genre'
             ? trackA?.genre
-            : sortBy === 'year'
+            : displaySortBy === 'year'
               ? trackA?.year
               : undefined
     )?.toString().trim() ?? '';
     const textB = (
-      sortBy === 'album'
+      displaySortBy === 'album'
         ? trackB?.album
-        : sortBy === 'key'
+        : displaySortBy === 'key'
           ? trackB?.key
-          : sortBy === 'genre'
+          : displaySortBy === 'genre'
             ? trackB?.genre
-            : sortBy === 'year'
+            : displaySortBy === 'year'
               ? trackB?.year
               : undefined
     )?.toString().trim() ?? '';
@@ -374,7 +388,7 @@ export const RequestTab: React.FC<RequestTabProps> = ({
     }
 
     // Within a status group, apply the selected sort
-    if (sortBy === 'order') {
+    if (displaySortBy === 'order') {
       const timeA = new Date(a.createdAt).getTime() || 0;
       const timeB = new Date(b.createdAt).getTime() || 0;
       // Pending: oldest first. Played/declined: newest first.
@@ -382,9 +396,9 @@ export const RequestTab: React.FC<RequestTabProps> = ({
       return timeB - timeA;
     }
 
-    if (sortBy === 'title' || sortBy === 'artist') {
-      const fieldA = (sortBy === 'artist' ? a.artist : a.title).toLowerCase();
-      const fieldB = (sortBy === 'artist' ? b.artist : b.title).toLowerCase();
+    if (displaySortBy === 'title' || displaySortBy === 'artist') {
+      const fieldA = (displaySortBy === 'artist' ? a.artist : a.title).toLowerCase();
+      const fieldB = (displaySortBy === 'artist' ? b.artist : b.title).toLowerCase();
       const fieldCmp = fieldA.localeCompare(fieldB, undefined, { sensitivity: 'base' });
       if (fieldCmp !== 0) return fieldCmp;
     } else {
@@ -412,6 +426,12 @@ export const RequestTab: React.FC<RequestTabProps> = ({
     }
     return true;
   });
+
+  const filteredIds = filteredRequests.map((r) => r.id);
+  const insertMotionEnabled =
+    !holdingForMeta && !showListExiting && !listArriving && !sortMotionBusy;
+  const { isEntering } = useEnteringIds(filteredIds, insertMotionEnabled);
+  useListFlipMotion(listContainerRef, filteredIds, insertMotionEnabled);
 
   const getStatusBadge = (status: RequestStatus) => {
     switch (status) {
@@ -543,13 +563,25 @@ export const RequestTab: React.FC<RequestTabProps> = ({
           </div>
         </div>
       ) : (
-        <div className={cn('space-y-2.5', showListExiting && 'motion-panel-exit', listArriving && 'motion-panel-enter')}>
+        <div
+          ref={listContainerRef}
+          className={cn(
+            'space-y-2.5',
+            showListExiting && 'motion-panel-exit',
+            listArriving && 'motion-panel-enter',
+            !showListExiting && !listArriving && sortListMotionClass
+          )}
+        >
           {filteredRequests.map(req => {
             const matchingTrack = listMatched?.get(req.id);
             return (
               <div
                 key={req.id}
-                className={cn(isExiting(req.id) && 'motion-panel-exit')}
+                data-list-id={req.id}
+                className={cn(
+                  isExiting(req.id) && 'motion-panel-exit',
+                  isEntering(req.id) && 'motion-fade-in-place'
+                )}
               >
                 <SwipeableRequestCard
                   req={req}

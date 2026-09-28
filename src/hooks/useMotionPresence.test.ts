@@ -1,7 +1,14 @@
 import { act, createElement } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { MOTION_EXIT_MS, useArriveFromEmpty, useRemoteListClear } from './useMotionPresence';
+import {
+  MOTION_ENTER_MS,
+  MOTION_EXIT_MS,
+  useArriveFromEmpty,
+  useEnteringIds,
+  useRemoteListClear,
+  useSortChangeMotion,
+} from './useMotionPresence';
 
 function ArriveProbe({ count, settled = true }: { count: number; settled?: boolean }) {
   const arriving = useArriveFromEmpty(count, settled);
@@ -21,6 +28,30 @@ function RemoteProbe({
     'data-exiting': listExiting ? 'yes' : 'no',
     'data-empty-enter': emptyEntering ? 'yes' : 'no',
   });
+}
+
+function SortProbe({ sortBy }: { sortBy: string }) {
+  const { displaySortBy, listMotionClass, sortMotionBusy } = useSortChangeMotion(sortBy);
+  return createElement('div', {
+    'data-display': displaySortBy,
+    'data-class': listMotionClass ?? '',
+    'data-busy': sortMotionBusy ? 'yes' : 'no',
+  });
+}
+
+function EnteringProbe({ ids, enabled = true }: { ids: string[]; enabled?: boolean }) {
+  const { isEntering } = useEnteringIds(ids, enabled);
+  return createElement(
+    'div',
+    null,
+    ...ids.map((id) =>
+      createElement('span', {
+        key: id,
+        'data-id': id,
+        'data-entering': isEntering(id) ? 'yes' : 'no',
+      })
+    )
+  );
 }
 
 describe('useArriveFromEmpty', () => {
@@ -111,5 +142,130 @@ describe('useRemoteListClear', () => {
   it('does not animate when a local clear sequence is already busy', () => {
     expect(render(['a'], true)).toMatchObject({ count: '1', exiting: 'no' });
     expect(render([], true)).toMatchObject({ count: '0', exiting: 'no', emptyEnter: 'no' });
+  });
+});
+
+describe('useSortChangeMotion', () => {
+  let root: Root | undefined;
+  let el: HTMLDivElement | undefined;
+
+  afterEach(() => {
+    vi.useRealTimers();
+    act(() => root?.unmount());
+    el?.remove();
+    root = undefined;
+    el = undefined;
+  });
+
+  function render(sortBy: string) {
+    if (!el) {
+      el = document.createElement('div');
+      document.body.appendChild(el);
+      root = createRoot(el);
+    }
+    act(() => {
+      root!.render(createElement(SortProbe, { sortBy }));
+    });
+    const node = el.querySelector('[data-display]');
+    return {
+      display: node?.getAttribute('data-display'),
+      className: node?.getAttribute('data-class'),
+      busy: node?.getAttribute('data-busy'),
+    };
+  }
+
+  it('keeps the previous sort visible while fading out', () => {
+    vi.useFakeTimers();
+    expect(render('order')).toMatchObject({ display: 'order', className: '', busy: 'no' });
+    expect(render('title')).toMatchObject({
+      display: 'order',
+      className: 'motion-panel-exit',
+      busy: 'yes',
+    });
+
+    act(() => {
+      vi.advanceTimersByTime(MOTION_EXIT_MS);
+    });
+    expect(render('title')).toMatchObject({
+      display: 'title',
+      className: 'motion-panel-enter',
+      busy: 'yes',
+    });
+
+    act(() => {
+      vi.advanceTimersByTime(MOTION_ENTER_MS);
+    });
+    expect(render('title')).toMatchObject({ display: 'title', className: '', busy: 'no' });
+  });
+});
+
+describe('useEnteringIds', () => {
+  let root: Root | undefined;
+  let el: HTMLDivElement | undefined;
+
+  afterEach(() => {
+    vi.useRealTimers();
+    act(() => root?.unmount());
+    el?.remove();
+    root = undefined;
+    el = undefined;
+  });
+
+  function render(ids: string[], enabled = true) {
+    if (!el) {
+      el = document.createElement('div');
+      document.body.appendChild(el);
+      root = createRoot(el);
+    }
+    act(() => {
+      root!.render(createElement(EnteringProbe, { ids, enabled }));
+    });
+    return [...el.querySelectorAll('[data-id]')].map((node) => ({
+      id: node.getAttribute('data-id'),
+      entering: node.getAttribute('data-entering'),
+    }));
+  }
+
+  it('does not mark the first snapshot as entering', () => {
+    expect(render(['a', 'b'])).toEqual([
+      { id: 'a', entering: 'no' },
+      { id: 'b', entering: 'no' },
+    ]);
+  });
+
+  it('marks only newly added ids, including several at once', () => {
+    vi.useFakeTimers();
+    render(['a']);
+    expect(render(['a', 'b', 'c'])).toEqual([
+      { id: 'a', entering: 'no' },
+      { id: 'b', entering: 'yes' },
+      { id: 'c', entering: 'yes' },
+    ]);
+
+    act(() => {
+      vi.advanceTimersByTime(MOTION_ENTER_MS);
+    });
+    expect(render(['a', 'b', 'c'])).toEqual([
+      { id: 'a', entering: 'no' },
+      { id: 'b', entering: 'no' },
+      { id: 'c', entering: 'no' },
+    ]);
+  });
+
+  it('does not individually enter when growing from an empty known set', () => {
+    render([]);
+    expect(render(['a', 'b'])).toEqual([
+      { id: 'a', entering: 'no' },
+      { id: 'b', entering: 'no' },
+    ]);
+  });
+
+  it('keeps known in sync while disabled so deferred inserts do not replay', () => {
+    render(['a'], true);
+    render(['a', 'b'], false);
+    expect(render(['a', 'b'], true)).toEqual([
+      { id: 'a', entering: 'no' },
+      { id: 'b', entering: 'no' },
+    ]);
   });
 });

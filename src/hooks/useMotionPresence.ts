@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type RefObject,
+} from 'react';
 
 export const MOTION_EXIT_MS = 150;
 export const MOTION_ENTER_MS = 250;
@@ -222,4 +229,181 @@ export function useArriveFromEmpty(count: number, settled: boolean) {
   }, [arriving]);
 
   return arriving;
+}
+
+/**
+ * Tab-style list fade when the sort key changes: exit → swap order → enter.
+ * `displaySortBy` lags behind during the exit so the old order stays visible.
+ */
+export function useSortChangeMotion<T extends string>(sortBy: T) {
+  const [displaySortBy, setDisplaySortBy] = useState(sortBy);
+  const [phase, setPhase] = useState<'idle' | 'exit' | 'enter'>('idle');
+
+  useEffect(() => {
+    if (sortBy === displaySortBy) return;
+
+    if (prefersReducedMotion()) {
+      setDisplaySortBy(sortBy);
+      setPhase('idle');
+      return;
+    }
+
+    setPhase('exit');
+    const timer = window.setTimeout(() => {
+      setDisplaySortBy(sortBy);
+      setPhase('enter');
+    }, MOTION_EXIT_MS);
+
+    return () => window.clearTimeout(timer);
+  }, [sortBy, displaySortBy]);
+
+  useEffect(() => {
+    if (phase !== 'enter') return;
+    const timer = window.setTimeout(() => setPhase('idle'), MOTION_ENTER_MS);
+    return () => window.clearTimeout(timer);
+  }, [phase]);
+
+  const listMotionClass =
+    phase === 'exit'
+      ? 'motion-panel-exit'
+      : phase === 'enter'
+        ? 'motion-panel-enter'
+        : undefined;
+
+  return {
+    displaySortBy,
+    listMotionClass,
+    /** True while the list is fading for a sort change (FLIP should stay off). */
+    sortMotionBusy: phase !== 'idle',
+  };
+}
+
+/**
+ * Marks newly appearing ids for one enter-duration so callers can fade them in.
+ * Skips the first snapshot and empty→non-empty bursts (those use list-level enter).
+ * Multiple ids added in one update are all marked together.
+ */
+export function useEnteringIds(ids: string[], enabled = true) {
+  const knownRef = useRef<Set<string> | null>(null);
+  const idsRef = useRef(ids);
+  idsRef.current = ids;
+  const [enteringIds, setEnteringIds] = useState<Set<string>>(() => new Set());
+  const idsKey = ids.join('\0');
+
+  useLayoutEffect(() => {
+    const currentIds = idsRef.current;
+    const next = new Set(currentIds);
+
+    if (!enabled) {
+      // Stay in sync while list-level motion owns the screen, so we don't
+      // replay inserts as individual fades when enabled again.
+      if (knownRef.current !== null) {
+        knownRef.current = next;
+      }
+      return;
+    }
+
+    if (knownRef.current === null) {
+      knownRef.current = next;
+      return;
+    }
+
+    const known = knownRef.current;
+    const added: string[] = [];
+    for (const id of currentIds) {
+      if (!known.has(id)) added.push(id);
+    }
+    knownRef.current = next;
+
+    // Whole-list arrive-from-empty handles the first population after clear.
+    if (added.length === 0 || known.size === 0) return;
+    if (prefersReducedMotion()) return;
+
+    setEnteringIds((prev) => {
+      const merged = new Set(prev);
+      for (const id of added) merged.add(id);
+      return merged;
+    });
+
+    const timer = window.setTimeout(() => {
+      setEnteringIds((prev) => {
+        let changed = false;
+        const merged = new Set(prev);
+        for (const id of added) {
+          if (merged.delete(id)) changed = true;
+        }
+        return changed ? merged : prev;
+      });
+    }, MOTION_ENTER_MS);
+
+    return () => window.clearTimeout(timer);
+  }, [idsKey, enabled]);
+
+  const isEntering = useCallback((id: string) => enteringIds.has(id), [enteringIds]);
+
+  return { enteringIds, isEntering };
+}
+
+/**
+ * FLIP: when existing rows move (e.g. new items inserted above), animate the
+ * translate instead of jumping. New rows are skipped (they fade in separately).
+ */
+export function useListFlipMotion(
+  containerRef: RefObject<HTMLElement | null>,
+  itemIds: string[],
+  enabled: boolean
+) {
+  const prevRectsRef = useRef<Map<string, number>>(new Map());
+  const idsKey = itemIds.join('\0');
+
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    if (!container) {
+      prevRectsRef.current = new Map();
+      return;
+    }
+
+    const nodes = container.querySelectorAll<HTMLElement>('[data-list-id]');
+    const nextTops = new Map<string, number>();
+    for (const node of nodes) {
+      const id = node.dataset.listId;
+      if (!id) continue;
+      nextTops.set(id, node.getBoundingClientRect().top);
+    }
+
+    const prevTops = prevRectsRef.current;
+    const canAnimate = enabled && prevTops.size > 0 && !prefersReducedMotion();
+
+    if (canAnimate) {
+      for (const node of nodes) {
+        const id = node.dataset.listId;
+        if (!id) continue;
+        const first = prevTops.get(id);
+        const last = nextTops.get(id);
+        if (first === undefined || last === undefined) continue;
+        const dy = first - last;
+        if (Math.abs(dy) < 1) continue;
+
+        node.style.transition = 'none';
+        node.style.transform = `translateY(${dy}px)`;
+        // Force reflow so the invert sticks before we play.
+        void node.offsetHeight;
+        node.style.transition = `transform var(--duration-motion-slow) var(--ease-motion)`;
+        node.style.transform = '';
+
+        const clear = () => {
+          node.style.transition = '';
+          node.style.transform = '';
+          node.removeEventListener('transitionend', onEnd);
+        };
+        const onEnd = (event: TransitionEvent) => {
+          if (event.target === node && event.propertyName === 'transform') clear();
+        };
+        node.addEventListener('transitionend', onEnd);
+        window.setTimeout(clear, MOTION_ENTER_MS + 50);
+      }
+    }
+
+    prevRectsRef.current = nextTops;
+  }, [idsKey, enabled, containerRef]);
 }
