@@ -61,12 +61,20 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="mx-auto max-w-4xl">
         <div className="flex items-center justify-between gap-2">
           <div
-            onClick={onGoToStartScreen}
-            className="motion-press group flex min-w-0 cursor-pointer items-center gap-2.5"
-            title={t('header.backToStart')}
+            onClick={isOwner ? undefined : onGoToStartScreen}
+            className={cn(
+              'group flex min-w-0 items-center gap-2.5',
+              !isOwner && 'motion-press cursor-pointer'
+            )}
+            title={isOwner ? undefined : t('header.backToStart')}
           >
             {(currentLibrary?.logoUrl || '/favicon.png') ? (
-              <div className="motion-colors flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-card p-0.5 group-hover:border-primary/40">
+              <div
+                className={cn(
+                  'flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-card p-0.5',
+                  !isOwner && 'motion-colors group-hover:border-primary/40'
+                )}
+              >
                 <img
                   src={currentLibrary?.logoUrl || '/favicon.png'}
                   alt={currentLibrary?.djName || 'DJ Logo'}
@@ -74,12 +82,22 @@ export const Header: React.FC<HeaderProps> = ({
                 />
               </div>
             ) : (
-              <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground transition-transform group-hover:scale-105">
+              <div
+                className={cn(
+                  'relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground',
+                  !isOwner && 'transition-transform group-hover:scale-105'
+                )}
+              >
                 <Disc3 className="h-6 w-6 animate-spin-slow" />
               </div>
             )}
             <div className="min-w-0">
-              <h1 className="motion-colors truncate font-heading text-base font-bold leading-tight tracking-tight text-foreground group-hover:text-primary">
+              <h1
+                className={cn(
+                  'truncate font-heading text-base font-bold leading-tight tracking-tight text-foreground',
+                  !isOwner && 'motion-colors group-hover:text-primary'
+                )}
+              >
                 {currentLibrary?.djName
                   ? t('header.libraryOf', { name: currentLibrary.djName })
                   : t('header.library')}
@@ -88,7 +106,7 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           <div className="flex shrink-0 items-center gap-1.5">
-            <LocaleToggle />
+            {!isOwner && <LocaleToggle />}
 
             <button
               onClick={onOpenShare}

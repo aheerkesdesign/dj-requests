@@ -170,6 +170,17 @@
   }
 }
 
+@keyframes motion-sort-label-in {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @layer utilities {
   .motion-panel-exit {
     animation: motion-fade-out var(--duration-motion-fast) ease-out forwards;
@@ -183,6 +194,11 @@
 
   .motion-request-confirm {
     animation: motion-request-confirm var(--duration-motion-slow) var(--ease-motion);
+  }
+
+  .motion-sort-label {
+    opacity: 0;
+    animation: motion-sort-label-in var(--duration-motion-slow) var(--ease-motion) both;
   }
 
   .motion-overlay-enter {
@@ -237,6 +253,7 @@
   .motion-panel-exit,
   .motion-panel-enter,
   .motion-request-confirm,
+  .motion-sort-label,
   .motion-overlay-enter,
   .motion-overlay-exit,
   .motion-modal-enter,
@@ -245,6 +262,7 @@
   }
 
   .motion-panel-enter,
+  .motion-sort-label,
   .motion-overlay-enter,
   .motion-modal-enter {
     opacity: 1;

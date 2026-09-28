@@ -33,7 +33,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onSavePrefs,
   allowEdit = true,
 }) => {
-  const { t } = useI18n();
+  const { t, locale, setLocale } = useI18n();
   const [prefs, setPrefs] = useState<TrackDisplayPrefs>(DEFAULT_TRACK_DISPLAY_PREFS);
   const [settings, setSettings] = useState<LibrarySettings>(DEFAULT_LIBRARY_SETTINGS);
   const [isSaving, setIsSaving] = useState(false);
@@ -297,42 +297,78 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               onToggle={() => setLanguageOpen((v) => !v)}
             />
             {languageOpen && (
-              <div className="rounded-xl bg-background/80 border border-border/80 p-3.5 space-y-3">
-                <div>
-                  <span className="text-xs font-medium text-foreground block">
-                    {t('settings.pageDefaultLocale')}
-                  </span>
-                  <span className="text-[11px] text-muted-foreground mt-0.5 block">
-                    {t('settings.pageDefaultLocaleHint')}
-                  </span>
+              <div className="rounded-xl bg-background/80 border border-border/80 p-3.5 space-y-4">
+                <div className="space-y-3">
+                  <div>
+                    <span className="text-xs font-medium text-foreground block">
+                      {t('settings.djLocale')}
+                    </span>
+                    <span className="text-[11px] text-muted-foreground mt-0.5 block">
+                      {t('settings.djLocaleHint')}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {(['nl', 'en'] as const).map((val) => {
+                      const label = val === 'nl' ? t('settings.localeNl') : t('settings.localeEn');
+                      const active = locale === val;
+                      return (
+                        <button
+                          key={val}
+                          type="button"
+                          disabled={!allowEdit}
+                          onClick={() => allowEdit && setLocale(val)}
+                          className={`px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+                            active
+                              ? 'bg-primary/20 border-primary/60 text-primary'
+                              : 'bg-card border-border text-muted-foreground hover:text-foreground hover:border-border'
+                          }`}
+                        >
+                          {label}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  {(['auto', 'nl', 'en'] as const).map((val) => {
-                    const label =
-                      val === 'auto'
-                        ? t('settings.localeAuto')
-                        : val === 'nl'
-                          ? t('settings.localeNl')
-                          : t('settings.localeEn');
-                    const active = settings.pageDefaultLocale === val;
-                    return (
-                      <button
-                        key={val}
-                        type="button"
-                        disabled={!allowEdit}
-                        onClick={() =>
-                          allowEdit && setSettings((prev) => ({ ...prev, pageDefaultLocale: val }))
-                        }
-                        className={`px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
-                          active
-                            ? 'bg-primary/20 border-primary/60 text-primary'
-                            : 'bg-card border-border text-muted-foreground hover:text-foreground hover:border-border'
-                        }`}
-                      >
-                        {label}
-                      </button>
-                    );
-                  })}
+
+                <div className="border-t border-border/60" />
+
+                <div className="space-y-3">
+                  <div>
+                    <span className="text-xs font-medium text-foreground block">
+                      {t('settings.pageDefaultLocale')}
+                    </span>
+                    <span className="text-[11px] text-muted-foreground mt-0.5 block">
+                      {t('settings.pageDefaultLocaleHint')}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {(['auto', 'nl', 'en'] as const).map((val) => {
+                      const label =
+                        val === 'auto'
+                          ? t('settings.localeAuto')
+                          : val === 'nl'
+                            ? t('settings.localeNl')
+                            : t('settings.localeEn');
+                      const active = settings.pageDefaultLocale === val;
+                      return (
+                        <button
+                          key={val}
+                          type="button"
+                          disabled={!allowEdit}
+                          onClick={() =>
+                            allowEdit && setSettings((prev) => ({ ...prev, pageDefaultLocale: val }))
+                          }
+                          className={`px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+                            active
+                              ? 'bg-primary/20 border-primary/60 text-primary'
+                              : 'bg-card border-border text-muted-foreground hover:text-foreground hover:border-border'
+                          }`}
+                        >
+                          {label}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             )}

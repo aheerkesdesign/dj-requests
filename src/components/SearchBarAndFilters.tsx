@@ -1,6 +1,7 @@
 import React from 'react';
 import { Search, X, ArrowUpDown, Check } from 'lucide-react';
 import { useI18n } from '../i18n/LanguageContext';
+import { usePresence } from '../hooks/useMotionPresence';
 import { cn } from '@/lib/utils';
 
 export interface SortMenuOption {
@@ -20,6 +21,13 @@ interface SearchBarAndFiltersProps {
   };
 }
 
+function prefersReducedMotion() {
+  return (
+    typeof window !== 'undefined' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  );
+}
+
 export const SearchBarAndFilters: React.FC<SearchBarAndFiltersProps> = ({
   searchQuery,
   onSearchChange,
@@ -28,16 +36,104 @@ export const SearchBarAndFilters: React.FC<SearchBarAndFiltersProps> = ({
   const { t } = useI18n();
   const [sortOpen, setSortOpen] = React.useState(false);
   const sortRef = React.useRef<HTMLDivElement>(null);
+  const sortButtonRef = React.useRef<HTMLButtonElement>(null);
+  const { present: sortPresent, panelClassName: sortMenuMotionClass } = usePresence(sortOpen);
+
+  const activeSortLabel =
+    sortMenu?.options.find((o) => o.value === sortMenu.value)?.label ?? t('search.sortBy');
+
+  const [displayLabel, setDisplayLabel] = React.useState(activeSortLabel);
+  const [labelAnimKey, setLabelAnimKey] = React.useState(0);
+  const [labelAnimating, setLabelAnimating] = React.useState(false);
+  const [buttonConfirm, setButtonConfirm] = React.useState(false);
+  /** Label to reveal on the button after the options menu finishes fading out. */
+  const pendingLabelRef = React.useRef<string | null>(null);
+  const wasMenuPresentRef = React.useRef(false);
+  /** Capture button width before the label swap so we can tween to the new size. */
+  const widthFromRef = React.useRef<number | null>(null);
+
+  const animateLabelTo = React.useCallback((next: string) => {
+    if (!prefersReducedMotion()) {
+      widthFromRef.current = sortButtonRef.current?.getBoundingClientRect().width ?? null;
+    }
+    setDisplayLabel(next);
+    setLabelAnimKey((k) => k + 1);
+    setLabelAnimating(true);
+    setButtonConfirm(true);
+  }, []);
+
+  React.useLayoutEffect(() => {
+    const btn = sortButtonRef.current;
+    const from = widthFromRef.current;
+    widthFromRef.current = null;
+    if (!btn || from === null || prefersReducedMotion()) return;
+
+    const to = btn.getBoundingClientRect().width;
+    if (Math.abs(to - from) < 1) return;
+
+    btn.style.width = `${from}px`;
+    void btn.offsetWidth;
+    btn.style.transition = 'width var(--duration-motion-slow) var(--ease-motion)';
+    btn.style.width = `${to}px`;
+
+    const clear = () => {
+      btn.style.width = '';
+      btn.style.transition = '';
+      btn.removeEventListener('transitionend', onEnd);
+    };
+    const onEnd = (e: TransitionEvent) => {
+      if (e.propertyName === 'width') clear();
+    };
+    btn.addEventListener('transitionend', onEnd);
+    const fallback = window.setTimeout(clear, 300);
+    return () => {
+      window.clearTimeout(fallback);
+      btn.removeEventListener('transitionend', onEnd);
+      btn.style.width = '';
+      btn.style.transition = '';
+    };
+  }, [displayLabel, labelAnimKey]);
+
+  // After options fade out, reveal the newly selected sort on the button.
+  React.useEffect(() => {
+    const wasPresent = wasMenuPresentRef.current;
+    wasMenuPresentRef.current = sortPresent;
+
+    if (wasPresent && !sortPresent && pendingLabelRef.current !== null) {
+      const next = pendingLabelRef.current;
+      pendingLabelRef.current = null;
+      if (next !== displayLabel) animateLabelTo(next);
+      return;
+    }
+
+    // Locale / external updates when the menu is closed.
+    if (!sortPresent && pendingLabelRef.current === null && activeSortLabel !== displayLabel) {
+      setDisplayLabel(activeSortLabel);
+    }
+  }, [sortPresent, activeSortLabel, displayLabel, animateLabelTo]);
+
+  React.useEffect(() => {
+    if (!labelAnimating && !buttonConfirm) return;
+    const timer = window.setTimeout(() => {
+      setLabelAnimating(false);
+      setButtonConfirm(false);
+    }, 250);
+    return () => window.clearTimeout(timer);
+  }, [labelAnimating, buttonConfirm, labelAnimKey]);
 
   React.useEffect(() => {
     if (!sortOpen) return;
     const onPointerDown = (e: PointerEvent) => {
       if (!sortRef.current?.contains(e.target as Node)) {
+        pendingLabelRef.current = null;
         setSortOpen(false);
       }
     };
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setSortOpen(false);
+      if (e.key === 'Escape') {
+        pendingLabelRef.current = null;
+        setSortOpen(false);
+      }
     };
     document.addEventListener('pointerdown', onPointerDown);
     document.addEventListener('keydown', onKeyDown);
@@ -46,9 +142,6 @@ export const SearchBarAndFilters: React.FC<SearchBarAndFiltersProps> = ({
       document.removeEventListener('keydown', onKeyDown);
     };
   }, [sortOpen]);
-
-  const activeSortLabel =
-    sortMenu?.options.find((o) => o.value === sortMenu.value)?.label ?? t('search.sortBy');
 
   return (
     <div className="space-y-2.5">
@@ -76,24 +169,38 @@ export const SearchBarAndFilters: React.FC<SearchBarAndFiltersProps> = ({
         {sortMenu && (
           <div ref={sortRef} className="relative shrink-0">
             <button
+              ref={sortButtonRef}
               type="button"
               aria-haspopup="listbox"
               aria-expanded={sortOpen}
               onClick={() => setSortOpen((open) => !open)}
               className={cn(
-                'motion-colors flex h-11 items-center gap-1.5 rounded-xl border bg-card px-3.5 text-sm font-medium text-foreground hover:border-secondary hover:text-primary',
-                sortOpen ? 'border-primary/40 text-primary' : 'border-border'
+                'motion-colors flex h-11 items-center gap-1.5 overflow-hidden rounded-xl border bg-card px-3.5 text-sm font-medium text-foreground hover:border-secondary hover:text-primary',
+                sortOpen || sortPresent ? 'border-primary/40 text-primary' : 'border-border',
+                buttonConfirm && 'motion-request-confirm'
               )}
             >
-              <ArrowUpDown className="h-3.5 w-3.5 text-primary" />
-              <span className="hidden sm:inline text-muted-foreground">{t('search.sortBy')}</span>
-              <span className="max-w-[7rem] truncate sm:max-w-[9rem]">{activeSortLabel}</span>
+              <ArrowUpDown className="h-3.5 w-3.5 shrink-0 text-primary" />
+              <span className="hidden shrink-0 sm:inline text-muted-foreground">{t('search.sortBy')}</span>
+              <span
+                key={labelAnimKey}
+                className={cn(
+                  'inline-block max-w-[7rem] truncate sm:max-w-[9rem]',
+                  labelAnimating && 'motion-sort-label'
+                )}
+              >
+                {displayLabel}
+              </span>
             </button>
 
-            {sortOpen && (
+            {sortPresent && (
               <div
                 role="listbox"
-                className="motion-panel-enter absolute right-0 z-30 mt-1.5 min-w-[11rem] overflow-hidden rounded-xl border border-border bg-card py-1 shadow-lg"
+                className={cn(
+                  'absolute right-0 z-30 mt-1.5 min-w-[11rem] overflow-hidden rounded-xl border border-border bg-card py-1 shadow-lg',
+                  sortMenuMotionClass === 'motion-modal-enter' && 'motion-panel-enter',
+                  sortMenuMotionClass === 'motion-modal-exit' && 'motion-panel-exit'
+                )}
               >
                 {sortMenu.options.map((option) => {
                   const selected = option.value === sortMenu.value;
@@ -105,7 +212,12 @@ export const SearchBarAndFilters: React.FC<SearchBarAndFiltersProps> = ({
                       aria-selected={selected}
                       title={option.title}
                       onClick={() => {
-                        sortMenu.onChange(option.value);
+                        if (option.value !== sortMenu.value) {
+                          pendingLabelRef.current = option.label;
+                          sortMenu.onChange(option.value);
+                        } else {
+                          pendingLabelRef.current = null;
+                        }
                         setSortOpen(false);
                       }}
                       className={cn(

@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { Disc3, Music2, Radio, Users } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { useI18n } from '../i18n/LanguageContext';
@@ -6,8 +6,10 @@ import { BrandName } from '../components/BrandName';
 import { LocaleToggle } from '../components/LocaleToggle';
 
 export default function LandingPage() {
-  const { user, profile } = useAuth();
+  const { user, loading } = useAuth();
   const { t } = useI18n();
+
+  if (!loading && user) return <Navigate to="/dashboard" replace />;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -18,26 +20,15 @@ export default function LandingPage() {
         </div>
         <div className="flex items-center gap-2">
           <LocaleToggle />
-          {user ? (
-            <Link
-              to="/dashboard"
-              className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold"
-            >
-              {t('landing.dashboard')}
-            </Link>
-          ) : (
-            <>
-              <Link to="/login" className="px-3 py-2 text-xs font-semibold text-foreground hover:text-white">
-                {t('landing.login')}
-              </Link>
-              <Link
-                to="/signup"
-                className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold"
-              >
-                {t('landing.signup')}
-              </Link>
-            </>
-          )}
+          <Link to="/login" className="px-3 py-2 text-xs font-semibold text-foreground hover:text-white">
+            {t('landing.login')}
+          </Link>
+          <Link
+            to="/signup"
+            className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold"
+          >
+            {t('landing.signup')}
+          </Link>
         </div>
       </header>
 
@@ -51,37 +42,18 @@ export default function LandingPage() {
             {t('landing.heroBody')}
           </p>
           <div className="flex flex-wrap gap-3 pt-2">
-            {user && profile ? (
-              <>
-                <Link
-                  to="/dashboard"
-                  className="px-5 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-bold"
-                >
-                  {t('landing.toDashboard')}
-                </Link>
-                <Link
-                  to={`/d/${profile.slug}`}
-                  className="px-5 py-3 rounded-xl border border-border text-sm font-semibold text-foreground"
-                >
-                  {t('landing.viewPublic')}
-                </Link>
-              </>
-            ) : (
-              <>
-                <Link
-                  to="/signup"
-                  className="px-5 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-bold"
-                >
-                  {t('landing.startFree')}
-                </Link>
-                <Link
-                  to="/login"
-                  className="px-5 py-3 rounded-xl border border-border text-sm font-semibold text-foreground"
-                >
-                  {t('landing.hasAccount')}
-                </Link>
-              </>
-            )}
+            <Link
+              to="/signup"
+              className="px-5 py-3 rounded-xl bg-primary text-primary-foreground text-sm font-bold"
+            >
+              {t('landing.startFree')}
+            </Link>
+            <Link
+              to="/login"
+              className="px-5 py-3 rounded-xl border border-border text-sm font-semibold text-foreground"
+            >
+              {t('landing.hasAccount')}
+            </Link>
           </div>
         </section>
 

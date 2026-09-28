@@ -208,6 +208,8 @@ export const nl = {
   'settings.hideDjTipsHint':
     'Verbergt uitlegtips bij Downloads, verzoekjes en bibliotheek-upload.',
   'settings.sectionLanguage': 'Taal',
+  'settings.djLocale': 'Jouw dashboardtaal',
+  'settings.djLocaleHint': 'De taal van jouw dashboard. Gasten kiezen zelf of volgen de standaard hieronder.',
   'settings.pageDefaultLocale': 'Standaard paginataal',
   'settings.pageDefaultLocaleHint': 'De taal die nieuwe gasten te zien krijgen voordat ze zelf wisselen.',
   'settings.localeAuto': 'Auto',
@@ -498,6 +500,8 @@ export const en: { [K in keyof typeof nl]: string } = {
   'settings.hideDjTipsHint':
     'Hides instructional tips on Downloads, requests, and library upload.',
   'settings.sectionLanguage': 'Language',
+  'settings.djLocale': 'Your dashboard language',
+  'settings.djLocaleHint': 'The language of your dashboard. Guests choose themselves or follow the default below.',
   'settings.pageDefaultLocale': 'Default page language',
   'settings.pageDefaultLocaleHint': 'The language new guests see before they switch manually.',
   'settings.localeAuto': 'Auto',
