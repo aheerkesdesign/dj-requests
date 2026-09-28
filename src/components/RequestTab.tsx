@@ -439,8 +439,8 @@ export const RequestTab: React.FC<RequestTabProps> = ({
     switch (status) {
       case 'pending':
         return (
-          <span className="inline-flex items-center gap-1 text-[11px] font-semibold bg-amber-950/80 text-amber-300 border border-amber-700/60 px-2 py-0.5 rounded-md">
-            <Clock className="w-3 h-3 text-amber-400" /> {t('requests.pending')}
+          <span className="inline-flex items-center gap-1 text-[11px] font-semibold bg-muted text-muted-foreground border border-border px-2 py-0.5 rounded-md">
+            <Clock className="w-3 h-3 text-muted-foreground" /> {t('requests.pending')}
           </span>
         );
       case 'played':

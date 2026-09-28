@@ -14,7 +14,7 @@ export const BpmBadge: React.FC<BpmBadgeProps> = ({ bpm, size = 'md' }) => {
 
   return (
     <span
-      className={`inline-flex items-center justify-center font-heading tabular-nums font-semibold rounded-md border shadow-xs tracking-wider bg-muted text-muted-foreground border-border ${sizeClasses[size]}`}
+      className={`inline-flex items-center justify-center font-heading tabular-nums font-semibold rounded-md border shadow-xs tracking-wider bg-secondary text-foreground border-border ${sizeClasses[size]}`}
       title={`BPM: ${Math.round(bpm)}`}
     >
       {Math.round(bpm)} BPM
