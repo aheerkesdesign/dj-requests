@@ -13,21 +13,45 @@ describe('normalizeRequestSortBy', () => {
   });
 });
 
-describe('normalizeLibrarySettings requestSortBy', () => {
-  it('defaults to order when missing', () => {
-    expect(normalizeLibrarySettings({}).requestSortBy).toBe('order');
+describe('normalizeLibrarySettings', () => {
+  it('defaults show flags to true when missing', () => {
+    const settings = normalizeLibrarySettings({});
+    expect(settings.requestSortBy).toBe('order');
+    expect(settings.showStartScreen).toBe(true);
+    expect(settings.showPlayedDeclinedToGuests).toBe(true);
+    expect(settings.showDjTips).toBe(true);
+    expect(settings.enableDownloadRequests).toBe(true);
   });
 
-  it('preserves a stored preference', () => {
+  it('preserves a stored sort preference', () => {
     expect(normalizeLibrarySettings({ requestSortBy: 'artist' }).requestSortBy).toBe('artist');
   });
 
   it('keeps other settings when normalizing sort', () => {
     const settings = normalizeLibrarySettings({
-      hideDjTips: true,
+      showDjTips: false,
       requestSortBy: 'bpm',
     });
-    expect(settings.hideDjTips).toBe(true);
+    expect(settings.showDjTips).toBe(false);
     expect(settings.requestSortBy).toBe('bpm');
+  });
+
+  it('migrates legacy hide/skip keys to show flags', () => {
+    const settings = normalizeLibrarySettings({
+      skipStartScreen: true,
+      hidePlayedDeclinedFromGuests: true,
+      hideDjTips: true,
+    });
+    expect(settings.showStartScreen).toBe(false);
+    expect(settings.showPlayedDeclinedToGuests).toBe(false);
+    expect(settings.showDjTips).toBe(false);
+  });
+
+  it('prefers new show keys over legacy hide keys', () => {
+    const settings = normalizeLibrarySettings({
+      showDjTips: true,
+      hideDjTips: true,
+    });
+    expect(settings.showDjTips).toBe(true);
   });
 });

@@ -12,7 +12,7 @@ interface ImportModalProps {
   currentLibrary: USBLibrary | null;
   onUploadSuccess: (library: USBLibrary) => Promise<void>;
   allowUpload?: boolean;
-  hideDjTips?: boolean;
+  showDjTips?: boolean;
 }
 
 export const ImportModal: React.FC<ImportModalProps> = ({
@@ -21,7 +21,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({
   currentLibrary,
   onUploadSuccess,
   allowUpload = true,
-  hideDjTips = false,
+  showDjTips = true,
 }) => {
   const { t } = useI18n();
   const [file, setFile] = useState<File | null>(null);
@@ -198,7 +198,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({
               </div>
             )}
 
-            {!hideDjTips && (
+            {showDjTips && (
               <div className="p-3 rounded-xl bg-background border border-border/80 text-[11px] text-foreground space-y-1">
                 <span className="font-bold text-primary block">{t('import.howTitle')}</span>
                 <p>{t('import.howStep1')}</p>

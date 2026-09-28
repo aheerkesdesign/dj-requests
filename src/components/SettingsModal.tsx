@@ -255,10 +255,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   t('settings.enableDownloadRequestsHint')
                 )}
                 {renderToggleRow(
-                  settings.hideDjTips,
-                  () => toggleSetting('hideDjTips'),
-                  t('settings.hideDjTips'),
-                  t('settings.hideDjTipsHint')
+                  settings.showDjTips,
+                  () => toggleSetting('showDjTips'),
+                  t('settings.showDjTips'),
+                  t('settings.showDjTipsHint')
                 )}
               </div>
             )}
@@ -276,16 +276,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             {guestOpen && (
               <div className="rounded-xl bg-background/80 border border-border/80 p-3.5 space-y-4">
                 {renderToggleRow(
-                  settings.skipStartScreen,
-                  () => toggleSetting('skipStartScreen'),
-                  t('settings.skipStartScreen'),
-                  t('settings.skipStartScreenHint')
+                  settings.showStartScreen,
+                  () => toggleSetting('showStartScreen'),
+                  t('settings.showStartScreen'),
+                  t('settings.showStartScreenHint')
                 )}
                 {renderToggleRow(
-                  settings.hidePlayedDeclinedFromGuests,
-                  () => toggleSetting('hidePlayedDeclinedFromGuests'),
-                  t('settings.hidePlayedDeclined'),
-                  t('settings.hidePlayedDeclinedHint')
+                  settings.showPlayedDeclinedToGuests,
+                  () => toggleSetting('showPlayedDeclinedToGuests'),
+                  t('settings.showPlayedDeclined'),
+                  t('settings.showPlayedDeclinedHint')
                 )}
               </div>
             )}

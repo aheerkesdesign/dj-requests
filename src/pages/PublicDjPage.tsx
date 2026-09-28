@@ -294,8 +294,8 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
                   onOpenRequestModal={() => handleOpenRequestPrefilled()}
                   isOwner={isOwner}
                   visibleFields={visibleFields}
-                  hidePlayedDeclined={librarySettings.hidePlayedDeclinedFromGuests}
-                  hideDjTips={librarySettings.hideDjTips}
+                  showPlayedDeclined={librarySettings.showPlayedDeclinedToGuests}
+                  showDjTips={librarySettings.showDjTips}
                   onUpdateStatus={handleUpdateStatus}
                   onDeleteRequest={handleDeleteRequest}
                   onClearVerzoekjes={handleClearVerzoekjes}
@@ -309,7 +309,7 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
                   requests={requests}
                   onDeleteRequest={handleDeleteRequest}
                   onClearToDownloadRequests={handleClearToDownloadRequests}
-                  hideDjTips={librarySettings.hideDjTips}
+                  showDjTips={librarySettings.showDjTips}
                 />
               )}
             </div>
@@ -333,7 +333,7 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
             currentLibrary={currentLibrary}
             onUploadSuccess={handleUploadSuccess}
             allowUpload={Boolean(user && currentLibrary.ownerId === user.id)}
-            hideDjTips={librarySettings.hideDjTips}
+            showDjTips={librarySettings.showDjTips}
           />
           <SettingsModal
             isOpen={isSettingsOpen}

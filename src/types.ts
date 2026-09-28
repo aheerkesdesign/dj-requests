@@ -134,10 +134,12 @@ export function normalizeRequestSortBy(value: unknown): RequestSortBy {
 
 export interface LibrarySettings {
   enableDownloadRequests: boolean;
-  skipStartScreen: boolean;
-  hidePlayedDeclinedFromGuests: boolean;
-  /** When true, hide DJ instructional tips (swipe hint, download hint, upload how-to). */
-  hideDjTips: boolean;
+  /** When true, guests see the start screen before the library. */
+  showStartScreen: boolean;
+  /** When true, guests can see played/declined requests. */
+  showPlayedDeclinedToGuests: boolean;
+  /** When true, show DJ instructional tips (swipe hint, download hint, upload how-to). */
+  showDjTips: boolean;
   pageDefaultLocale: 'nl' | 'en' | 'auto';
   /** DJ requests-tab sort preference (synced via library_settings). */
   requestSortBy: RequestSortBy;
@@ -145,20 +147,34 @@ export interface LibrarySettings {
 
 export const DEFAULT_LIBRARY_SETTINGS: LibrarySettings = {
   enableDownloadRequests: true,
-  skipStartScreen: false,
-  hidePlayedDeclinedFromGuests: false,
-  hideDjTips: false,
+  showStartScreen: true,
+  showPlayedDeclinedToGuests: true,
+  showDjTips: true,
   pageDefaultLocale: 'auto',
   requestSortBy: 'order',
 };
 
+/** Prefer new show* keys; fall back to inverting legacy hide/skip keys. */
+function resolveShowSetting(
+  showValue: unknown,
+  legacyHideValue: unknown,
+  defaultShow = true
+): boolean {
+  if (typeof showValue === 'boolean') return showValue;
+  if (typeof legacyHideValue === 'boolean') return !legacyHideValue;
+  return defaultShow;
+}
+
 export function normalizeLibrarySettings(raw: unknown): LibrarySettings {
-  const src = (raw && typeof raw === 'object' ? raw : {}) as Partial<LibrarySettings>;
+  const src = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
   return {
     enableDownloadRequests: src.enableDownloadRequests !== false,
-    skipStartScreen: Boolean(src.skipStartScreen),
-    hidePlayedDeclinedFromGuests: Boolean(src.hidePlayedDeclinedFromGuests),
-    hideDjTips: Boolean(src.hideDjTips),
+    showStartScreen: resolveShowSetting(src.showStartScreen, src.skipStartScreen),
+    showPlayedDeclinedToGuests: resolveShowSetting(
+      src.showPlayedDeclinedToGuests,
+      src.hidePlayedDeclinedFromGuests
+    ),
+    showDjTips: resolveShowSetting(src.showDjTips, src.hideDjTips),
     pageDefaultLocale:
       src.pageDefaultLocale === 'nl' || src.pageDefaultLocale === 'en'
         ? src.pageDefaultLocale

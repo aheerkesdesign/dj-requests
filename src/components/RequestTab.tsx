@@ -70,8 +70,8 @@ interface RequestTabProps {
   onOpenRequestModal: () => void;
   isOwner: boolean;
   visibleFields?: TrackFieldVisibility;
-  hidePlayedDeclined?: boolean;
-  hideDjTips?: boolean;
+  showPlayedDeclined?: boolean;
+  showDjTips?: boolean;
   onUpdateStatus: (requestId: string, status: RequestStatus) => void;
   onDeleteRequest: (requestId: string) => void;
   onClearVerzoekjes?: () => void;
@@ -238,8 +238,8 @@ export const RequestTab: React.FC<RequestTabProps> = ({
   onOpenRequestModal,
   isOwner,
   visibleFields = DEFAULT_TRACK_FIELD_VISIBILITY,
-  hidePlayedDeclined = false,
-  hideDjTips = false,
+  showPlayedDeclined = true,
+  showDjTips = true,
   onUpdateStatus,
   onDeleteRequest,
   onClearVerzoekjes,
@@ -409,8 +409,8 @@ export const RequestTab: React.FC<RequestTabProps> = ({
   });
 
   const filteredRequests = sortedRequests.filter(r => {
-    // Hide played/declined from guests when the DJ has enabled that setting
-    if (!isOwner && hidePlayedDeclined && (r.status === 'played' || r.status === 'declined')) return false;
+    // Hide played/declined from guests when the DJ has disabled showing them
+    if (!isOwner && !showPlayedDeclined && (r.status === 'played' || r.status === 'declined')) return false;
     if (filterStatus === 'pending' && r.status !== 'pending') return false;
     if (filterStatus === 'played' && r.status !== 'played') return false;
     if (filterStatus === 'declined' && r.status !== 'declined') return false;
@@ -458,72 +458,76 @@ export const RequestTab: React.FC<RequestTabProps> = ({
     }
   };
 
+  const showStatusFilters = isOwner || showPlayedDeclined;
+
   return (
     <div className="space-y-4">
-      {/* Status filters */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 text-xs">
-        <div className="flex items-center gap-1 overflow-x-auto pb-1 scrollbar-none">
-          <button
-            type="button"
-            onClick={() => setFilterStatus('all')}
-            className={`px-3 py-1 rounded-lg border font-medium transition-all ${
-              filterStatus === 'all'
-                ? 'bg-primary/20 border-primary/50 text-primary'
-                : 'bg-card border-border text-muted-foreground'
-            }`}
-          >
-            {t('requests.all')}
-          </button>
-          <button
-            type="button"
-            onClick={() => setFilterStatus('pending')}
-            className={`px-3 py-1 rounded-lg border font-medium transition-all ${
-              filterStatus === 'pending'
-                ? 'bg-amber-950/80 border-amber-600 text-amber-300'
-                : 'bg-card border-border text-muted-foreground'
-            }`}
-          >
-            {t('requests.pending')}
-          </button>
-          <button
-            type="button"
-            onClick={() => setFilterStatus('played')}
-            className={`px-3 py-1 rounded-lg border font-medium transition-all ${
-              filterStatus === 'played'
-                ? 'bg-primary/15 border-primary/60 text-primary'
-                : 'bg-card border-border text-muted-foreground'
-            }`}
-          >
-            {t('requests.played')}
-          </button>
-          <button
-            type="button"
-            onClick={() => setFilterStatus('declined')}
-            className={`px-3 py-1 rounded-lg border font-medium transition-all ${
-              filterStatus === 'declined'
-                ? 'bg-red-950/80 border-red-600 text-red-300'
-                : 'bg-card border-border text-muted-foreground'
-            }`}
-          >
-            {t('requests.declined')}
-          </button>
-        </div>
+      {/* Status filters (hidden for guests when played/declined are not shown) */}
+      {showStatusFilters && (
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 text-xs">
+          <div className="flex items-center gap-1 overflow-x-auto pb-1 scrollbar-none">
+            <button
+              type="button"
+              onClick={() => setFilterStatus('all')}
+              className={`px-3 py-1 rounded-lg border font-medium transition-all ${
+                filterStatus === 'all'
+                  ? 'bg-primary/20 border-primary/50 text-primary'
+                  : 'bg-card border-border text-muted-foreground'
+              }`}
+            >
+              {t('requests.all')}
+            </button>
+            <button
+              type="button"
+              onClick={() => setFilterStatus('pending')}
+              className={`px-3 py-1 rounded-lg border font-medium transition-all ${
+                filterStatus === 'pending'
+                  ? 'bg-amber-950/80 border-amber-600 text-amber-300'
+                  : 'bg-card border-border text-muted-foreground'
+              }`}
+            >
+              {t('requests.pending')}
+            </button>
+            <button
+              type="button"
+              onClick={() => setFilterStatus('played')}
+              className={`px-3 py-1 rounded-lg border font-medium transition-all ${
+                filterStatus === 'played'
+                  ? 'bg-primary/15 border-primary/60 text-primary'
+                  : 'bg-card border-border text-muted-foreground'
+              }`}
+            >
+              {t('requests.played')}
+            </button>
+            <button
+              type="button"
+              onClick={() => setFilterStatus('declined')}
+              className={`px-3 py-1 rounded-lg border font-medium transition-all ${
+                filterStatus === 'declined'
+                  ? 'bg-red-950/80 border-red-600 text-red-300'
+                  : 'bg-card border-border text-muted-foreground'
+              }`}
+            >
+              {t('requests.declined')}
+            </button>
+          </div>
 
-        {isOwner && displayUsbRequests.length > 0 && (
-          <button
-            type="button"
-            onClick={() => setConfirmClearVerzoekjes(true)}
-            className={cn(
-              'px-3 py-1.5 rounded-xl bg-red-950/70 hover:bg-red-900 border border-red-800/80 text-red-300 text-xs font-bold flex items-center gap-1.5 transition-all shrink-0 self-end sm:self-auto',
-              listArriving && 'motion-fade-in-place'
-            )}
-            title={t('requests.clearTitle')}
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-            <span>{t('requests.clear')}</span>
-          </button>
-        )}
-      </div>
+          {isOwner && displayUsbRequests.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setConfirmClearVerzoekjes(true)}
+              className={cn(
+                'px-3 py-1.5 rounded-xl bg-red-950/70 hover:bg-red-900 border border-red-800/80 text-red-300 text-xs font-bold flex items-center gap-1.5 transition-all shrink-0 self-end sm:self-auto',
+                listArriving && 'motion-fade-in-place'
+              )}
+              title={t('requests.clearTitle')}
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>{t('requests.clear')}</span>
+            </button>
+          )}
+        </div>
+      )}
 
       <SearchBarAndFilters
         searchQuery={searchQuery}
@@ -536,7 +540,7 @@ export const RequestTab: React.FC<RequestTabProps> = ({
       />
 
       {/* DJ Swipe Tip banner */}
-      {isOwner && !hideDjTips && displayUsbRequests.length > 0 && (
+      {isOwner && showDjTips && displayUsbRequests.length > 0 && (
         <div
           className={cn(
             'bg-card/80 border border-border/80 rounded-xl px-3.5 py-2 text-xs text-foreground',

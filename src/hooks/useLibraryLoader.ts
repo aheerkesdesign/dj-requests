@@ -76,7 +76,7 @@ export function useLibraryLoader({
 
         if (!ownerMode) {
           const ls = normalizeLibrarySettings(lib.librarySettings);
-          if (ls.skipStartScreen) {
+          if (!ls.showStartScreen) {
             sessionStorage.setItem('app_view_mode', 'library');
             setViewMode('library');
           } else {
