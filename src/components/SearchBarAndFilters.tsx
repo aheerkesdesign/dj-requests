@@ -70,6 +70,9 @@ export const SearchBarAndFilters: React.FC<SearchBarAndFiltersProps> = ({
 
     const to = btn.getBoundingClientRect().width;
     if (Math.abs(to - from) < 1) return;
+    // Growing from a short label to a long one: don't tween from the old
+    // narrow width — that clips/truncates the new word mid-transition.
+    if (to > from) return;
 
     btn.style.width = `${from}px`;
     void btn.offsetWidth;
@@ -185,7 +188,7 @@ export const SearchBarAndFilters: React.FC<SearchBarAndFiltersProps> = ({
               <span
                 key={labelAnimKey}
                 className={cn(
-                  'inline-block max-w-[7rem] truncate sm:max-w-[9rem]',
+                  'inline-block whitespace-nowrap',
                   labelAnimating && 'motion-sort-label'
                 )}
               >
