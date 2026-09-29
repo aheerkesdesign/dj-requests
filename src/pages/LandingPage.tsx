@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type FC, type ReactNode } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { Disc3 } from 'lucide-react';
 import { useAuth } from '../lib/auth';
@@ -77,7 +77,7 @@ function mockTrackAt(index: number) {
   return MOCK_QUEUE_TRACKS[((index % len) + len) % len];
 }
 
-function MockQueueRow({ track, fresh }: { track: MockTrack; fresh: boolean }) {
+const MockQueueRow: FC<{ track: MockTrack; fresh: boolean }> = ({ track, fresh }) => {
   const { t } = useI18n();
 
   return (
@@ -118,7 +118,7 @@ function MockQueueRow({ track, fresh }: { track: MockTrack; fresh: boolean }) {
       </div>
     </div>
   );
-}
+};
 
 function MockLiveQueue() {
   const { t } = useI18n();
@@ -191,7 +191,7 @@ function MockLiveQueue() {
     const isCurrentBottom = hasIncoming && !isShifting && i === MOCK_VISIBLE - 1;
     return {
       track: mockTrackAt(trackIndex),
-      key: `mock-${trackIndex}`,
+      id: `mock-${trackIndex}`,
       fresh: isIncoming || isCurrentBottom,
     };
   });
@@ -205,7 +205,7 @@ function MockLiveQueue() {
       <div className={cn('landing-mock-queue', isShifting && 'is-shifting')}>
         <div className={cn('landing-mock-queue-list', instant && 'is-instant')}>
           {rows.map((row) => (
-            <MockQueueRow key={row.key} track={row.track} fresh={row.fresh} />
+            <MockQueueRow key={row.id} track={row.track} fresh={row.fresh} />
           ))}
         </div>
       </div>
