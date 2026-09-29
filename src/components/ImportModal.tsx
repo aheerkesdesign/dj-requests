@@ -214,41 +214,41 @@ export const ImportModal: React.FC<ImportModalProps> = ({
               onDragLeave={handleDragLeave}
               onDragOver={handleDragOver}
               onDrop={handleDrop}
-              className={`border-2 border-dashed rounded-2xl p-5 text-center transition-colors space-y-2 ${
+              className={`border-2 border-dashed rounded-2xl p-5 text-center transition-colors ${
                 isDragging
                   ? 'border-primary bg-primary/10 ring-2 ring-primary/30'
-                  : 'border-border hover:border-primary/40 bg-background/60'
+                  : 'border-border hover:border-primary/40 bg-background/60 space-y-2'
               }`}
             >
-              <Upload
-                className={`w-8 h-8 mx-auto transition-colors ${
-                  isDragging ? 'text-primary' : 'text-primary'
-                }`}
-              />
-              <div>
-                <p className="text-xs font-bold text-foreground">
-                  {isDragging
-                    ? t('import.dropHere')
-                    : file
-                      ? file.name
-                      : t('import.selectFile')}
-                </p>
-                <p className="text-[10px] text-muted-foreground mt-0.5">
-                  {t('import.supportsXml')}
-                </p>
-              </div>
-
-              <div className="flex items-center justify-center pt-1">
-                <label className="px-4 py-2 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs cursor-pointer shadow-sm">
-                  {t('import.chooseFile')}
+              {isDragging ? (
+                <div className="flex flex-col items-center justify-center gap-2 py-2">
+                  <Upload className="w-10 h-10 text-primary" aria-hidden />
+                  <p className="text-xs font-bold text-primary">{t('import.dropHere')}</p>
+                </div>
+              ) : (
+                <label className="group block cursor-pointer space-y-2 -m-5 p-5 rounded-2xl">
                   <input
                     type="file"
                     accept=".xml,.txt"
                     onChange={handleFileChange}
-                    className="hidden"
+                    className="sr-only"
                   />
+                  <div>
+                    <p className="text-xs font-bold text-foreground">
+                      {file ? file.name : t('import.selectFile')}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                      {t('import.supportsXml')}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center justify-center pt-1">
+                    <span className="inline-block px-4 py-2 rounded-xl bg-primary group-hover:bg-primary/90 text-primary-foreground font-bold text-xs shadow-sm">
+                      {t('import.chooseFile')}
+                    </span>
+                  </div>
                 </label>
-              </div>
+              )}
             </div>
 
             {parsedPreview && (

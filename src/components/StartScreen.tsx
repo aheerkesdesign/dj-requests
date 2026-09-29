@@ -191,7 +191,7 @@ export const StartScreen: React.FC<StartScreenProps> = ({ library, onGoToLibrary
                   rel="noopener noreferrer"
                   className="px-3.5 py-2 rounded-xl bg-card/90 hover:bg-primary border border-border hover:border-primary/40 text-foreground hover:text-primary-foreground text-xs font-semibold flex items-center gap-2 transition-all shadow-sm"
                 >
-                  <Globe className="w-4 h-4 text-primary" />
+                  <Globe className="w-4 h-4" />
                   <span>Website</span>
                   <ExternalLink className="w-3 h-3 opacity-60" />
                 </a>
