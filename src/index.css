@@ -380,6 +380,9 @@
   box-sizing: border-box;
   border-color: rgb(255 255 255 / 0.06);
   background-color: rgb(255 255 255 / 0.02);
+}
+
+.landing-mock-track-row.is-settled {
   transition:
     border-color var(--mock-shift-ms) var(--ease-motion),
     background-color var(--mock-shift-ms) var(--ease-motion);
@@ -398,6 +401,11 @@
 .landing-mock-queued-badge.is-shown,
 .landing-mock-meta-badges.is-shown {
   opacity: 1;
+}
+
+.landing-mock-track-row.is-fresh .landing-mock-queued-badge,
+.landing-mock-track-row.is-fresh .landing-mock-meta-badges {
+  transition: none;
 }
 
 .landing-mock-queued-badge.is-hidden,

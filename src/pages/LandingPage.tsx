@@ -183,15 +183,16 @@ function MockLiveQueue() {
 
   const count = hasIncoming ? MOCK_VISIBLE + 1 : MOCK_VISIBLE;
   const startIndex = cursor - (MOCK_VISIBLE - 1);
-  // Keep the current bottom row green until the slide starts, then morph it
-  // while the incoming row becomes the new green request.
-  const freshIndex = hasIncoming && !isShifting ? MOCK_VISIBLE - 1 : count - 1;
+  // Incoming row is fresh from the first paint (so it never fades grey→green).
+  // Keep the visible bottom row green until the slide starts, then let it settle.
   const rows = Array.from({ length: count }, (_, i) => {
     const trackIndex = startIndex + i;
+    const isIncoming = i === count - 1;
+    const isCurrentBottom = hasIncoming && !isShifting && i === MOCK_VISIBLE - 1;
     return {
       track: mockTrackAt(trackIndex),
       key: `mock-${trackIndex}`,
-      fresh: i === freshIndex,
+      fresh: isIncoming || isCurrentBottom,
     };
   });
 
