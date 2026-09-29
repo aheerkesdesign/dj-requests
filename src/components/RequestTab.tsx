@@ -347,9 +347,8 @@ export const RequestTab: React.FC<RequestTabProps> = ({
   const [filterStatus, setFilterStatus] = React.useState<string>('all');
   const [searchQuery, setSearchQuery] = React.useState('');
   const [confirmClearVerzoekjes, setConfirmClearVerzoekjes] = React.useState(false);
-  const [parkedIds, setParkedIds] = React.useState<Set<string>>(() => new Set());
   const markEnteringRef = React.useRef<(id: string) => void>(() => {});
-  const { requestExit, isExiting } = useExitingIds(MOTION_ENTER_MS);
+  const { requestExit, isExiting, exitingIds } = useExitingIds(MOTION_ENTER_MS);
   const { beginAfterModalClose, listExiting, emptyEntering, clearBusy } = useClearListSequence(() => {
     onClearVerzoekjes?.();
   });
@@ -365,19 +364,23 @@ export const RequestTab: React.FC<RequestTabProps> = ({
   const needsMeta = needsMatchedTrackMeta(visibleFields);
   // Keep the last fully-matched list on screen while new matches load — no spinner,
   // and never flash a row before BPM/album/key/etc. are ready.
+  // Exception: an empty request list must publish immediately. Holding a stale
+  // non-empty snapshot after clear would remount the empty state too late and
+  // skip the empty-enter fade.
   const publishedRef = React.useRef<{
     requests: TrackRequest[];
     matchedByRequestId?: Map<string, Track>;
   } | null>(null);
-  if (!needsMeta || matchingReady) {
+  const publishNow = !needsMeta || matchingReady || requests.length === 0;
+  if (publishNow) {
     publishedRef.current = { requests, matchedByRequestId };
   }
-  const listRequests =
-    !needsMeta || matchingReady ? requests : (publishedRef.current?.requests ?? []);
-  const listMatched =
-    !needsMeta || matchingReady
-      ? matchedByRequestId
-      : publishedRef.current?.matchedByRequestId;
+  const listRequests = publishNow
+    ? requests
+    : (publishedRef.current?.requests ?? []);
+  const listMatched = publishNow
+    ? matchedByRequestId
+    : publishedRef.current?.matchedByRequestId;
 
   const sortOptions = React.useMemo(() => {
     const options: { value: RequestSortBy; label: string; title?: string }[] = [
@@ -529,12 +532,6 @@ export const RequestTab: React.FC<RequestTabProps> = ({
     return true;
   });
 
-  // Keep exiting rows visible at their pre-update slot; park after exit so the
-  // same id can leave and re-enter (enter animation + neighbor FLIP).
-  const displayRequests = filteredRequests.filter(
-    (r) => !parkedIds.has(r.id) || isExiting(r.id)
-  );
-
   const handleSwipeCommit = React.useCallback(
     (id: string, status: RequestStatus) => {
       if (prefersReducedMotion()) {
@@ -542,31 +539,17 @@ export const RequestTab: React.FC<RequestTabProps> = ({
         return;
       }
 
+      // Collapse in-place first; then update status so the row remounts at its
+      // new group (key includes status) with an enter animation.
       requestExit(id, () => {
-        // Hide for one frame so the same list id remounts at the destination
-        // (clears local swipe translate) instead of React reusing the slid-off card.
-        setParkedIds((prev) => {
-          if (prev.has(id)) return prev;
-          const next = new Set(prev);
-          next.add(id);
-          return next;
-        });
         onUpdateStatus(id, status);
-        requestAnimationFrame(() => {
-          setParkedIds((prev) => {
-            if (!prev.has(id)) return prev;
-            const next = new Set(prev);
-            next.delete(id);
-            return next;
-          });
-          markEnteringRef.current(id);
-        });
+        markEnteringRef.current(id);
       });
     },
     [onUpdateStatus, requestExit]
   );
 
-  const filteredIds = displayRequests.map((r) => r.id);
+  const filteredIds = filteredRequests.map((r) => r.id);
   const insertMotionEnabled =
     !holdingForMeta && !showListExiting && !listArriving && !sortMotionBusy;
   const { isEntering, enteringIds, markEntering } = useEnteringIds(
@@ -574,11 +557,12 @@ export const RequestTab: React.FC<RequestTabProps> = ({
     insertMotionEnabled
   );
   markEnteringRef.current = markEntering;
-  // While rows expand open, layout itself pushes neighbors — FLIP would fight that.
+  // Exit/enter CSS already moves neighbors by collapsing/expanding row height.
+  // FLIP must stay off for those phases, otherwise it replays the collapse.
   useListFlipMotion(
     listContainerRef,
     filteredIds,
-    insertMotionEnabled && enteringIds.size === 0
+    insertMotionEnabled && enteringIds.size === 0 && exitingIds.size === 0
   );
 
   const getStatusBadge = (status: RequestStatus) => {
@@ -703,7 +687,7 @@ export const RequestTab: React.FC<RequestTabProps> = ({
       )}
 
       {/* Hold new/updated rows until catalog matches so optional meta arrives with them */}
-      {holdingForMeta ? null : filteredRequests.length === 0 && parkedIds.size === 0 ? (
+      {holdingForMeta ? null : filteredRequests.length === 0 ? (
         <div
           className={cn(
             'bg-card/50 border border-border/80 rounded-2xl p-8 text-center my-2 space-y-2',
@@ -728,10 +712,14 @@ export const RequestTab: React.FC<RequestTabProps> = ({
             !showListExiting && !listArriving && sortListMotionClass
           )}
         >
-          {displayRequests.map((req, index) => {
+          {filteredRequests.map((req, index) => {
             const matchingTrack = listMatched?.get(req.id);
             const entering = isEntering(req.id);
             const exiting = isExiting(req.id);
+            // Spacing lives inside the collapse clip (not flex gap / index-based
+            // padding) so a 0fr exit does not leave a leftover gap that snaps away
+            // when the row is removed or remounted at its new status position.
+            const hasGapBelow = index < filteredRequests.length - 1;
             return (
               <div
                 key={`${req.id}:${req.status}`}
@@ -746,7 +734,7 @@ export const RequestTab: React.FC<RequestTabProps> = ({
                     (entering || exiting) && 'motion-list-item-enter-clip'
                   )}
                 >
-                  <div className={cn(index > 0 && 'pt-2.5')}>
+                  <div className={cn(hasGapBelow && 'pb-2.5')}>
                     <SwipeableRequestCard
                       req={req}
                       matchingTrack={matchingTrack}

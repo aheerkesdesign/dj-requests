@@ -355,6 +355,8 @@ export function useEnteringIds(ids: string[], enabled = true) {
  *
  * Only animates when `itemIds` actually change while `animate` is true — turning
  * `animate` back on after an insert must not FLIP from stale collapsed positions.
+ * Callers should keep `animate` false while CSS exit/enter row-height motion is
+ * in progress; otherwise FLIP replays that shift.
  */
 export function useListFlipMotion(
   containerRef: RefObject<HTMLElement | null>,
