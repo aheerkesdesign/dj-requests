@@ -53,6 +53,165 @@ function Reveal({
   );
 }
 
+type MockTrack = {
+  artist: string;
+  title: string;
+  bpm: string;
+  key: string;
+};
+
+const MOCK_QUEUE_TRACKS: MockTrack[] = [
+  { artist: 'Beyoncé', title: 'Crazy in Love', bpm: '99', key: '9A' },
+  { artist: 'The Black Eyed Peas', title: 'I Gotta Feeling', bpm: '128', key: '9B' },
+  { artist: 'Usher ft. Pitbull', title: "DJ Got Us Fallin' In Love", bpm: '120', key: '9A' },
+  { artist: 'Avicii', title: 'Levels', bpm: '126', key: '1B' },
+  { artist: 'Pitbull ft. Kesha', title: 'Timber', bpm: '130', key: '9A' },
+];
+
+const MOCK_VISIBLE = 3;
+const MOCK_HOLD_MS = 2800;
+const MOCK_SHIFT_MS = 720;
+
+function mockTrackAt(index: number) {
+  const len = MOCK_QUEUE_TRACKS.length;
+  return MOCK_QUEUE_TRACKS[((index % len) + len) % len];
+}
+
+function MockQueueRow({ track, fresh }: { track: MockTrack; fresh: boolean }) {
+  const { t } = useI18n();
+
+  return (
+    <div
+      className={cn(
+        'landing-mock-track-row flex items-center justify-between gap-3 rounded-xl border px-3',
+        fresh ? 'is-fresh' : 'is-settled'
+      )}
+    >
+      <div className="min-w-0">
+        <p className="truncate text-xs font-semibold text-foreground">{track.title}</p>
+        <p className="truncate text-[11px] text-muted-foreground">
+          {fresh ? `${track.artist} - ${t('landing.mockRequested')}` : track.artist}
+        </p>
+      </div>
+      <div className="landing-mock-track-meta grid shrink-0 grid-cols-1 justify-items-end">
+        <span
+          className={cn(
+            'landing-mock-queued-badge col-start-1 row-start-1 rounded-lg bg-primary px-2.5 py-1 text-[10px] font-bold text-primary-foreground',
+            fresh ? 'is-shown' : 'is-hidden'
+          )}
+        >
+          {t('landing.mockQueued')}
+        </span>
+        <div
+          className={cn(
+            'landing-mock-meta-badges col-start-1 row-start-1 flex items-center gap-1.5',
+            fresh ? 'is-hidden' : 'is-shown'
+          )}
+        >
+          <span className="rounded-md bg-secondary px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
+            {track.bpm}
+          </span>
+          <span className="rounded-md bg-secondary px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
+            {track.key}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MockLiveQueue() {
+  const { t } = useI18n();
+  // cursor = absolute index of the freshest visible track (grows forever; track via modulo)
+  const [cursor, setCursor] = useState(MOCK_VISIBLE - 1);
+  const [hasIncoming, setHasIncoming] = useState(false);
+  const [isShifting, setIsShifting] = useState(false);
+  const [instant, setInstant] = useState(false);
+  const [reduceMotion, setReduceMotion] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const sync = () => setReduceMotion(mq.matches);
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, []);
+
+  useEffect(() => {
+    if (reduceMotion) return;
+
+    let holdTimer = 0;
+    let shiftTimer = 0;
+    let raf = 0;
+    let cancelled = false;
+
+    const run = () => {
+      holdTimer = window.setTimeout(() => {
+        if (cancelled) return;
+        // Paint the incoming row below the fold first, then slide up.
+        setHasIncoming(true);
+        raf = requestAnimationFrame(() => {
+          raf = requestAnimationFrame(() => {
+            if (cancelled) return;
+            setIsShifting(true);
+            shiftTimer = window.setTimeout(() => {
+              if (cancelled) return;
+              setInstant(true);
+              setCursor((c) => c + 1);
+              setHasIncoming(false);
+              setIsShifting(false);
+              raf = requestAnimationFrame(() => {
+                raf = requestAnimationFrame(() => {
+                  if (!cancelled) setInstant(false);
+                  run();
+                });
+              });
+            }, MOCK_SHIFT_MS);
+          });
+        });
+      }, MOCK_HOLD_MS);
+    };
+
+    run();
+    return () => {
+      cancelled = true;
+      window.clearTimeout(holdTimer);
+      window.clearTimeout(shiftTimer);
+      cancelAnimationFrame(raf);
+    };
+  }, [reduceMotion]);
+
+  const count = hasIncoming ? MOCK_VISIBLE + 1 : MOCK_VISIBLE;
+  const startIndex = cursor - (MOCK_VISIBLE - 1);
+  // Keep the current bottom row green until the slide starts, then morph it
+  // while the incoming row becomes the new green request.
+  const freshIndex = hasIncoming && !isShifting ? MOCK_VISIBLE - 1 : count - 1;
+  const rows = Array.from({ length: count }, (_, i) => {
+    const trackIndex = startIndex + i;
+    return {
+      track: mockTrackAt(trackIndex),
+      key: `mock-${trackIndex}`,
+      fresh: i === freshIndex,
+    };
+  });
+
+  return (
+    <div className="space-y-2 px-3 py-3">
+      <div className="landing-mock-search relative z-10 rounded-xl border border-white/8 bg-[#080a0e] px-3 py-2.5 text-[11px] text-muted-foreground">
+        {t('landing.mockSearch')}
+      </div>
+
+      <div className={cn('landing-mock-queue', isShifting && 'is-shifting')}>
+        <div className={cn('landing-mock-queue-list', instant && 'is-instant')}>
+          {rows.map((row) => (
+            <MockQueueRow key={row.key} track={row.track} fresh={row.fresh} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ProductStage() {
   const { t } = useI18n();
 
@@ -77,47 +236,7 @@ function ProductStage() {
             <p className="text-[11px] text-muted-foreground">{t('landing.mockWelcome')}</p>
           </div>
 
-          <div className="space-y-2 px-3 py-3">
-            <div className="landing-mock-search rounded-xl border border-white/8 bg-white/[0.03] px-3 py-2.5 text-[11px] text-muted-foreground">
-              {t('landing.mockSearch')}
-            </div>
-
-            {[
-              { artist: 'Peggy Gou', title: 'It Makes You Forget', bpm: '124', key: '8A', i: 0 },
-              { artist: 'Intergalactic Lovers', title: 'Shewolf', bpm: '118', key: '9B', i: 1 },
-            ].map((track) => (
-              <div
-                key={track.title}
-                className="landing-mock-track flex items-center justify-between gap-3 rounded-xl border border-white/6 bg-white/[0.02] px-3 py-2.5"
-                style={{ ['--track-i' as string]: track.i }}
-              >
-                <div className="min-w-0">
-                  <p className="truncate text-xs font-semibold text-foreground">{track.title}</p>
-                  <p className="truncate text-[11px] text-muted-foreground">{track.artist}</p>
-                </div>
-                <div className="flex shrink-0 items-center gap-1.5">
-                  <span className="rounded-md bg-secondary px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
-                    {track.bpm}
-                  </span>
-                  <span className="rounded-md bg-secondary px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
-                    {track.key}
-                  </span>
-                </div>
-              </div>
-            ))}
-
-            <div className="landing-request-row flex items-center justify-between gap-3 rounded-xl border border-primary/25 bg-primary/10 px-3 py-2.5">
-              <div className="min-w-0">
-                <p className="truncate text-xs font-semibold text-foreground">Midnight City</p>
-                <p className="truncate text-[11px] text-muted-foreground">
-                  M83 - {t('landing.mockRequested')}
-                </p>
-              </div>
-              <span className="shrink-0 rounded-lg bg-primary px-2.5 py-1 text-[10px] font-bold text-primary-foreground">
-                {t('landing.mockQueued')}
-              </span>
-            </div>
-          </div>
+          <MockLiveQueue />
         </div>
       </div>
     </div>

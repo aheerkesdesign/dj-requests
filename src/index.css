@@ -351,20 +351,63 @@
   animation: landing-rise 600ms var(--ease-motion) 420ms both;
 }
 
-.landing-mock-track {
+.landing-mock-queue {
+  --mock-row-h: 3.25rem;
+  --mock-gap: 0.5rem;
+  --mock-shift-ms: 720ms;
+  height: calc(3 * var(--mock-row-h) + 2 * var(--mock-gap));
+  overflow: hidden;
+}
+
+.landing-mock-queue-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mock-gap);
+  will-change: transform;
+  transition: transform var(--mock-shift-ms) var(--ease-motion);
+}
+
+.landing-mock-queue-list.is-instant {
+  transition: none;
+}
+
+.landing-mock-queue.is-shifting .landing-mock-queue-list {
+  transform: translateY(calc(-1 * (var(--mock-row-h) + var(--mock-gap))));
+}
+
+.landing-mock-track-row {
+  height: var(--mock-row-h);
+  box-sizing: border-box;
+  border-color: rgb(255 255 255 / 0.06);
+  background-color: rgb(255 255 255 / 0.02);
+  transition:
+    border-color var(--mock-shift-ms) var(--ease-motion),
+    background-color var(--mock-shift-ms) var(--ease-motion);
+}
+
+.landing-mock-track-row.is-fresh {
+  border-color: rgb(0 255 178 / 0.25);
+  background-color: rgb(0 255 178 / 0.1);
+}
+
+.landing-mock-queued-badge,
+.landing-mock-meta-badges {
+  transition: opacity calc(var(--mock-shift-ms) * 0.85) var(--ease-motion);
+}
+
+.landing-mock-queued-badge.is-shown,
+.landing-mock-meta-badges.is-shown {
+  opacity: 1;
+}
+
+.landing-mock-queued-badge.is-hidden,
+.landing-mock-meta-badges.is-hidden {
   opacity: 0;
-  animation: landing-rise 600ms var(--ease-motion) both;
-  animation-delay: calc(520ms + (var(--track-i, 0) * 90ms));
 }
 
 .landing-live-dot {
   box-shadow: 0 0 0 0 rgb(0 255 178 / 0.55);
   animation: landing-pulse 2.2s ease-out infinite;
-}
-
-.landing-request-row {
-  opacity: 0;
-  animation: landing-request-cycle 5.8s var(--ease-motion) 0.9s infinite;
 }
 
 .landing-reveal-block {
@@ -416,35 +459,25 @@ section:has(.landing-reveal-block.is-visible) .landing-crowd-media {
   }
 }
 
-/* Live queue: request arrives, holds, soft exits, repeats */
-@keyframes landing-request-cycle {
-  0%,
-  6% {
-    opacity: 0;
-    transform: translateY(-12px);
-  }
-  14%,
-  72% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  82%,
-  100% {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .landing-header,
   .landing-hero-copy,
   .landing-stage,
-  .landing-mock-search,
-  .landing-mock-track,
-  .landing-request-row {
+  .landing-mock-search {
     opacity: 1;
     transform: none;
     animation: none !important;
+  }
+
+  .landing-mock-queue-list {
+    transition: none !important;
+    transform: none !important;
+  }
+
+  .landing-mock-track-row,
+  .landing-mock-queued-badge,
+  .landing-mock-meta-badges {
+    transition: none !important;
   }
 
   .landing-live-dot {
