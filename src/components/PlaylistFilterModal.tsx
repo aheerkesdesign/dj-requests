@@ -259,6 +259,17 @@ export const PlaylistFilterModal: React.FC<PlaylistFilterModalProps> = ({
   const isAllSelected = totalCount > 0 && selectedCount === totalCount;
   const isSomeSelected = selectedCount > 0 && selectedCount < totalCount;
 
+  const selectedTrackCount = useMemo(() => {
+    const trackIds = new Set<string>();
+    for (const playlist of playlists) {
+      if (!tempSelected.has(playlist.id)) continue;
+      for (const trackId of playlist.trackIds) {
+        trackIds.add(trackId);
+      }
+    }
+    return trackIds.size;
+  }, [playlists, tempSelected]);
+
   const handleToggleAll = () => {
     if (isAllSelected) {
       setTempSelected(new Set());
@@ -409,22 +420,30 @@ export const PlaylistFilterModal: React.FC<PlaylistFilterModalProps> = ({
         </div>
 
         {/* Footer Actions */}
-        <div className="px-5 py-3.5 border-t border-border bg-card/90 flex items-center justify-end gap-2.5">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 rounded-xl border border-border hover:bg-secondary text-foreground font-semibold text-xs transition-colors"
-          >
-            {t('common.cancel')}
-          </button>
-          <button
-            type="button"
-            onClick={handleApply}
-            className="px-5 py-2 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs shadow-md flex items-center gap-1.5 cursor-pointer hover:opacity-90"
-          >
-            <Check className="w-4 h-4 stroke-[3]" />
-            <span>{t('playlist.apply')}</span>
-          </button>
+        <div className="px-5 py-3.5 border-t border-border bg-card/90 flex items-center justify-between gap-2.5">
+          <p className="text-xs font-medium text-muted-foreground shrink-0">
+            {t(
+              selectedTrackCount === 1 ? 'playlist.selectedTrack' : 'playlist.selectedTracks',
+              { count: selectedTrackCount }
+            )}
+          </p>
+          <div className="flex items-center gap-2.5">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 rounded-xl border border-border hover:bg-secondary text-foreground font-semibold text-xs transition-colors"
+            >
+              {t('common.cancel')}
+            </button>
+            <button
+              type="button"
+              onClick={handleApply}
+              className="px-5 py-2 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs shadow-md flex items-center gap-1.5 cursor-pointer hover:opacity-90"
+            >
+              <Check className="w-4 h-4 stroke-[3]" />
+              <span>{t('playlist.apply')}</span>
+            </button>
+          </div>
         </div>
     </ModalShell>
   );

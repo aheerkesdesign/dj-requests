@@ -17,7 +17,7 @@ import { AccountModal } from '../components/AccountModal';
 import { ShareModal } from '../components/ShareModal';
 import { DJDashboard } from '../components/DJDashboard';
 import { PlaylistFilterModal } from '../components/PlaylistFilterModal';
-import { Disc3, ListFilter } from 'lucide-react';
+import { Disc3 } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { useI18n } from '../i18n/LanguageContext';
 import { useDjPageNavigation } from '../hooks/useDjPageNavigation';
@@ -192,6 +192,10 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
     );
   }
 
+  const playlistTotal = currentLibrary.playlists?.length || 0;
+  const playlistSelected = activeSelectedPlaylistIds.length;
+  const playlistFiltered = playlistTotal > 0 && playlistSelected !== playlistTotal;
+
   return (
     <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary selection:text-primary-foreground pb-16 motion-panel-enter">
       {viewMode === 'start' ? (
@@ -221,49 +225,26 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
             <div key={displayTab} className={cn(panelClassName)}>
               {displayTab === 'tracks' && (
                 <div className="space-y-4">
-                  {isOwner && (
-                    <div className="bg-card/90 border border-border rounded-2xl p-3.5 sm:p-4 shadow-md flex items-center justify-between gap-3 flex-wrap">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center shrink-0">
-                          <ListFilter className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <h2 className="text-sm font-bold text-foreground">{t('public.filterPlaylists')}</h2>
-                            {currentLibrary.playlists?.length > 0 && (
-                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
-                                {t('playlist.activeCount', {
-                                  selected: activeSelectedPlaylistIds.length,
-                                  total: currentLibrary.playlists.length,
-                                })}
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            {activeSelectedPlaylistIds.length === (currentLibrary.playlists?.length || 0)
-                              ? t('public.allPlaylistsVisible')
-                              : t('public.playlistsSelected', {
-                                  selected: activeSelectedPlaylistIds.length,
-                                  total: currentLibrary.playlists?.length || 0,
-                                })}
-                          </p>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => setIsPlaylistFilterOpen(true)}
-                        className="px-4 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs shadow-md flex items-center gap-2"
-                      >
-                        <ListFilter className="w-4 h-4" />
-                        <span>{t('public.filterPlaylistsBtn')}</span>
-                      </button>
-                    </div>
-                  )}
-
                   <div className="sticky top-[118px] z-20 bg-background/95 backdrop-blur-md py-3 border-b border-border/60 shadow-lg -mx-4 px-4 sm:mx-0 sm:px-0">
                     <SearchBarAndFilters
                       searchQuery={filters.searchQuery}
                       onSearchChange={(searchQuery) =>
                         setFilters((prev) => ({ ...prev, searchQuery }))
+                      }
+                      actionButton={
+                        isOwner
+                          ? {
+                              label: t('public.filterPlaylistsBtn'),
+                              onClick: () => setIsPlaylistFilterOpen(true),
+                              active: playlistFiltered,
+                              title: playlistFiltered
+                                ? t('public.playlistsSelected', {
+                                    selected: playlistSelected,
+                                    total: playlistTotal,
+                                  })
+                                : t('public.allPlaylistsVisible'),
+                            }
+                          : undefined
                       }
                     />
                   </div>

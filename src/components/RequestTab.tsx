@@ -353,11 +353,13 @@ export const RequestTab: React.FC<RequestTabProps> = ({
   const { beginAfterModalClose, listExiting, emptyEntering, clearBusy } = useClearListSequence(() => {
     onClearVerzoekjes?.();
   });
+  // Guests always see request order; only the DJ can change sort.
+  const effectiveSortBy: RequestSortBy = isOwner ? sortBy : 'order';
   const {
     displaySortBy,
     listMotionClass: sortListMotionClass,
     sortMotionBusy,
-  } = useSortChangeMotion(sortBy);
+  } = useSortChangeMotion(effectiveSortBy);
   const listContainerRef = React.useRef<HTMLDivElement>(null);
 
   const needsMeta = needsMatchedTrackMeta(visibleFields);
@@ -396,10 +398,11 @@ export const RequestTab: React.FC<RequestTabProps> = ({
   }, [t, visibleFields]);
 
   React.useEffect(() => {
+    if (!isOwner) return;
     if (!sortOptions.some((o) => o.value === sortBy)) {
       onSortByChange('order');
     }
-  }, [sortBy, sortOptions, onSortByChange]);
+  }, [isOwner, sortBy, sortOptions, onSortByChange]);
 
   // Filter requests to show ONLY playable tracks (in the DJ's library)
   const usbRequests = listRequests.filter(r => r.kind === 'playable');
@@ -675,11 +678,15 @@ export const RequestTab: React.FC<RequestTabProps> = ({
       <SearchBarAndFilters
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
-        sortMenu={{
-          value: sortBy,
-          options: sortOptions,
-          onChange: (value) => onSortByChange(value as RequestSortBy),
-        }}
+        sortMenu={
+          isOwner
+            ? {
+                value: sortBy,
+                options: sortOptions,
+                onChange: (value) => onSortByChange(value as RequestSortBy),
+              }
+            : undefined
+        }
       />
 
       {/* DJ Swipe Tip banner */}

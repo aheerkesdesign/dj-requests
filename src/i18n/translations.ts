@@ -235,6 +235,8 @@ export const nl = {
   'playlist.activeCount': '{selected} / {total} actief',
   'playlist.track': 'nummer',
   'playlist.tracks': 'nummers',
+  'playlist.selectedTracks': '{count} nummers geselecteerd',
+  'playlist.selectedTrack': '{count} nummer geselecteerd',
   'playlist.filterTitle': 'Playlists Filteren',
   'playlist.filterSubtitle':
     'Kies welke mappen en afspeellijsten zichtbaar zijn in de bibliotheek',
@@ -529,6 +531,8 @@ export const en: { [K in keyof typeof nl]: string } = {
   'playlist.activeCount': '{selected} / {total} active',
   'playlist.track': 'track',
   'playlist.tracks': 'tracks',
+  'playlist.selectedTracks': '{count} tracks selected',
+  'playlist.selectedTrack': '{count} track selected',
   'playlist.filterTitle': 'Filter playlists',
   'playlist.filterSubtitle':
     'Choose which folders and playlists are visible in the library',

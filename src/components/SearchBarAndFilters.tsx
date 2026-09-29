@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, X, ArrowUpDown, Check } from 'lucide-react';
+import { Search, X, ArrowUpDown, Check, ListFilter } from 'lucide-react';
 import { useI18n } from '../i18n/LanguageContext';
 import { usePresence } from '../hooks/useMotionPresence';
 import { cn } from '@/lib/utils';
@@ -19,6 +19,14 @@ interface SearchBarAndFiltersProps {
     options: SortMenuOption[];
     onChange: (value: string) => void;
   };
+  /** When set, shows an action button beside the search bar (e.g. playlist filter). */
+  actionButton?: {
+    label: string;
+    onClick: () => void;
+    /** Visually emphasize when a non-default filter is active. */
+    active?: boolean;
+    title?: string;
+  };
 }
 
 function prefersReducedMotion() {
@@ -32,6 +40,7 @@ export const SearchBarAndFilters: React.FC<SearchBarAndFiltersProps> = ({
   searchQuery,
   onSearchChange,
   sortMenu,
+  actionButton,
 }) => {
   const { t } = useI18n();
   const [sortOpen, setSortOpen] = React.useState(false);
@@ -168,6 +177,21 @@ export const SearchBarAndFilters: React.FC<SearchBarAndFiltersProps> = ({
             </button>
           )}
         </div>
+
+        {actionButton && (
+          <button
+            type="button"
+            onClick={actionButton.onClick}
+            title={actionButton.title}
+            className={cn(
+              'motion-colors flex h-11 shrink-0 items-center gap-1.5 overflow-hidden rounded-xl border bg-card px-3.5 text-sm font-medium text-foreground hover:border-secondary hover:text-primary',
+              actionButton.active ? 'border-primary/40 text-primary' : 'border-border'
+            )}
+          >
+            <ListFilter className="h-3.5 w-3.5 shrink-0 text-primary" />
+            <span className="whitespace-nowrap">{actionButton.label}</span>
+          </button>
+        )}
 
         {sortMenu && (
           <div ref={sortRef} className="relative shrink-0">
