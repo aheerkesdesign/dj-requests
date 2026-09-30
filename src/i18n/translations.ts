@@ -74,7 +74,7 @@ export const nl = {
 
   // Request modal
   'requestModal.title': 'Nummer Aanvragen',
-  'requestModal.subtitle': 'Voeg een nummer toe aan de verzoekjeslijst',
+  'requestModal.subtitle': 'Staat niet op de USB? Vraag het aan voor de downloadlijst',
   'requestModal.titleRequired': 'Vul de titel van het nummer in.',
   'requestModal.submitError': 'Fout bij het versturen van je verzoek.',
   'requestModal.titleLabel': 'Titel van het nummer *',
@@ -398,7 +398,7 @@ export const en: { [K in keyof typeof nl]: string } = {
   'trackCard.request': 'Request',
 
   'requestModal.title': 'Request a track',
-  'requestModal.subtitle': 'Add a track to the request list',
+  'requestModal.subtitle': 'Not on the USB? Request it for the download list',
   'requestModal.titleRequired': 'Please enter the track title.',
   'requestModal.submitError': 'Failed to submit your request.',
   'requestModal.titleLabel': 'Track title *',

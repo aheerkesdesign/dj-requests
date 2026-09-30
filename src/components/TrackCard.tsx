@@ -17,7 +17,7 @@ interface TrackCardProps {
   track: Track;
   searchHighlight?: string;
   isAlreadyRequested?: boolean;
-  onRequestSimilar?: (artist: string, title: string) => Promise<void> | void;
+  onRequestSimilar?: (track: Track) => Promise<void> | void;
   visibleFields?: TrackFieldVisibility;
   requestButtonStyle?: RequestButtonStyle;
 }
@@ -50,7 +50,7 @@ export const TrackCard: React.FC<TrackCardProps> = ({
     setConfirmPulse(true);
     setIsLoading(true);
     try {
-      await onRequestSimilar(track.artist, track.name);
+      await onRequestSimilar(track);
     } catch (err: unknown) {
       setRequestedLocally(false);
       setConfirmPulse(false);

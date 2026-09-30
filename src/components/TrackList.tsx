@@ -3,6 +3,8 @@ import { Track, TrackRequest, TrackFieldVisibility, DEFAULT_TRACK_FIELD_VISIBILI
 import { TrackCard } from './TrackCard';
 import { SearchX, PlusCircle, Disc3, ChevronDown } from 'lucide-react';
 import { useI18n } from '../i18n/LanguageContext';
+import { useArriveFromEmpty, usePresence } from '../hooks/useMotionPresence';
+import { cn } from '@/lib/utils';
 
 interface TrackListProps {
   tracks: Track[];
@@ -19,7 +21,7 @@ interface TrackListProps {
   loadingMore?: boolean;
   onLoadMore?: () => void;
   onRequestModalOpen: () => void;
-  onRequestSimilar: (artist: string, title: string) => Promise<void> | void;
+  onRequestSimilar: (track: Track) => Promise<void> | void;
 }
 
 export const TrackList: React.FC<TrackListProps> = ({
@@ -40,6 +42,10 @@ export const TrackList: React.FC<TrackListProps> = ({
 }) => {
   const { t } = useI18n();
   const [visibleCount, setVisibleCount] = React.useState(50);
+
+  const showLoader = loading && tracks.length === 0;
+  const { present: loaderPresent, phase: loaderPhase } = usePresence(showLoader);
+  const listArriving = useArriveFromEmpty(tracks.length, !loaderPresent);
 
   React.useEffect(() => {
     setVisibleCount(50);
@@ -66,9 +72,15 @@ export const TrackList: React.FC<TrackListProps> = ({
   const displayedTracks = onLoadMore ? tracks : tracks.slice(0, visibleCount);
   const hasMore = onLoadMore ? tracks.length < total : visibleCount < tracks.length;
 
-  if (loading && tracks.length === 0) {
+  if (loaderPresent) {
     return (
-      <div className="flex justify-center py-10">
+      <div
+        className={cn(
+          'flex justify-center py-10',
+          loaderPhase === 'enter' && 'motion-fade-in-place',
+          loaderPhase === 'exit' && 'motion-panel-exit'
+        )}
+      >
         <Disc3 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
@@ -76,7 +88,13 @@ export const TrackList: React.FC<TrackListProps> = ({
 
   if (tracks.length === 0) {
     return (
-      <div className="my-4 space-y-3 rounded-2xl border border-border bg-card/60 p-8 text-center">
+      <div
+        key={listKey}
+        className={cn(
+          'my-4 space-y-3 rounded-2xl border border-border bg-card/60 p-8 text-center',
+          'motion-panel-enter'
+        )}
+      >
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-border bg-secondary text-primary">
           <SearchX className="h-8 w-8" />
         </div>
@@ -109,7 +127,10 @@ export const TrackList: React.FC<TrackListProps> = ({
   }
 
   return (
-    <div key={listKey} className="space-y-2">
+    <div
+      key={listKey}
+      className={cn('space-y-2', listArriving && 'motion-panel-enter')}
+    >
       {displayedTracks.map(track => (
         <TrackCard
           key={track.id}

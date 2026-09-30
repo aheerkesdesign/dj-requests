@@ -86,9 +86,9 @@ describe('useArriveFromEmpty', () => {
     expect(render(1)).toBe('yes');
   });
 
-  it('does not treat a metadata hold as an empty list', () => {
+  it('arrives after a loading hold when the first items appear', () => {
     expect(render(0, false)).toBe('no');
-    expect(render(2, true)).toBe('no');
+    expect(render(2, true)).toBe('yes');
   });
 
   it('can arrive again after the list is cleared', () => {

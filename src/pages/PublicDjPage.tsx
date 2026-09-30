@@ -48,6 +48,7 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
     currentLibrary,
     setCurrentLibrary,
     loading,
+    requestsReady,
     notFound,
     selectedPlaylistIds,
     setSelectedPlaylistIds,
@@ -89,7 +90,6 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
     catalogTracks,
     catalogTotal,
     catalogLoading,
-    catalogReady,
     catalogListKey,
     activeSelectedPlaylistIds,
     loadMoreTracks,
@@ -127,8 +127,6 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
   const [isRequestOpen, setIsRequestOpen] = useState(false);
   const [prefilledRequest, setPrefilledRequest] = useState({ artist: '', title: '' });
   const [requestSortBy, setRequestSortBy] = useState<RequestSortBy>('order');
-  /** When true, keep the loading shell until the first library paint can fade in cleanly. */
-  const [holdEnterUntilReady, setHoldEnterUntilReady] = useState(true);
 
   // DJ sort preference lives in library_settings (synced across devices via DB + realtime).
   useEffect(() => {
@@ -147,32 +145,14 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
   };
 
   useEffect(() => {
-    if (loading) setHoldEnterUntilReady(true);
-  }, [loading]);
-
-  useEffect(() => {
-    if (viewMode === 'library') setHoldEnterUntilReady(true);
-  }, [viewMode]);
-
-  // Block only the first library reveal (not later searches / tab switches).
-  const blockingInitialEnter =
-    holdEnterUntilReady && viewMode === 'library' && activeTab === 'tracks' && !catalogReady;
-
-  useEffect(() => {
-    if (!loading && currentLibrary && !blockingInitialEnter) {
-      setHoldEnterUntilReady(false);
-    }
-  }, [loading, currentLibrary, blockingInitialEnter]);
-
-  useEffect(() => {
     if (activeTab === 'dj' && !librarySettings.enableDownloadRequests) {
       setActiveTab('tracks');
     }
   }, [activeTab, librarySettings.enableDownloadRequests, setActiveTab]);
 
-  if (loading || blockingInitialEnter) {
+  if (loading) {
     return (
-      <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center py-20 text-center space-y-3">
+      <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center py-20 text-center space-y-3 motion-fade-in-place">
         <Disc3 className="w-12 h-12 text-primary animate-spin mx-auto" />
         <p className="text-xs font-semibold text-muted-foreground">{t('public.loadingLibrary')}</p>
       </div>
@@ -263,7 +243,9 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
                     visibleFields={visibleFields}
                     requestButtonStyle={librarySettings.requestButtonStyle}
                     onRequestModalOpen={() => handleOpenRequestPrefilled()}
-                    onRequestSimilar={(artist, title) => handleSubmitRequest(title, artist)}
+                    onRequestSimilar={(track) =>
+                      handleSubmitRequest(track.name, track.artist, 'playable', track)
+                    }
                   />
                 </div>
               )}
@@ -273,6 +255,7 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
                   requests={requests}
                   matchedByRequestId={matchedByRequestId}
                   matchingReady={matchingReady}
+                  loading={!requestsReady}
                   onOpenRequestModal={() => handleOpenRequestPrefilled()}
                   isOwner={isOwner}
                   visibleFields={visibleFields}
@@ -302,7 +285,7 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
       <RequestModal
         isOpen={isRequestOpen}
         onClose={() => setIsRequestOpen(false)}
-        onSubmit={handleSubmitRequest}
+        onSubmit={(title, artist) => handleSubmitRequest(title, artist, 'wishlist')}
         prefilledArtist={prefilledRequest.artist}
         prefilledTitle={prefilledRequest.title}
       />

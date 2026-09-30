@@ -28,6 +28,7 @@ export function useLibraryLoader({
 }: UseLibraryLoaderArgs) {
   const [currentLibrary, setCurrentLibrary] = useState<USBLibrary | null>(null);
   const [loading, setLoading] = useState(true);
+  const [requestsReady, setRequestsReady] = useState(false);
   const [notFound, setNotFound] = useState(false);
   const [selectedPlaylistIds, setSelectedPlaylistIds] = useState<string[] | null>(null);
   const [isPlaylistFilterOpen, setIsPlaylistFilterOpen] = useState(false);
@@ -47,6 +48,7 @@ export function useLibraryLoader({
         if (!profile) {
           setNotFound(true);
           setLoading(false);
+          setRequestsReady(true);
           return;
         }
       }
@@ -54,10 +56,12 @@ export function useLibraryLoader({
       if (!slug) {
         setNotFound(true);
         setLoading(false);
+        setRequestsReady(true);
         return;
       }
 
       setLoading(true);
+      setRequestsReady(false);
       setNotFound(false);
       try {
         const lib =
@@ -65,6 +69,8 @@ export function useLibraryLoader({
         if (!lib) {
           setNotFound(true);
           setCurrentLibrary(null);
+          setRequests([]);
+          setRequestsReady(true);
           return;
         }
         setCurrentLibrary(lib);
@@ -87,12 +93,22 @@ export function useLibraryLoader({
           }
         }
 
-        const reqList = await fetchRequests(lib.id);
-        setRequests(reqList);
+        // Show chrome as soon as library metadata is ready; requests load in parallel.
+        setLoading(false);
+
+        try {
+          const reqList = await fetchRequests(lib.id);
+          setRequests(reqList);
+        } catch (reqErr) {
+          console.error('Fout bij laden verzoekjes:', reqErr);
+          setRequests([]);
+        } finally {
+          setRequestsReady(true);
+        }
       } catch (err) {
         console.error('Fout bij initialisatie:', err);
         setNotFound(true);
-      } finally {
+        setRequestsReady(true);
         setLoading(false);
       }
     }
@@ -118,6 +134,7 @@ export function useLibraryLoader({
     currentLibrary,
     setCurrentLibrary,
     loading,
+    requestsReady,
     notFound,
     selectedPlaylistIds,
     setSelectedPlaylistIds,

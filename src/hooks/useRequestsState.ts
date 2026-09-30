@@ -5,7 +5,6 @@ import {
   clearAllRequests as apiClearAllRequests,
   deleteRequest as apiDeleteRequest,
   fetchRequests,
-  libraryHasTrack,
   matchRequestTracks,
   submitRequest,
   updateRequestStatus,
@@ -19,10 +18,16 @@ interface UseRequestsStateArgs {
   setRequests: Dispatch<SetStateAction<TrackRequest[]>>;
 }
 
-/** Only title/artist affect catalog matching — status/id changes must not rematch. */
-function matchFingerprint(requests: TrackRequest[]): string {
+function playableUnmatchedKey(
+  requests: TrackRequest[],
+  matchedByRequestId: Map<string, Track>,
+  settledIds: Set<string>
+): string {
   return requests
-    .map((r) => `${r.title}\0${r.artist ?? ''}`)
+    .filter(
+      (r) => r.kind === 'playable' && !matchedByRequestId.has(r.id) && !settledIds.has(r.id)
+    )
+    .map((r) => r.id)
     .sort()
     .join('\n');
 }
@@ -33,78 +38,143 @@ export function useRequestsState({
   requests,
   setRequests,
 }: UseRequestsStateArgs) {
-  const [matchedTracks, setMatchedTracks] = useState<Track[]>([]);
-  /** Fingerprint for which `matchedTracks` is current. */
-  const [matchedFingerprint, setMatchedFingerprint] = useState<string | null>(null);
+  const [matchedByRequestId, setMatchedByRequestId] = useState<Map<string, Track>>(
+    () => new Map()
+  );
+  /** Playable request ids we already tried to match (including no-hit). */
+  const [settledIds, setSettledIds] = useState<Set<string>>(() => new Set());
   const requestsRef = useRef(requests);
   requestsRef.current = requests;
   const matchedLibraryIdRef = useRef<string | null>(null);
 
-  const fingerprint = useMemo(() => matchFingerprint(requests), [requests]);
   const libraryId = currentLibrary?.id ?? null;
-  /** True once catalog matches for the current title/artist set are available. */
-  const matchingReady = !libraryId || matchedFingerprint === fingerprint;
 
+  const unmatchedKey = useMemo(
+    () => playableUnmatchedKey(requests, matchedByRequestId, settledIds),
+    [requests, matchedByRequestId, settledIds]
+  );
+
+  /** True once every playable request is linked or match was attempted. */
+  const matchingReady =
+    !libraryId ||
+    requests
+      .filter((r) => r.kind === 'playable')
+      .every((r) => matchedByRequestId.has(r.id) || settledIds.has(r.id));
+
+  // Drop cache entries for deleted requests; reset when library changes.
   useEffect(() => {
     if (!libraryId) {
       matchedLibraryIdRef.current = null;
-      setMatchedTracks([]);
-      setMatchedFingerprint(null);
+      setMatchedByRequestId(new Map());
+      setSettledIds(new Set());
       return;
     }
 
-    let cancelled = false;
-    const libraryChanged = matchedLibraryIdRef.current !== libraryId;
-    if (libraryChanged) {
+    if (matchedLibraryIdRef.current !== libraryId) {
       matchedLibraryIdRef.current = libraryId;
-      setMatchedTracks([]);
-      setMatchedFingerprint(null);
+      setMatchedByRequestId(new Map());
+      setSettledIds(new Set());
+      return;
     }
 
-    const fingerprintAtStart = fingerprint;
+    const liveIds = new Set(requests.map((r) => r.id));
+    setMatchedByRequestId((prev) => {
+      let changed = false;
+      const next = new Map<string, Track>();
+      for (const [id, track] of prev) {
+        if (liveIds.has(id)) next.set(id, track);
+        else changed = true;
+      }
+      return changed ? next : prev;
+    });
+    setSettledIds((prev) => {
+      let changed = false;
+      const next = new Set<string>();
+      for (const id of prev) {
+        if (liveIds.has(id)) next.add(id);
+        else changed = true;
+      }
+      return changed ? next : prev;
+    });
+  }, [libraryId, requests]);
+
+  // Server-match only playable requests that are not already linked.
+  useEffect(() => {
+    if (!libraryId || !unmatchedKey) return;
+
+    let cancelled = false;
+    const idsToMatch = new Set(unmatchedKey.split('\n').filter(Boolean));
+
     void (async () => {
       try {
-        const currentRequests = requestsRef.current;
+        const toMatch = requestsRef.current.filter((r) => idsToMatch.has(r.id));
+        if (toMatch.length === 0) return;
+
         const tracks = await matchRequestTracks(
           libraryId,
-          currentRequests.map((request) => ({ title: request.title, artist: request.artist }))
+          toMatch.map((request) => ({ title: request.title, artist: request.artist }))
         );
         if (cancelled) return;
-        setMatchedTracks(tracks);
-        setMatchedFingerprint(fingerprintAtStart);
+
+        setMatchedByRequestId((prev) => {
+          const next = new Map(prev);
+          for (const req of toMatch) {
+            if (next.has(req.id)) continue;
+            const track = findTrackInLibrary(req, tracks);
+            if (track) next.set(req.id, track);
+          }
+          return next;
+        });
+        setSettledIds((prev) => {
+          const next = new Set(prev);
+          for (const id of idsToMatch) next.add(id);
+          return next;
+        });
       } catch (err) {
         console.error(err);
         if (cancelled) return;
-        setMatchedTracks([]);
-        setMatchedFingerprint(fingerprintAtStart);
+        setSettledIds((prev) => {
+          const next = new Set(prev);
+          for (const id of idsToMatch) next.add(id);
+          return next;
+        });
       }
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [libraryId, fingerprint]);
+  }, [libraryId, unmatchedKey]);
 
-  /** Map request id → catalog track using the server-matched candidate set. */
-  const matchedByRequestId = useMemo(() => {
-    const map = new Map<string, Track>();
-    for (const req of requests) {
-      const track = findTrackInLibrary(req, matchedTracks);
-      if (track) map.set(req.id, track);
-    }
-    return map;
-  }, [requests, matchedTracks]);
-
-  const handleSubmitRequest = async (title: string, artist: string) => {
+  /**
+   * Submit a request with an explicit kind from the UI intent:
+   * - playable: guest tapped "request" on a catalog track (pass that track to skip rematch)
+   * - wishlist: guest asked to download a track that search did not find
+   */
+  const handleSubmitRequest = async (
+    title: string,
+    artist: string,
+    kind: RequestKind,
+    catalogTrack?: Track
+  ) => {
     if (!currentLibrary) return;
-    const kind: RequestKind = (await libraryHasTrack(currentLibrary.id, title, artist))
-      ? 'playable'
-      : 'wishlist';
     const ls = normalizeLibrarySettings(currentLibrary.librarySettings);
     if (kind === 'wishlist' && !ls.enableDownloadRequests) {
       return;
     }
     const req = await submitRequest(currentLibrary.id, title, artist, kind);
+    if (catalogTrack) {
+      setMatchedByRequestId((prev) => {
+        const next = new Map(prev);
+        next.set(req.id, catalogTrack);
+        return next;
+      });
+      setSettledIds((prev) => {
+        const next = new Set(prev);
+        next.add(req.id);
+        return next;
+      });
+    }
     setRequests((prev) => [req, ...prev]);
   };
 

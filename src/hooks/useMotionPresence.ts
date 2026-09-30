@@ -62,7 +62,7 @@ export function usePresence(open: boolean, exitMs = MOTION_EXIT_MS) {
         ? 'motion-modal-exit'
         : undefined;
 
-  return { present, overlayClassName, panelClassName };
+  return { present, phase, overlayClassName, panelClassName };
 }
 
 /**
@@ -208,15 +208,25 @@ export function useRemoteListClear<T>(items: T[], localBusy: boolean) {
 
 /**
  * True for one enter-duration after `count` goes from 0 to at least 1.
- * The first settled value does not count, so the initial paint stays still.
+ * The first settled value does not count when it was never held (initial paint stays still).
+ * After `settled: false` (loader / meta hold), the first non-empty settle does fade in.
  * Pass `settled: false` while the count is not yet meaningful.
  */
 export function useArriveFromEmpty(count: number, settled: boolean) {
   const [prevCount, setPrevCount] = useState<number | null>(null);
   const [arriving, setArriving] = useState(false);
+  const wasUnsettledRef = useRef(false);
+
+  if (!settled) {
+    wasUnsettledRef.current = true;
+  }
 
   if (settled && count !== prevCount) {
-    const fromEmpty = prevCount === 0 && count > 0 && !prefersReducedMotion();
+    const fromEmpty =
+      !prefersReducedMotion() &&
+      count > 0 &&
+      (prevCount === 0 || (prevCount === null && wasUnsettledRef.current));
+    wasUnsettledRef.current = false;
     setPrevCount(count);
     if (fromEmpty) setArriving(true);
     else if (count === 0) setArriving(false);

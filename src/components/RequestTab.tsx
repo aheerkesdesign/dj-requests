@@ -7,7 +7,7 @@ import {
   DEFAULT_TRACK_FIELD_VISIBILITY,
   type RequestSortBy,
 } from '../types';
-import { Clock, Music2, CheckCheck, Trash2, Ban } from 'lucide-react';
+import { Clock, Music2, CheckCheck, Trash2, Ban, Disc3 } from 'lucide-react';
 import { useI18n } from '../i18n/LanguageContext';
 import { CamelotBadge } from './CamelotBadge';
 import { BpmBadge } from './BpmBadge';
@@ -19,6 +19,7 @@ import {
   useEnteringIds,
   useExitingIds,
   useListFlipMotion,
+  usePresence,
   useRemoteListClear,
   useSortChangeMotion,
   MOTION_ENTER_MS,
@@ -70,6 +71,8 @@ interface RequestTabProps {
   matchedByRequestId?: Map<string, Track>;
   /** False while catalog matches for optional BPM/key/album fields are still loading. */
   matchingReady?: boolean;
+  /** True until the initial requests fetch finishes. */
+  loading?: boolean;
   onOpenRequestModal: () => void;
   isOwner: boolean;
   visibleFields?: TrackFieldVisibility;
@@ -332,6 +335,7 @@ export const RequestTab: React.FC<RequestTabProps> = ({
   requests,
   matchedByRequestId,
   matchingReady = true,
+  loading = false,
   onOpenRequestModal,
   isOwner,
   visibleFields = DEFAULT_TRACK_FIELD_VISIBILITY,
@@ -367,11 +371,14 @@ export const RequestTab: React.FC<RequestTabProps> = ({
   // Exception: an empty request list must publish immediately. Holding a stale
   // non-empty snapshot after clear would remount the empty state too late and
   // skip the empty-enter fade.
+  // Never publish while the initial fetch is still in flight — that would lock in
+  // an empty snapshot and flash "geen verzoekjes" instead of the loader.
   const publishedRef = React.useRef<{
     requests: TrackRequest[];
     matchedByRequestId?: Map<string, Track>;
   } | null>(null);
-  const publishNow = !needsMeta || matchingReady || requests.length === 0;
+  const publishNow =
+    !loading && (!needsMeta || matchingReady || requests.length === 0);
   if (publishNow) {
     publishedRef.current = { requests, matchedByRequestId };
   }
@@ -381,6 +388,14 @@ export const RequestTab: React.FC<RequestTabProps> = ({
   const listMatched = publishNow
     ? matchedByRequestId
     : publishedRef.current?.matchedByRequestId;
+
+  const awaitingMeta =
+    !loading &&
+    needsMeta &&
+    !matchingReady &&
+    requests.some((r) => r.kind === 'playable');
+  const showLoader = loading || awaitingMeta;
+  const { present: loaderPresent, phase: loaderPhase } = usePresence(showLoader);
 
   const sortOptions = React.useMemo(() => {
     const options: { value: RequestSortBy; label: string; title?: string }[] = [
@@ -409,13 +424,12 @@ export const RequestTab: React.FC<RequestTabProps> = ({
 
   // Filter requests to show ONLY playable tracks (in the DJ's library)
   const usbRequests = listRequests.filter(r => r.kind === 'playable');
-  const holdingForMeta = needsMeta && !matchingReady && !publishedRef.current;
   const {
     displayItems: displayUsbRequests,
     listExiting: remoteListExiting,
     emptyEntering: remoteEmptyEntering,
   } = useRemoteListClear(usbRequests, clearBusy);
-  const listArriving = useArriveFromEmpty(usbRequests.length, !holdingForMeta);
+  const listArriving = useArriveFromEmpty(usbRequests.length, !loaderPresent);
   const showListExiting = listExiting || remoteListExiting;
   const showEmptyEntering = emptyEntering || remoteEmptyEntering;
 
@@ -551,7 +565,7 @@ export const RequestTab: React.FC<RequestTabProps> = ({
 
   const filteredIds = filteredRequests.map((r) => r.id);
   const insertMotionEnabled =
-    !holdingForMeta && !showListExiting && !listArriving && !sortMotionBusy;
+    !loaderPresent && !showListExiting && !listArriving && !sortMotionBusy;
   const { isEntering, enteringIds, markEntering } = useEnteringIds(
     filteredIds,
     insertMotionEnabled
@@ -687,7 +701,17 @@ export const RequestTab: React.FC<RequestTabProps> = ({
       )}
 
       {/* Hold new/updated rows until catalog matches so optional meta arrives with them */}
-      {holdingForMeta ? null : filteredRequests.length === 0 ? (
+      {loaderPresent ? (
+        <div
+          className={cn(
+            'flex justify-center py-10',
+            loaderPhase === 'enter' && 'motion-fade-in-place',
+            loaderPhase === 'exit' && 'motion-panel-exit'
+          )}
+        >
+          <Disc3 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      ) : filteredRequests.length === 0 ? (
         <div
           className={cn(
             'bg-card/50 border border-border/80 rounded-2xl p-8 text-center my-2 space-y-2',
