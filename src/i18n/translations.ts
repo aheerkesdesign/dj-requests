@@ -42,7 +42,6 @@ export const nl = {
   'public.profileMissingHelp':
     'Je account bestaat, maar er is nog geen profiel/bibliotheek. Voer in Supabase de SQL uit supabase/migrations/20260329140000_ensure_my_profile.sql, ververs daarna deze pagina.',
   'public.pageMissing': 'Deze pagina bestaat niet of is nog niet geconfigureerd.',
-  'public.filterPlaylists': 'Playlists Filteren',
   'public.allPlaylistsVisible': 'Alle afspeellijsten zijn nu zichtbaar in de bibliotheek',
   'public.playlistsSelected':
     '{selected} van de {total} afspeellijsten geselecteerd',
@@ -53,10 +52,6 @@ export const nl = {
   // Search
   'search.placeholder': 'Zoek op titel of artiest...',
   'search.sortBy': 'Sorteren:',
-  'search.sortTitle': 'Titel',
-  'search.sortArtist': 'Artiest',
-  'search.sortByTitle': 'Sorteren op: Titel',
-  'search.sortByArtist': 'Sorteren op: Artiest',
 
   // Track list
   'tracks.noneForQuery': 'Geen nummers gevonden voor "{query}"',
@@ -89,7 +84,6 @@ export const nl = {
   'requests.declined': 'Geweigerd',
   'requests.pending': 'In afwachting',
   'requests.all': 'Alle',
-  'requests.searchPlaceholder': 'Zoek in verzoekjes...',
   'requests.clearTitle': 'Verzoekjes definitief verwijderen',
   'requests.clear': 'Verzoekjes verwijderen',
   'requests.djTip':
@@ -248,15 +242,11 @@ export const nl = {
   'playlist.apply': 'Filter toepassen',
 
   // Landing
-  'landing.dashboard': 'Dashboard',
   'landing.login': 'Inloggen',
   'landing.signup': 'Account aanmaken',
-  'landing.forDjs': "Voor DJ's",
   'landing.hero': 'Publiek vraagt aan uit jouw Rekordbox USB.',
   'landing.heroBody':
     'Upload je catalogus, deel één link of QR, en speel requests live tijdens je set.',
-  'landing.toDashboard': 'Naar dashboard',
-  'landing.viewPublic': 'Bekijk publieke pagina',
   'landing.startFree': 'Start gratis',
   'landing.hasAccount': 'Ik heb al een account',
   'landing.flowTitle': 'Van USB naar dansvloer',
@@ -280,13 +270,6 @@ export const nl = {
   'landing.closeTitle': 'Klaar voor je volgende set?',
   'landing.closeBody': 'Maak een account, upload je export, en deel je pagina in minuten.',
   'landing.footerNote': "Voor DJ's die hun catalogus openzetten",
-  'landing.featureXmlTitle': 'Rekordbox XML',
-  'landing.featureXmlBody':
-    'Upload je USB-export en laat gasten door je catalogus zoeken.',
-  'landing.featureLiveTitle': 'Live verzoekjes',
-  'landing.featureLiveBody': 'Nieuwe requests verschijnen realtime op je DJ-dashboard.',
-  'landing.featurePageTitle': 'Eigen pagina',
-  'landing.featurePageBody': 'Elke DJ krijgt een unieke /d/jouw-naam link voor het publiek.',
 
   // Login / signup
   'login.title': 'Inloggen',
@@ -370,7 +353,6 @@ export const en: { [K in keyof typeof nl]: string } = {
   'public.profileMissingHelp':
     'Your account exists, but there is no profile/library yet. Run supabase/migrations/20260329140000_ensure_my_profile.sql in Supabase, then refresh this page.',
   'public.pageMissing': 'This page does not exist or has not been set up yet.',
-  'public.filterPlaylists': 'Filter playlists',
   'public.allPlaylistsVisible': 'All playlists are now visible in the library',
   'public.playlistsSelected':
     '{selected} of {total} playlists selected',
@@ -380,10 +362,6 @@ export const en: { [K in keyof typeof nl]: string } = {
 
   'search.placeholder': 'Search by title or artist...',
   'search.sortBy': 'Sort:',
-  'search.sortTitle': 'Title',
-  'search.sortArtist': 'Artist',
-  'search.sortByTitle': 'Sort by: Title',
-  'search.sortByArtist': 'Sort by: Artist',
 
   'tracks.noneForQuery': 'No tracks found for "{query}"',
   'tracks.noneInSelection': 'No tracks in this selection',
@@ -412,7 +390,6 @@ export const en: { [K in keyof typeof nl]: string } = {
   'requests.declined': 'Declined',
   'requests.pending': 'Pending',
   'requests.all': 'All',
-  'requests.searchPlaceholder': 'Search requests...',
   'requests.clearTitle': 'Permanently delete requests',
   'requests.clear': 'Delete requests',
   'requests.djTip':
@@ -564,15 +541,11 @@ export const en: { [K in keyof typeof nl]: string } = {
   'playlist.noneForQuery': 'No folders or playlists found for "{query}".',
   'playlist.apply': 'Apply filter',
 
-  'landing.dashboard': 'Dashboard',
   'landing.login': 'Log in',
   'landing.signup': 'Create account',
-  'landing.forDjs': 'For DJs',
   'landing.hero': 'Your crowd requests from your Rekordbox USB.',
   'landing.heroBody':
     'Upload your catalog, share one link or QR, and play requests live during your set.',
-  'landing.toDashboard': 'Go to dashboard',
-  'landing.viewPublic': 'View public page',
   'landing.startFree': 'Start free',
   'landing.hasAccount': 'I already have an account',
   'landing.flowTitle': 'From USB to dancefloor',
@@ -596,13 +569,6 @@ export const en: { [K in keyof typeof nl]: string } = {
   'landing.closeTitle': 'Ready for your next set?',
   'landing.closeBody': 'Create an account, upload your export, and share your page in minutes.',
   'landing.footerNote': 'For DJs who open their catalog',
-  'landing.featureXmlTitle': 'Rekordbox XML',
-  'landing.featureXmlBody':
-    'Upload your USB export and let guests search your catalog.',
-  'landing.featureLiveTitle': 'Live requests',
-  'landing.featureLiveBody': 'New requests appear in realtime on your DJ dashboard.',
-  'landing.featurePageTitle': 'Your own page',
-  'landing.featurePageBody': 'Every DJ gets a unique /d/your-name link for the audience.',
 
   'login.title': 'Log in',
   'login.subtitle': 'Manage your library and requests',

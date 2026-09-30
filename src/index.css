@@ -13,15 +13,8 @@
   --color-secondary-foreground: #f4f4f5;
   --color-primary: #00ffb2;
   --color-primary-foreground: #0a0c10;
-  --color-accent: #00ffb2;
-  --color-accent-foreground: #0a0c10;
-  --color-destructive: #ff3366;
-  --color-destructive-foreground: #ffffff;
   --color-border: rgb(255 255 255 / 0.08);
-  --color-input: rgb(255 255 255 / 0.08);
   --color-ring: #00ffb2;
-  --color-popover: #151922;
-  --color-popover-foreground: #f4f4f5;
 
   --font-sans: "Plus Jakarta Sans Variable", "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
   --font-heading: "Space Grotesk Variable", "Space Grotesk", ui-sans-serif, system-ui, sans-serif;

@@ -318,16 +318,6 @@ export async function searchLibraryTracks(
   };
 }
 
-export async function libraryHasTrack(libraryId: string, title: string, artist: string): Promise<boolean> {
-  const { data, error } = await supabase.rpc('library_has_track', {
-    p_library_id: libraryId,
-    p_title: title,
-    p_artist: artist,
-  });
-  if (error) throw new Error(error.message);
-  return Boolean(data);
-}
-
 export async function matchRequestTracks(
   libraryId: string,
   requests: { title: string; artist?: string }[]
