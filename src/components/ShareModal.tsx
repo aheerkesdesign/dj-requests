@@ -37,7 +37,8 @@ export const ShareModal: React.FC<ShareModalProps> = ({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const qrCodeDataUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(currentUrl)}&color=10b981&bgcolor=09090b`;
+  // Brand tokens: primary #00ffb2, background #0a0c10 (no # in QR API params)
+  const qrCodeDataUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(currentUrl)}&color=00ffb2&bgcolor=0a0c10`;
   // Guests always see share copy; DJ tips only when enabled.
   const showSubtitle = !isOwner || showDjTips;
 

@@ -7,7 +7,7 @@ import {
   DEFAULT_TRACK_FIELD_VISIBILITY,
   type RequestSortBy,
 } from '../types';
-import { Clock, Music2, CheckCheck, Trash2, Ban, Disc3 } from 'lucide-react';
+import { Clock, Music2, CheckCheck, Trash2, Ban, Disc3, X } from 'lucide-react';
 import { useI18n } from '../i18n/LanguageContext';
 import { CamelotBadge } from './CamelotBadge';
 import { BpmBadge } from './BpmBadge';
@@ -635,7 +635,7 @@ export const RequestTab: React.FC<RequestTabProps> = ({
             <button
               type="button"
               onClick={() => setFilterStatus('all')}
-              className={`px-3 py-1 rounded-lg border font-medium transition-all ${
+              className={`px-3 py-1.5 rounded-xl border font-medium transition-all ${
                 filterStatus === 'all'
                   ? 'bg-primary/20 border-primary/50 text-primary'
                   : 'bg-card border-border text-muted-foreground'
@@ -646,7 +646,7 @@ export const RequestTab: React.FC<RequestTabProps> = ({
             <button
               type="button"
               onClick={() => setFilterStatus('pending')}
-              className={`px-3 py-1 rounded-lg border font-medium transition-all ${
+              className={`px-3 py-1.5 rounded-xl border font-medium transition-all ${
                 filterStatus === 'pending'
                   ? 'bg-amber-950/80 border-amber-600 text-amber-300'
                   : 'bg-card border-border text-muted-foreground'
@@ -657,7 +657,7 @@ export const RequestTab: React.FC<RequestTabProps> = ({
             <button
               type="button"
               onClick={() => setFilterStatus('played')}
-              className={`px-3 py-1 rounded-lg border font-medium transition-all ${
+              className={`px-3 py-1.5 rounded-xl border font-medium transition-all ${
                 filterStatus === 'played'
                   ? 'bg-primary/15 border-primary/60 text-primary'
                   : 'bg-card border-border text-muted-foreground'
@@ -668,7 +668,7 @@ export const RequestTab: React.FC<RequestTabProps> = ({
             <button
               type="button"
               onClick={() => setFilterStatus('declined')}
-              className={`px-3 py-1 rounded-lg border font-medium transition-all ${
+              className={`px-3 py-1.5 rounded-xl border font-medium transition-all ${
                 filterStatus === 'declined'
                   ? 'bg-red-950/80 border-red-600 text-red-300'
                   : 'bg-card border-border text-muted-foreground'
@@ -799,16 +799,28 @@ export const RequestTab: React.FC<RequestTabProps> = ({
         open={confirmClearVerzoekjes}
         panelClassName="w-full max-w-sm bg-card border border-border rounded-2xl shadow-2xl overflow-hidden text-foreground my-auto flex flex-col"
       >
-        <div className="px-5 py-4 border-b border-border bg-background/80 flex items-center gap-2.5 shrink-0">
-          <div className="p-2 rounded-xl bg-red-950/80 text-red-400 border border-red-800/60">
-            <Trash2 className="w-5 h-5" />
+        <div className="px-5 py-4 border-b border-border bg-background/80 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 rounded-xl bg-red-950/80 text-red-400 border border-red-800/60">
+              <Trash2 className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-bold text-sm text-foreground">{t('requests.clearConfirmTitle')}</h3>
+            </div>
           </div>
-          <div>
-            <h3 className="font-bold text-sm text-foreground">{t('requests.clearConfirmTitle')}</h3>
-            <p className="text-[11px] text-muted-foreground">
-              {t('requests.clearConfirmBody')}
-            </p>
-          </div>
+          <button
+            type="button"
+            onClick={() => setConfirmClearVerzoekjes(false)}
+            className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-secondary transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="p-5">
+          <p className="text-[11px] text-muted-foreground">
+            {t('requests.clearConfirmBody')}
+          </p>
         </div>
 
         <div className="p-4 border-t border-border bg-background/80 flex items-center justify-end gap-2 shrink-0">

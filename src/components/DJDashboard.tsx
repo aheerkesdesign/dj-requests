@@ -1,6 +1,6 @@
 import React from 'react';
 import { TrackRequest } from '../types';
-import { Trash2, CheckCheck } from 'lucide-react';
+import { Trash2, CheckCheck, X } from 'lucide-react';
 import { useI18n } from '../i18n/LanguageContext';
 import {
   MOTION_ENTER_MS,
@@ -195,16 +195,28 @@ export const DJDashboard: React.FC<DJDashboardProps> = ({
         open={confirmClearToDownload}
         panelClassName="w-full max-w-sm bg-card border border-border rounded-2xl shadow-2xl overflow-hidden text-foreground my-auto flex flex-col"
       >
-        <div className="px-5 py-4 border-b border-border bg-background/80 flex items-center gap-2.5 shrink-0">
-          <div className="p-2 rounded-xl bg-red-950/80 text-red-400 border border-red-800/60">
-            <Trash2 className="w-5 h-5" />
+        <div className="px-5 py-4 border-b border-border bg-background/80 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 rounded-xl bg-red-950/80 text-red-400 border border-red-800/60">
+              <Trash2 className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-bold text-sm text-foreground">{t('dj.clearToDownloadTitle')}</h3>
+            </div>
           </div>
-          <div>
-            <h3 className="font-bold text-sm text-foreground">{t('dj.clearToDownloadTitle')}</h3>
-            <p className="text-[11px] text-muted-foreground">
-              {t('dj.clearToDownloadBody')}
-            </p>
-          </div>
+          <button
+            type="button"
+            onClick={() => setConfirmClearToDownload(false)}
+            className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-secondary transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="p-5">
+          <p className="text-[11px] text-muted-foreground">
+            {t('dj.clearToDownloadBody')}
+          </p>
         </div>
 
         <div className="p-4 border-t border-border bg-background/80 flex items-center justify-end gap-2 shrink-0">

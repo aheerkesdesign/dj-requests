@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { USBLibrary } from '../types';
 import { Disc3, Settings, Share2, CircleUserRound, Import } from 'lucide-react';
 import { useI18n } from '../i18n/LanguageContext';
@@ -34,6 +34,27 @@ export const Header: React.FC<HeaderProps> = ({
   setActiveTab,
 }) => {
   const { t } = useI18n();
+  const headerRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const el = headerRef.current;
+    if (!el) return;
+
+    const syncHeight = () => {
+      document.documentElement.style.setProperty(
+        '--app-header-height',
+        `${el.offsetHeight}px`
+      );
+    };
+
+    syncHeight();
+    const observer = new ResizeObserver(syncHeight);
+    observer.observe(el);
+    return () => {
+      observer.disconnect();
+      document.documentElement.style.removeProperty('--app-header-height');
+    };
+  }, []);
 
   const tabs = useMemo(() => {
     const base: { id: LibraryTab; label: string; title?: string }[] = [
@@ -57,7 +78,10 @@ export const Header: React.FC<HeaderProps> = ({
   const tabCount = tabs.length;
 
   return (
-    <header className="sticky top-0 z-30 border-b border-border/80 bg-background/95 px-4 py-3 text-foreground backdrop-blur-md">
+    <header
+      ref={headerRef}
+      className="sticky top-0 z-30 border-b border-border/80 bg-background/95 px-4 py-3 text-foreground backdrop-blur-md"
+    >
       <div className="mx-auto max-w-4xl">
         <div className="flex items-center justify-between gap-2">
           <div

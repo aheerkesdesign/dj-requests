@@ -153,7 +153,7 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center py-20 text-center space-y-3 motion-fade-in-place">
+      <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center p-4 text-center space-y-3 motion-fade-in-place">
         <Disc3 className="w-12 h-12 text-primary animate-spin mx-auto" />
         <p className="text-xs font-semibold text-muted-foreground">{t('public.loadingLibrary')}</p>
       </div>
@@ -162,7 +162,7 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
 
   if (notFound || !currentLibrary) {
     return (
-      <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center p-6 text-center space-y-3">
+      <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center p-4 text-center space-y-3">
         <h1 className="text-xl font-bold">
           {ownerMode ? t('public.profileNotFound') : t('public.djNotFound')}
         </h1>
@@ -207,7 +207,7 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
               <div key={displayTab} className={cn(panelClassName)}>
                 {displayTab === 'tracks' && (
                   <div className="space-y-4">
-                    <div className="sticky top-[118px] z-20 bg-background/95 backdrop-blur-md py-3 border-b border-border/60 shadow-lg -mx-4 px-4 sm:mx-0 sm:px-0">
+                    <div className="sticky top-[var(--app-header-height,7.5rem)] z-20 bg-background/95 backdrop-blur-md -mx-4 px-4 sm:mx-0 sm:px-0">
                       <SearchBarAndFilters
                         searchQuery={filters.searchQuery}
                         onSearchChange={(searchQuery) =>

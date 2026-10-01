@@ -242,7 +242,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({
                   </div>
 
                   <div className="flex items-center justify-center pt-1">
-                    <span className="inline-block px-4 py-2 rounded-xl bg-primary group-hover:bg-primary/90 text-primary-foreground font-bold text-xs shadow-sm">
+                    <span className="inline-block px-5 py-2.5 rounded-xl bg-primary group-hover:bg-primary/90 text-primary-foreground font-bold text-xs shadow-sm">
                       {t('import.chooseFile')}
                     </span>
                   </div>

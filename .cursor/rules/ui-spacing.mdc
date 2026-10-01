@@ -1,0 +1,39 @@
+---
+description: UI spacing, modal chrome, and control sizing for TrackDrop
+globs: src/**/*.{tsx,css}
+alwaysApply: false
+---
+
+# UI spacing & chrome
+
+Dark + mint product UI. Prefer theme tokens (`bg-background`, `bg-primary`, etc.) over hardcoded hex.
+
+## App shell
+- Content: `max-w-4xl mx-auto px-4`
+- Main vertical rhythm: `pt-4 space-y-4`
+- Centered load/error states: `p-4 text-center space-y-3`
+- Search → list: same `space-y-4`; no `border-b` / `shadow` divider under the search bar
+- Sticky search (tracks only) may keep `bg-background/95 backdrop-blur-md`, but no extra `py-3` chrome that changes the gap vs requests
+
+## Lists
+- Gap between rows: `space-y-2.5` (or `pb-2.5` inside collapse clips)
+- Cards: `rounded-xl … px-4 py-3 … gap-3`
+- Title → artist: `mt-1`
+- Empty states: `my-2 space-y-2 rounded-2xl border border-border/80 bg-card/50 p-8 text-center`
+
+## Modals (`ModalShell`)
+- Header: `px-5 py-4` — icon tile + title; always include corner `X` close
+- Body: `p-5` (confirm copy lives here, not only in the header)
+- Footer: `p-4` — primary then cancel
+- Playlist filter toolbar/list: also `p-5`
+
+## Controls
+- Modal primary / destructive confirm: `px-5 py-2.5 rounded-xl`
+- Modal cancel / secondary: `px-4 py-2 rounded-xl`
+- Filter chips & compact clears: `px-3 py-1.5 rounded-xl`
+- Text inputs / selects: `px-3.5 py-2.5 rounded-xl`
+
+## Do not
+- Mix `space-y-2` list gaps with `pb-2.5` list gaps in the same product surface
+- Use `px-4 py-2` for primary actions (that padding is for cancel/secondary)
+- Put confirm body text only in the modal header

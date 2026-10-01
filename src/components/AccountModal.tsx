@@ -112,7 +112,10 @@ export const AccountModal: React.FC<AccountModalProps> = ({
           setError(t('account.processImageError'));
           return;
         }
-        ctx.fillStyle = '#09090b';
+        ctx.fillStyle =
+          getComputedStyle(document.documentElement)
+            .getPropertyValue('--color-background')
+            .trim() || '#0a0c10';
         ctx.fillRect(0, 0, size, size);
         const x = (size - img.width) / 2;
         const y = (size - img.height) / 2;

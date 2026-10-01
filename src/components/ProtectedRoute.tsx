@@ -26,14 +26,14 @@ export function ProtectedRoute({ children, requireProfile = false }: ProtectedRo
 
   if (requireProfile && !profile) {
     return (
-      <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center p-6 text-center space-y-4">
+      <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center p-4 text-center space-y-3">
         <Disc3 className="w-10 h-10 text-primary" />
         <h1 className="text-lg font-bold">{t('dashboard.profileFailed')}</h1>
         <p className="text-sm text-muted-foreground max-w-md">{t('dashboard.profileHelp')}</p>
         <button
           type="button"
           onClick={() => window.location.reload()}
-          className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold"
+          className="px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-xs font-bold"
         >
           {t('common.refresh')}
         </button>

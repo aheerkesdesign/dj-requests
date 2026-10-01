@@ -356,7 +356,7 @@ export const PlaylistFilterModal: React.FC<PlaylistFilterModalProps> = ({
         </div>
 
         {/* Master Toggle & Search Bar */}
-        <div className="p-4 bg-background/60 border-b border-border/80 space-y-3">
+        <div className="p-5 bg-background/60 border-b border-border/80 space-y-3">
           {/* Master Checkbox Row */}
           <div className="flex items-center justify-between bg-card/80 border border-border p-3 rounded-xl">
             <button
@@ -397,7 +397,7 @@ export const PlaylistFilterModal: React.FC<PlaylistFilterModalProps> = ({
         </div>
 
         {/* Tree List */}
-        <div className="p-4 overflow-y-auto space-y-2 flex-1 custom-scrollbar">
+        <div className="p-5 overflow-y-auto space-y-2 flex-1 custom-scrollbar">
           {playlists.length === 0 ? (
             <div className="py-12 text-center text-muted-foreground text-xs space-y-2">
               <Music className="w-8 h-8 mx-auto text-muted-foreground" />

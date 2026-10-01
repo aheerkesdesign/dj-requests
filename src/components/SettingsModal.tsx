@@ -294,7 +294,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         requestButtonStyle: e.target.value as RequestButtonStyle,
                       }))
                     }
-                    className="w-full rounded-lg border border-border bg-card px-3 py-2 text-xs font-medium text-foreground outline-none transition-colors focus:border-primary/60 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="w-full rounded-xl border border-border bg-card px-3.5 py-2.5 text-xs font-medium text-foreground outline-none transition-colors focus:border-primary/60 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <option value="text">{t('settings.requestButtonStyleText')}</option>
                     <option value="icon">{t('settings.requestButtonStyleIcon')}</option>
@@ -361,7 +361,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                           type="button"
                           disabled={!allowEdit}
                           onClick={() => allowEdit && setDraftLocale(val)}
-                          className={`px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+                          className={`px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
                             active
                               ? 'bg-primary/20 border-primary/60 text-primary'
                               : 'bg-card border-border text-muted-foreground hover:text-foreground hover:border-border'
@@ -402,7 +402,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                           onClick={() =>
                             allowEdit && setSettings((prev) => ({ ...prev, pageDefaultLocale: val }))
                           }
-                          className={`px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+                          className={`px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
                             active
                               ? 'bg-primary/20 border-primary/60 text-primary'
                               : 'bg-card border-border text-muted-foreground hover:text-foreground hover:border-border'

@@ -111,7 +111,7 @@ export default function SignupPage() {
                   );
                 }
               }}
-              className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-sm outline-none focus:border-primary/40"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-background border border-border text-sm outline-none focus:border-primary/40"
             />
           </div>
           <div>
@@ -123,7 +123,7 @@ export default function SignupPage() {
                 value={slug}
                 onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
                 placeholder="dj-alex"
-                className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-sm font-mono outline-none focus:border-primary/40"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-background border border-border text-sm font-mono outline-none focus:border-primary/40"
               />
             </div>
           </div>
@@ -134,7 +134,7 @@ export default function SignupPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-sm outline-none focus:border-primary/40"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-background border border-border text-sm outline-none focus:border-primary/40"
             />
           </div>
           <div>
@@ -145,7 +145,7 @@ export default function SignupPage() {
               minLength={6}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl bg-background border border-border text-sm outline-none focus:border-primary/40"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-background border border-border text-sm outline-none focus:border-primary/40"
             />
           </div>
           <button

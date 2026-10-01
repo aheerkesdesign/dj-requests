@@ -78,7 +78,7 @@ export const TrackList: React.FC<TrackListProps> = ({
 
   if (listExiting) {
     return (
-      <div className={cn('space-y-2', 'motion-panel-exit')}>
+      <div className={cn('space-y-2.5', 'motion-panel-exit')}>
         {displayedTracks.map(track => (
           <TrackCard
             key={track.id}
@@ -113,7 +113,7 @@ export const TrackList: React.FC<TrackListProps> = ({
       <div
         key={listKey}
         className={cn(
-          'my-4 space-y-3 rounded-2xl border border-border bg-card/60 p-8 text-center',
+          'my-2 space-y-2 rounded-2xl border border-border/80 bg-card/50 p-8 text-center',
           'motion-panel-enter'
         )}
       >
@@ -151,7 +151,7 @@ export const TrackList: React.FC<TrackListProps> = ({
   return (
     <div
       key={listKey}
-      className={cn('space-y-2', listArriving && 'motion-panel-enter')}
+      className={cn('space-y-2.5', listArriving && 'motion-panel-enter')}
     >
       {displayedTracks.map(track => (
         <TrackCard

@@ -88,7 +88,7 @@ export const TrackCard: React.FC<TrackCardProps> = ({
         <h3 className="truncate text-sm font-semibold leading-snug tracking-tight text-foreground">
           {highlightText(track.name)}
         </h3>
-        <p className="mt-0.5 truncate text-xs text-muted-foreground">
+        <p className="mt-1 truncate text-xs text-muted-foreground">
           {highlightText(track.artist)}
         </p>
         {showMeta && (
