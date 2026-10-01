@@ -24,6 +24,7 @@ interface PlaylistFilterModalProps {
   playlistTree?: PlaylistNode[];
   selectedPlaylistIds: string[];
   onSaveFilter: (selectedIds: string[]) => void;
+  showDjTips?: boolean;
 }
 
 /**
@@ -227,6 +228,7 @@ export const PlaylistFilterModal: React.FC<PlaylistFilterModalProps> = ({
   playlistTree,
   selectedPlaylistIds,
   onSaveFilter,
+  showDjTips = true,
 }) => {
   const { t } = useI18n();
   const [tempSelected, setTempSelected] = useState<Set<string>>(new Set(selectedPlaylistIds));
@@ -339,9 +341,11 @@ export const PlaylistFilterModal: React.FC<PlaylistFilterModalProps> = ({
             </div>
             <div>
               <h2 className="text-base font-bold text-foreground leading-snug">{t('playlist.filterTitle')}</h2>
-              <p className="text-xs text-muted-foreground">
-                {t('playlist.filterSubtitle')}
-              </p>
+              {showDjTips && (
+                <p className="text-xs text-muted-foreground">
+                  {t('playlist.filterSubtitle')}
+                </p>
+              )}
             </div>
           </div>
           <button

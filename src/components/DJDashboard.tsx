@@ -49,7 +49,7 @@ export const DJDashboard: React.FC<DJDashboardProps> = ({
           <div>
             <h3 className="font-bold text-sm text-foreground flex items-center gap-2">
               <Download className="w-4 h-4 text-primary" />
-              {t('dj.toDownload', { count: displayToDownload.length })}
+              {t('dj.toDownload')}
             </h3>
             {showDjTips && (
               <span className="text-xs text-muted-foreground font-normal">
@@ -79,9 +79,6 @@ export const DJDashboard: React.FC<DJDashboardProps> = ({
           >
             <CheckCheck className="w-8 h-8 text-primary mx-auto opacity-80" />
             <p className="text-xs font-medium text-foreground">{t('dj.noneToDownload')}</p>
-            <p className="text-[11px] text-muted-foreground">
-              {t('dj.noneToDownloadHint')}
-            </p>
           </div>
         ) : (
           <div className={cn('space-y-2', showListExiting && 'motion-panel-exit')}>

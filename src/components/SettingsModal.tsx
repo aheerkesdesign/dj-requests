@@ -202,7 +202,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             </div>
             <div>
               <h3 className="font-bold text-sm text-foreground">{t('settings.title')}</h3>
-              <p className="text-[11px] text-muted-foreground">{t('settings.subtitle')}</p>
+              {settings.showDjTips && (
+                <p className="text-[11px] text-muted-foreground">{t('settings.subtitle')}</p>
+              )}
             </div>
           </div>
 

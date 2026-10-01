@@ -721,9 +721,6 @@ export const RequestTab: React.FC<RequestTabProps> = ({
           <Music2 className="w-10 h-10 text-muted-foreground mx-auto" />
           <div className="max-w-xs mx-auto">
             <h4 className="text-sm font-bold text-foreground">{t('requests.emptyCategory')}</h4>
-            <p className="text-xs text-muted-foreground mt-1">
-              {t('requests.empty')}
-            </p>
           </div>
         </div>
       ) : (

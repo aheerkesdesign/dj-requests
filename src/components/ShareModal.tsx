@@ -9,9 +9,15 @@ interface ShareModalProps {
   isOpen: boolean;
   onClose: () => void;
   library: USBLibrary | null;
+  showDjTips?: boolean;
 }
 
-export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, library }) => {
+export const ShareModal: React.FC<ShareModalProps> = ({
+  isOpen,
+  onClose,
+  library,
+  showDjTips = true,
+}) => {
   const { t } = useI18n();
   const [copied, setCopied] = React.useState(false);
 
@@ -53,9 +59,11 @@ export const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, library
           <div className="text-center space-y-3">
             <div className="space-y-1">
               <h4 className="font-bold text-primary text-sm">{library.djName || library.name}</h4>
-              <p className="text-xs text-muted-foreground">
-                {t('share.body')}
-              </p>
+              {showDjTips && (
+                <p className="text-xs text-muted-foreground">
+                  {t('share.body')}
+                </p>
+              )}
               {slug && (
                 <p className="text-[10px] font-mono text-muted-foreground">/d/{slug}</p>
               )}

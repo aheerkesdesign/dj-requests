@@ -161,7 +161,9 @@ export const ImportModal: React.FC<ImportModalProps> = ({
             </div>
             <div>
               <h3 className="font-bold text-sm text-foreground">{t('import.title')}</h3>
-              <p className="text-[11px] text-muted-foreground">{t('import.subtitle')}</p>
+              {showDjTips && (
+                <p className="text-[11px] text-muted-foreground">{t('import.subtitle')}</p>
+              )}
             </div>
           </div>
 
@@ -236,9 +238,6 @@ export const ImportModal: React.FC<ImportModalProps> = ({
                   <div>
                     <p className="text-xs font-bold text-foreground">
                       {file ? file.name : t('import.selectFile')}
-                    </p>
-                    <p className="text-[10px] text-muted-foreground mt-0.5">
-                      {t('import.supportsXml')}
                     </p>
                   </div>
 

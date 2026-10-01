@@ -34,6 +34,7 @@ interface AccountModalProps {
     slug?: string;
   }) => Promise<void>;
   allowProfileEdit?: boolean;
+  showDjTips?: boolean;
 }
 
 export const AccountModal: React.FC<AccountModalProps> = ({
@@ -42,6 +43,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
   currentLibrary,
   onUpdateDetails,
   allowProfileEdit = true,
+  showDjTips = true,
 }) => {
   const { t } = useI18n();
   const { signOut } = useAuth();
@@ -234,7 +236,9 @@ export const AccountModal: React.FC<AccountModalProps> = ({
             </div>
             <div>
               <h3 className="font-bold text-sm text-foreground">{t('account.title')}</h3>
-              <p className="text-[11px] text-muted-foreground">{t('account.subtitle')}</p>
+              {showDjTips && (
+                <p className="text-[11px] text-muted-foreground">{t('account.subtitle')}</p>
+              )}
             </div>
           </div>
 

@@ -57,7 +57,7 @@ export const nl = {
   'tracks.noneForQuery': 'Geen nummers gevonden voor "{query}"',
   'tracks.noneInSelection': 'Geen nummers in deze selectie',
   'tracks.notOnUsb':
-    'Het nummer staat waarschijnlijk (nog) niet op de USB stick van de DJ. Vraag het hieronder aan voor een volgende keer!',
+    'Het nummer staat waarschijnlijk (nog) niet op de USB stick van de DJ.',
   'tracks.requestThis': 'Doe een verzoekje voor dit nummer',
   'tracks.showMore': 'Meer nummers tonen ({shown} van {total})',
 
@@ -89,7 +89,6 @@ export const nl = {
   'requests.djTip':
     'Swipe een nummer naar rechts om als gedraaid te markeren of naar links om als geweigerd te markeren.',
   'requests.emptyCategory': 'Nog geen verzoekjes',
-  'requests.empty': 'Er zijn momenteel geen verzoekjes aanwezig.',
   'requests.clearConfirmTitle': 'Verzoekjes verwijderen?',
   'requests.clearConfirmBody':
     'Weet je zeker dat je alle verzoekjes uit deze lijst wilt verwijderen? Dit kan niet ongedaan worden gemaakt.',
@@ -99,12 +98,10 @@ export const nl = {
   'requests.sortArtist': 'Artiest',
 
   // DJ dashboard
-  'dj.toDownload': 'Te Downloaden Nummers ({count})',
+  'dj.toDownload': 'Te downloaden nummers',
   'dj.toDownloadHint': 'Aangevraagde nummers die nog niet op je USB stick staan',
   'dj.clearToDownload': 'Te downloaden nummers wissen',
   'dj.noneToDownload': 'Geen te downloaden nummers',
-  'dj.noneToDownloadHint':
-    'Alle aangevraagde nummers staan al in je bibliotheek of er zijn nog geen verzoekjes.',
   'dj.clearToDownloadTitle': 'Te downloaden nummers wissen?',
   'dj.clearToDownloadBody':
     'Weet je zeker dat je alle te downloaden nummers uit deze lijst wilt verwijderen?',
@@ -149,7 +146,7 @@ export const nl = {
   'account.save': 'Account Opslaan',
 
   // Import / library
-  'import.title': 'Bibliotheek',
+  'import.title': 'Bibliotheek importeren',
   'import.subtitle': 'Upload je Rekordbox XML',
   'import.invalidXml': 'Selecteer a.u.b. een .xml bestand (geëxporteerd uit Rekordbox).',
   'import.xmlReadError': 'Fout bij het lezen van Rekordbox XML.',
@@ -164,10 +161,9 @@ export const nl = {
     '1. Exporteer je verzameling in Rekordbox: Bestand / File ➔ Exporteer verzameling in xml-formaat.',
   'import.howStep2': '2. Upload het .xml bestand hieronder.',
   'import.howNote':
-    'Let op: Er is altijd 1 actieve bibliotheek. Bij het uploaden worden alle oude nummers vervangen. Je DJ-naam, logo en socials blijven behouden.',
+    'Let op: Er is altijd 1 actieve bibliotheek. Bij het uploaden worden alle oude nummers vervangen.',
   'import.selectFile': 'Sleep rekordbox.xml hierheen of kies een bestand',
   'import.dropHere': 'Laat het bestand hier los',
-  'import.supportsXml': 'Ondersteunt alle Rekordbox XML exports (.xml)',
   'import.chooseFile': 'Bestand Kiezen',
   'import.xmlParsed': 'XML Geanalyseerd!',
   'import.totalTracks': 'Totaal Nummers:',
@@ -178,10 +174,10 @@ export const nl = {
   'settings.title': 'Instellingen',
   'settings.subtitle': 'Voorkeuren voor je bibliotheek',
   'settings.sectionDisplay': 'Trackweergave',
-  'settings.djSees': 'Wat jij als DJ ziet',
-  'settings.djSeesHint': 'Zichtbaar in jouw bibliotheekweergave.',
-  'settings.viewersSee': 'Wat gasten zien',
-  'settings.viewersSeeHint': 'Zichtbaar op je openbare pagina.',
+  'settings.djSees': 'Jouw weergave',
+  'settings.djSeesHint': 'Welke trackvelden jij ziet',
+  'settings.viewersSee': 'Gastweergave',
+  'settings.viewersSeeHint': 'Welke trackvelden gasten zien',
   'settings.fieldTitle': 'Titel',
   'settings.fieldArtist': 'Artiest',
   'settings.fieldAlbum': 'Album',
@@ -204,12 +200,12 @@ export const nl = {
   'settings.showPlayedDeclinedHint': 'Gasten zien ook verzoekjes die al gedraaid of geweigerd zijn.',
   'settings.showDjTips': 'Tips tonen',
   'settings.showDjTipsHint':
-    'Toont uitlegtips bij Downloads, verzoekjes en bibliotheek-upload.',
+    'Toont uitlegtips bij Downloads, verzoekjes, bibliotheek-upload, playlists filteren, delen, account en instellingen.',
   'settings.sectionLanguage': 'Taal',
-  'settings.djLocale': 'Jouw dashboardtaal',
-  'settings.djLocaleHint': 'De taal van jouw dashboard.',
-  'settings.pageDefaultLocale': 'Standaard paginataal',
-  'settings.pageDefaultLocaleHint': 'De taal die nieuwe gasten te zien krijgen voordat ze zelf wisselen.',
+  'settings.djLocale': 'Dashboardtaal',
+  'settings.djLocaleHint': 'De taal die jij als DJ gebruikt',
+  'settings.pageDefaultLocale': 'Gasttaal',
+  'settings.pageDefaultLocaleHint': 'De standaardtaal die nieuwe gasten zien',
   'settings.localeAuto': 'Auto',
   'settings.localeNl': 'Nederlands',
   'settings.localeEn': 'Engels',
@@ -366,7 +362,7 @@ export const en: { [K in keyof typeof nl]: string } = {
   'tracks.noneForQuery': 'No tracks found for "{query}"',
   'tracks.noneInSelection': 'No tracks in this selection',
   'tracks.notOnUsb':
-    "This track is probably not on the DJ's USB yet. Request it below for next time!",
+    "This track is probably not on the DJ's USB yet.",
   'tracks.requestThis': 'Request this track',
   'tracks.showMore': 'Show more tracks ({shown} of {total})',
 
@@ -395,7 +391,6 @@ export const en: { [K in keyof typeof nl]: string } = {
   'requests.djTip':
     'Swipe a track to the right to mark it as played or to the left to mark it as declined.',
   'requests.emptyCategory': 'No requests yet',
-  'requests.empty': 'There are currently no requests.',
   'requests.clearConfirmTitle': 'Delete requests?',
   'requests.clearConfirmBody':
     'Are you sure you want to delete all requests from this list? This cannot be undone.',
@@ -404,12 +399,10 @@ export const en: { [K in keyof typeof nl]: string } = {
   'requests.sortTitle': 'Title',
   'requests.sortArtist': 'Artist',
 
-  'dj.toDownload': 'Tracks to download ({count})',
+  'dj.toDownload': 'Tracks to download',
   'dj.toDownloadHint': 'Requested tracks that are not on your USB yet',
   'dj.clearToDownload': 'Clear download list',
   'dj.noneToDownload': 'No tracks to download',
-  'dj.noneToDownloadHint':
-    'All requested tracks are already in your library, or there are no requests yet.',
   'dj.clearToDownloadTitle': 'Clear download list?',
   'dj.clearToDownloadBody':
     'Are you sure you want to remove all tracks from this download list?',
@@ -452,7 +445,7 @@ export const en: { [K in keyof typeof nl]: string } = {
   'account.socialWebsite': 'Website / Linktree URL',
   'account.save': 'Save account',
 
-  'import.title': 'Library',
+  'import.title': 'Import library',
   'import.subtitle': 'Upload your Rekordbox XML',
   'import.invalidXml': 'Please select an .xml file (exported from Rekordbox).',
   'import.xmlReadError': 'Failed to read Rekordbox XML.',
@@ -467,10 +460,9 @@ export const en: { [K in keyof typeof nl]: string } = {
     '1. Export your collection in Rekordbox: File ➔ Export Collection in XML Format.',
   'import.howStep2': '2. Upload the .xml file below.',
   'import.howNote':
-    'Note: There is always 1 active library. Uploading replaces all old tracks. Your DJ name, logo and socials are kept.',
+    'Note: There is always 1 active library. Uploading replaces all old tracks.',
   'import.selectFile': 'Drop rekordbox.xml here or choose a file',
   'import.dropHere': 'Drop the file here',
-  'import.supportsXml': 'Supports all Rekordbox XML exports (.xml)',
   'import.chooseFile': 'Choose file',
   'import.xmlParsed': 'XML analyzed!',
   'import.totalTracks': 'Total tracks:',
@@ -480,10 +472,10 @@ export const en: { [K in keyof typeof nl]: string } = {
   'settings.title': 'Settings',
   'settings.subtitle': 'Library preferences',
   'settings.sectionDisplay': 'Track display',
-  'settings.djSees': 'What you see as DJ',
-  'settings.djSeesHint': 'Visible in your library view.',
-  'settings.viewersSee': 'What guests see',
-  'settings.viewersSeeHint': 'Visible on your public page.',
+  'settings.djSees': 'Your view',
+  'settings.djSeesHint': 'Which track fields you see',
+  'settings.viewersSee': 'Guest view',
+  'settings.viewersSeeHint': 'Which track fields guests see',
   'settings.fieldTitle': 'Title',
   'settings.fieldArtist': 'Artist',
   'settings.fieldAlbum': 'Album',
@@ -506,12 +498,12 @@ export const en: { [K in keyof typeof nl]: string } = {
   'settings.showPlayedDeclinedHint': 'Guests also see requests that were already played or declined.',
   'settings.showDjTips': 'Show tips',
   'settings.showDjTipsHint':
-    'Shows instructional tips on Downloads, requests, and library upload.',
+    'Shows instructional tips on Downloads, requests, library upload, playlist filtering, sharing, account, and settings.',
   'settings.sectionLanguage': 'Language',
-  'settings.djLocale': 'Your dashboard language',
-  'settings.djLocaleHint': 'The language of your dashboard. Guests choose themselves or follow the default below.',
-  'settings.pageDefaultLocale': 'Default page language',
-  'settings.pageDefaultLocaleHint': 'The language new guests see before they switch manually.',
+  'settings.djLocale': 'Dashboard language',
+  'settings.djLocaleHint': 'The language you use as DJ',
+  'settings.pageDefaultLocale': 'Guest language',
+  'settings.pageDefaultLocaleHint': 'The default language new guests see',
   'settings.localeAuto': 'Auto',
   'settings.localeNl': 'Dutch',
   'settings.localeEn': 'English',

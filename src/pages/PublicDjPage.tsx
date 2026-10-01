@@ -314,11 +314,17 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
             currentLibrary={currentLibrary}
             onUpdateDetails={handleUpdateLibraryDetails}
             allowProfileEdit={Boolean(user && currentLibrary.ownerId === user.id)}
+            showDjTips={librarySettings.showDjTips}
           />
         </>
       )}
 
-      <ShareModal isOpen={isShareOpen} onClose={() => setIsShareOpen(false)} library={currentLibrary} />
+      <ShareModal
+        isOpen={isShareOpen}
+        onClose={() => setIsShareOpen(false)}
+        library={currentLibrary}
+        showDjTips={librarySettings.showDjTips}
+      />
 
       {isOwner && (
         <PlaylistFilterModal
@@ -328,6 +334,7 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
           playlistTree={currentLibrary.playlistTree}
           selectedPlaylistIds={activeSelectedPlaylistIds}
           onSaveFilter={handleSavePlaylistFilter}
+          showDjTips={librarySettings.showDjTips}
         />
       )}
     </div>
