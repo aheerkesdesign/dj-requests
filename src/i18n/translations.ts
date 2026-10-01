@@ -85,27 +85,27 @@ export const nl = {
   'requests.declined': 'Geweigerd',
   'requests.pending': 'In afwachting',
   'requests.all': 'Alle',
-  'requests.clearTitle': 'Verzoekjes definitief verwijderen',
-  'requests.clear': 'Verzoekjes verwijderen',
+  'requests.clearTitle': 'Verzoekjes wissen',
+  'requests.clear': 'Verzoekjes wissen',
   'requests.djTip':
     'Swipe een nummer naar rechts om als gedraaid te markeren of naar links om als geweigerd te markeren.',
   'requests.emptyCategory': 'Nog geen verzoekjes',
-  'requests.clearConfirmTitle': 'Verzoekjes verwijderen?',
+  'requests.clearConfirmTitle': 'Verzoekjes wissen?',
   'requests.clearConfirmBody':
-    'Weet je zeker dat je alle verzoekjes uit deze lijst wilt verwijderen? Dit kan niet ongedaan worden gemaakt.',
+    'Weet je zeker dat je alle verzoekjes uit deze lijst wilt wissen? Dit kan niet ongedaan worden gemaakt.',
   'requests.sortOrder': 'Volgorde',
   'requests.sortOrderHint': 'Op volgorde van aanvragen, oudste bovenaan',
   'requests.sortTitle': 'Titel',
   'requests.sortArtist': 'Artiest',
 
   // DJ dashboard
-  'dj.toDownload': 'Te downloaden nummers',
+  'dj.toDownload': 'Downloads',
   'dj.toDownloadHint': 'Aangevraagde nummers die nog niet op je USB stick staan',
-  'dj.clearToDownload': 'Te downloaden nummers wissen',
-  'dj.noneToDownload': 'Geen te downloaden nummers',
-  'dj.clearToDownloadTitle': 'Te downloaden nummers wissen?',
+  'dj.clearToDownload': 'Downloads wissen',
+  'dj.noneToDownload': 'Geen downloads',
+  'dj.clearToDownloadTitle': 'Downloads wissen?',
   'dj.clearToDownloadBody':
-    'Weet je zeker dat je alle te downloaden nummers uit deze lijst wilt verwijderen?',
+    'Weet je zeker dat je alle downloads uit deze lijst wilt wissen? Dit kan niet ongedaan worden gemaakt.',
 
   // Account modal
   'account.title': 'Account',
@@ -219,7 +219,6 @@ export const nl = {
     'Laat anderen door je nummers zoeken en verzoekjes doen op hun mobiel!',
   'share.bodyGuest':
     'Deel deze code zelf met anderen, zodat zij ook kunnen zoeken en verzoekjes doen!',
-  'share.scan': 'Scan om te openen',
 
   // Playlist filter
   'playlist.openFolder': 'Map openen',
@@ -389,26 +388,26 @@ export const en: { [K in keyof typeof nl]: string } = {
   'requests.declined': 'Declined',
   'requests.pending': 'Pending',
   'requests.all': 'All',
-  'requests.clearTitle': 'Permanently delete requests',
-  'requests.clear': 'Delete requests',
+  'requests.clearTitle': 'Clear requests',
+  'requests.clear': 'Clear requests',
   'requests.djTip':
     'Swipe a track to the right to mark it as played or to the left to mark it as declined.',
   'requests.emptyCategory': 'No requests yet',
-  'requests.clearConfirmTitle': 'Delete requests?',
+  'requests.clearConfirmTitle': 'Clear requests?',
   'requests.clearConfirmBody':
-    'Are you sure you want to delete all requests from this list? This cannot be undone.',
+    'Are you sure you want to clear all requests from this list? This cannot be undone.',
   'requests.sortOrder': 'Order',
   'requests.sortOrderHint': 'By request time, oldest first',
   'requests.sortTitle': 'Title',
   'requests.sortArtist': 'Artist',
 
-  'dj.toDownload': 'Tracks to download',
+  'dj.toDownload': 'Downloads',
   'dj.toDownloadHint': 'Requested tracks that are not on your USB yet',
-  'dj.clearToDownload': 'Clear download list',
-  'dj.noneToDownload': 'No tracks to download',
-  'dj.clearToDownloadTitle': 'Clear download list?',
+  'dj.clearToDownload': 'Clear downloads',
+  'dj.noneToDownload': 'No downloads',
+  'dj.clearToDownloadTitle': 'Clear downloads?',
   'dj.clearToDownloadBody':
-    'Are you sure you want to remove all tracks from this download list?',
+    'Are you sure you want to clear all downloads from this list? This cannot be undone.',
 
   'account.title': 'Account',
   'account.subtitle': 'Manage DJ name, logo, start page and socials',
@@ -518,7 +517,6 @@ export const en: { [K in keyof typeof nl]: string } = {
     'Let others search your tracks and submit requests on their phone!',
   'share.bodyGuest':
     'Share this code yourself with others so they can search and request songs too!',
-  'share.scan': 'Scan to open',
 
   'playlist.openFolder': 'Open folder',
   'playlist.closeFolder': 'Collapse folder',

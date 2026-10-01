@@ -193,34 +193,34 @@ export const DJDashboard: React.FC<DJDashboardProps> = ({
 
       <ModalShell
         open={confirmClearToDownload}
-        panelClassName="bg-card border border-border rounded-2xl p-5 max-w-sm w-full space-y-4 shadow-2xl relative text-left"
+        panelClassName="w-full max-w-sm bg-card border border-border rounded-2xl shadow-2xl overflow-hidden text-foreground my-auto flex flex-col"
       >
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-red-950/80 text-red-400 border border-red-800/60 shrink-0">
+        <div className="px-5 py-4 border-b border-border bg-background/80 flex items-center gap-2.5 shrink-0">
+          <div className="p-2 rounded-xl bg-red-950/80 text-red-400 border border-red-800/60">
             <Trash2 className="w-5 h-5" />
           </div>
           <div>
             <h3 className="font-bold text-sm text-foreground">{t('dj.clearToDownloadTitle')}</h3>
-            <p className="text-xs text-muted-foreground mt-0.5">
+            <p className="text-[11px] text-muted-foreground">
               {t('dj.clearToDownloadBody')}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center justify-end gap-2 pt-2">
-          <button
-            type="button"
-            onClick={() => setConfirmClearToDownload(false)}
-            className="px-4 py-2 rounded-xl bg-secondary hover:bg-secondary/80 text-foreground text-xs font-semibold transition-colors"
-          >
-            {t('common.cancel')}
-          </button>
+        <div className="p-4 border-t border-border bg-background/80 flex items-center justify-end gap-2 shrink-0">
           <button
             type="button"
             onClick={handleClearAll}
-            className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-bold transition-colors shadow-xs"
+            className="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-bold shadow-md"
           >
             {t('common.yesClearAll')}
+          </button>
+          <button
+            type="button"
+            onClick={() => setConfirmClearToDownload(false)}
+            className="px-4 py-2 rounded-xl bg-secondary hover:bg-secondary/80 text-foreground text-xs font-semibold"
+          >
+            {t('common.cancel')}
           </button>
         </div>
       </ModalShell>
