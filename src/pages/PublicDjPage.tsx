@@ -41,6 +41,7 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
   const isOwner = ownerMode;
 
   const { viewMode, setViewMode, activeTab, setActiveTab } = useDjPageNavigation(ownerMode);
+  const { displayTab: displayView, panelClassName: viewPanelClassName } = useTabPanelMotion(viewMode);
   const { displayTab, panelClassName } = useTabPanelMotion(activeTab);
   const [requests, setRequests] = useState<TrackRequest[]>([]);
 
@@ -178,109 +179,111 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary selection:text-primary-foreground pb-16 motion-panel-enter">
-      {viewMode === 'start' ? (
-        <StartScreen
-          library={currentLibrary}
-          onGoToLibrary={() => {
-            setViewMode('library');
-            setActiveTab('tracks');
-          }}
-        />
-      ) : (
-        <>
-          <Header
-            currentLibrary={currentLibrary}
-            onOpenImport={() => setIsImportOpen(true)}
-            onOpenSettings={() => setIsSettingsOpen(true)}
-            onOpenAccount={() => setIsAccountOpen(true)}
-            onOpenShare={() => setIsShareOpen(true)}
-            onGoToStartScreen={() => setViewMode('start')}
-            isOwner={isOwner}
-            showDjTab={librarySettings.enableDownloadRequests}
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
+      <div key={displayView} className={cn(viewPanelClassName)}>
+        {displayView === 'start' ? (
+          <StartScreen
+            library={currentLibrary}
+            onGoToLibrary={() => {
+              setViewMode('library');
+              setActiveTab('tracks');
+            }}
           />
+        ) : (
+          <>
+            <Header
+              currentLibrary={currentLibrary}
+              onOpenImport={() => setIsImportOpen(true)}
+              onOpenSettings={() => setIsSettingsOpen(true)}
+              onOpenAccount={() => setIsAccountOpen(true)}
+              onOpenShare={() => setIsShareOpen(true)}
+              onGoToStartScreen={() => setViewMode('start')}
+              isOwner={isOwner}
+              showDjTab={librarySettings.enableDownloadRequests}
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+            />
 
-          <main className="max-w-4xl mx-auto px-4 pt-4 space-y-4">
-            <div key={displayTab} className={cn(panelClassName)}>
-              {displayTab === 'tracks' && (
-                <div className="space-y-4">
-                  <div className="sticky top-[118px] z-20 bg-background/95 backdrop-blur-md py-3 border-b border-border/60 shadow-lg -mx-4 px-4 sm:mx-0 sm:px-0">
-                    <SearchBarAndFilters
+            <main className="max-w-4xl mx-auto px-4 pt-4 space-y-4">
+              <div key={displayTab} className={cn(panelClassName)}>
+                {displayTab === 'tracks' && (
+                  <div className="space-y-4">
+                    <div className="sticky top-[118px] z-20 bg-background/95 backdrop-blur-md py-3 border-b border-border/60 shadow-lg -mx-4 px-4 sm:mx-0 sm:px-0">
+                      <SearchBarAndFilters
+                        searchQuery={filters.searchQuery}
+                        onSearchChange={(searchQuery) =>
+                          setFilters((prev) => ({ ...prev, searchQuery }))
+                        }
+                        actionButton={
+                          isOwner
+                            ? {
+                                label: t('public.filterPlaylistsBtn'),
+                                onClick: () => setIsPlaylistFilterOpen(true),
+                                active: playlistFiltered,
+                                title: playlistFiltered
+                                  ? t('public.playlistsSelected', {
+                                      selected: playlistSelected,
+                                      total: playlistTotal,
+                                    })
+                                  : t('public.allPlaylistsVisible'),
+                              }
+                            : undefined
+                        }
+                      />
+                    </div>
+
+                    <TrackList
+                      tracks={catalogTracks}
+                      totalCount={catalogTotal}
+                      listKey={catalogListKey}
+                      loading={catalogLoading && catalogTracks.length === 0}
+                      loadingMore={catalogLoading && catalogTracks.length > 0}
+                      onLoadMore={() => void loadMoreTracks()}
                       searchQuery={filters.searchQuery}
-                      onSearchChange={(searchQuery) =>
-                        setFilters((prev) => ({ ...prev, searchQuery }))
-                      }
-                      actionButton={
-                        isOwner
-                          ? {
-                              label: t('public.filterPlaylistsBtn'),
-                              onClick: () => setIsPlaylistFilterOpen(true),
-                              active: playlistFiltered,
-                              title: playlistFiltered
-                                ? t('public.playlistsSelected', {
-                                    selected: playlistSelected,
-                                    total: playlistTotal,
-                                  })
-                                : t('public.allPlaylistsVisible'),
-                            }
-                          : undefined
+                      requests={requests}
+                      isOwner={isOwner}
+                      allowDownloadRequests={librarySettings.enableDownloadRequests}
+                      visibleFields={visibleFields}
+                      requestButtonStyle={librarySettings.requestButtonStyle}
+                      onRequestModalOpen={() => handleOpenRequestPrefilled()}
+                      onRequestSimilar={(track) =>
+                        handleSubmitRequest(track.name, track.artist, 'playable', track)
                       }
                     />
                   </div>
+                )}
 
-                  <TrackList
-                    tracks={catalogTracks}
-                    totalCount={catalogTotal}
-                    listKey={catalogListKey}
-                    loading={catalogLoading && catalogTracks.length === 0}
-                    loadingMore={catalogLoading && catalogTracks.length > 0}
-                    onLoadMore={() => void loadMoreTracks()}
-                    searchQuery={filters.searchQuery}
+                {displayTab === 'requests' && (
+                  <RequestTab
                     requests={requests}
+                    matchedByRequestId={matchedByRequestId}
+                    matchingReady={matchingReady}
+                    loading={!requestsReady}
+                    onOpenRequestModal={() => handleOpenRequestPrefilled()}
                     isOwner={isOwner}
-                    allowDownloadRequests={librarySettings.enableDownloadRequests}
                     visibleFields={visibleFields}
-                    requestButtonStyle={librarySettings.requestButtonStyle}
-                    onRequestModalOpen={() => handleOpenRequestPrefilled()}
-                    onRequestSimilar={(track) =>
-                      handleSubmitRequest(track.name, track.artist, 'playable', track)
-                    }
+                    showPlayedDeclined={librarySettings.showPlayedDeclinedToGuests}
+                    showDjTips={librarySettings.showDjTips}
+                    onUpdateStatus={handleUpdateStatus}
+                    onDeleteRequest={handleDeleteRequest}
+                    onClearVerzoekjes={handleClearVerzoekjes}
+                    sortBy={requestSortBy}
+                    onSortByChange={handleRequestSortByChange}
                   />
-                </div>
-              )}
+                )}
 
-              {displayTab === 'requests' && (
-                <RequestTab
-                  requests={requests}
-                  matchedByRequestId={matchedByRequestId}
-                  matchingReady={matchingReady}
-                  loading={!requestsReady}
-                  onOpenRequestModal={() => handleOpenRequestPrefilled()}
-                  isOwner={isOwner}
-                  visibleFields={visibleFields}
-                  showPlayedDeclined={librarySettings.showPlayedDeclinedToGuests}
-                  showDjTips={librarySettings.showDjTips}
-                  onUpdateStatus={handleUpdateStatus}
-                  onDeleteRequest={handleDeleteRequest}
-                  onClearVerzoekjes={handleClearVerzoekjes}
-                  sortBy={requestSortBy}
-                  onSortByChange={handleRequestSortByChange}
-                />
-              )}
-
-              {displayTab === 'dj' && isOwner && librarySettings.enableDownloadRequests && (
-                <DJDashboard
-                  requests={requests}
-                  onDeleteRequest={handleDeleteRequest}
-                  onClearToDownloadRequests={handleClearToDownloadRequests}
-                  showDjTips={librarySettings.showDjTips}
-                />
-              )}
-            </div>
-          </main>
-        </>
-      )}
+                {displayTab === 'dj' && isOwner && librarySettings.enableDownloadRequests && (
+                  <DJDashboard
+                    requests={requests}
+                    onDeleteRequest={handleDeleteRequest}
+                    onClearToDownloadRequests={handleClearToDownloadRequests}
+                    showDjTips={librarySettings.showDjTips}
+                  />
+                )}
+              </div>
+            </main>
+          </>
+        )}
+      </div>
 
       <RequestModal
         isOpen={isRequestOpen}

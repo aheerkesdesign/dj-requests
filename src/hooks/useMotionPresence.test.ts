@@ -6,8 +6,10 @@ import {
   MOTION_EXIT_MS,
   useArriveFromEmpty,
   useEnteringIds,
+  useExitHold,
   useRemoteListClear,
   useSortChangeMotion,
+  useSwapMotion,
 } from './useMotionPresence';
 
 function ArriveProbe({ count, settled = true }: { count: number; settled?: boolean }) {
@@ -196,6 +198,136 @@ describe('useSortChangeMotion', () => {
       vi.advanceTimersByTime(MOTION_ENTER_MS);
     });
     expect(render('title')).toMatchObject({ display: 'title', className: '', busy: 'no' });
+  });
+});
+
+describe('useSwapMotion', () => {
+  let root: Root | undefined;
+  let el: HTMLDivElement | undefined;
+
+  afterEach(() => {
+    vi.useRealTimers();
+    act(() => root?.unmount());
+    el?.remove();
+    root = undefined;
+    el = undefined;
+  });
+
+  function SwapProbe({ value }: { value: string }) {
+    const { displayValue, motionClass, busy } = useSwapMotion(value);
+    return createElement('div', {
+      'data-display': displayValue,
+      'data-class': motionClass ?? '',
+      'data-busy': busy ? 'yes' : 'no',
+    });
+  }
+
+  function render(value: string) {
+    if (!el) {
+      el = document.createElement('div');
+      document.body.appendChild(el);
+      root = createRoot(el);
+    }
+    act(() => {
+      root!.render(createElement(SwapProbe, { value }));
+    });
+    const node = el.querySelector('[data-display]');
+    return {
+      display: node?.getAttribute('data-display'),
+      className: node?.getAttribute('data-class'),
+      busy: node?.getAttribute('data-busy'),
+    };
+  }
+
+  it('keeps the previous value visible while fading out', () => {
+    vi.useFakeTimers();
+    expect(render('a')).toMatchObject({ display: 'a', className: '', busy: 'no' });
+    expect(render('b')).toMatchObject({
+      display: 'a',
+      className: 'motion-panel-exit',
+      busy: 'yes',
+    });
+
+    act(() => {
+      vi.advanceTimersByTime(MOTION_EXIT_MS);
+    });
+    expect(render('b')).toMatchObject({
+      display: 'b',
+      className: 'motion-panel-enter',
+      busy: 'yes',
+    });
+  });
+});
+
+describe('useExitHold', () => {
+  let root: Root | undefined;
+  let el: HTMLDivElement | undefined;
+
+  afterEach(() => {
+    vi.useRealTimers();
+    act(() => root?.unmount());
+    el?.remove();
+    root = undefined;
+    el = undefined;
+  });
+
+  function ExitProbe({ items, visible }: { items: string[]; visible: boolean }) {
+    const { displayItems, holding } = useExitHold(items, visible);
+    return createElement('div', {
+      'data-count': String(displayItems.length),
+      'data-holding': holding ? 'yes' : 'no',
+      'data-ids': displayItems.join(','),
+    });
+  }
+
+  function render(items: string[], visible: boolean) {
+    if (!el) {
+      el = document.createElement('div');
+      document.body.appendChild(el);
+      root = createRoot(el);
+    }
+    act(() => {
+      root!.render(createElement(ExitProbe, { items, visible }));
+    });
+    const node = el.querySelector('[data-count]');
+    return {
+      count: node?.getAttribute('data-count'),
+      holding: node?.getAttribute('data-holding'),
+      ids: node?.getAttribute('data-ids'),
+    };
+  }
+
+  it('holds the last items through an exit when hidden', () => {
+    vi.useFakeTimers();
+    expect(render(['a', 'b'], true)).toMatchObject({
+      count: '2',
+      holding: 'no',
+      ids: 'a,b',
+    });
+    expect(render([], false)).toMatchObject({
+      count: '2',
+      holding: 'yes',
+      ids: 'a,b',
+    });
+
+    act(() => {
+      vi.advanceTimersByTime(MOTION_EXIT_MS);
+    });
+    expect(render([], false)).toMatchObject({
+      count: '0',
+      holding: 'no',
+      ids: '',
+    });
+  });
+
+  it('cancels the hold when items become visible again', () => {
+    vi.useFakeTimers();
+    render(['a'], true);
+    expect(render([], false)).toMatchObject({ holding: 'yes', ids: 'a' });
+    expect(render(['a', 'b'], true)).toMatchObject({
+      holding: 'no',
+      ids: 'a,b',
+    });
   });
 });
 

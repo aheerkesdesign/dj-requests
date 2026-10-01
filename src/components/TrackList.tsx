@@ -3,7 +3,7 @@ import { Track, TrackRequest, TrackFieldVisibility, DEFAULT_TRACK_FIELD_VISIBILI
 import { TrackCard } from './TrackCard';
 import { SearchX, PlusCircle, Disc3, ChevronDown } from 'lucide-react';
 import { useI18n } from '../i18n/LanguageContext';
-import { useArriveFromEmpty, usePresence } from '../hooks/useMotionPresence';
+import { useArriveFromEmpty, useExitHold, usePresence } from '../hooks/useMotionPresence';
 import { cn } from '@/lib/utils';
 
 interface TrackListProps {
@@ -43,9 +43,12 @@ export const TrackList: React.FC<TrackListProps> = ({
   const { t } = useI18n();
   const [visibleCount, setVisibleCount] = React.useState(50);
 
-  const showLoader = loading && tracks.length === 0;
+  const hasList = tracks.length > 0;
+  const { displayItems: displayTracks, holding: listExiting } = useExitHold(tracks, hasList);
+  // Hold the outgoing list through its exit before the loader mounts.
+  const showLoader = loading && tracks.length === 0 && !listExiting;
   const { present: loaderPresent, phase: loaderPhase } = usePresence(showLoader);
-  const listArriving = useArriveFromEmpty(tracks.length, !loaderPresent);
+  const listArriving = useArriveFromEmpty(tracks.length, !loaderPresent && !listExiting);
 
   React.useEffect(() => {
     setVisibleCount(50);
@@ -69,8 +72,27 @@ export const TrackList: React.FC<TrackListProps> = ({
   };
 
   const total = totalCount ?? tracks.length;
-  const displayedTracks = onLoadMore ? tracks : tracks.slice(0, visibleCount);
+  const sourceTracks = listExiting ? displayTracks : tracks;
+  const displayedTracks = onLoadMore ? sourceTracks : sourceTracks.slice(0, visibleCount);
   const hasMore = onLoadMore ? tracks.length < total : visibleCount < tracks.length;
+
+  if (listExiting) {
+    return (
+      <div className={cn('space-y-2', 'motion-panel-exit')}>
+        {displayedTracks.map(track => (
+          <TrackCard
+            key={track.id}
+            track={track}
+            searchHighlight={searchQuery}
+            isAlreadyRequested={isTrackRequested(track)}
+            onRequestSimilar={onRequestSimilar}
+            visibleFields={visibleFields}
+            requestButtonStyle={requestButtonStyle}
+          />
+        ))}
+      </div>
+    );
+  }
 
   if (loaderPresent) {
     return (

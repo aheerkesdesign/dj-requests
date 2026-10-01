@@ -7,7 +7,9 @@ import {
   prefersReducedMotion,
   useArriveFromEmpty,
   useClearListSequence,
+  useEnteringIds,
   useExitingIds,
+  useListFlipMotion,
   useRemoteListClear,
 } from '../hooks/useMotionPresence';
 import { ModalShell } from './ModalShell';
@@ -33,8 +35,9 @@ export const DJDashboard: React.FC<DJDashboardProps> = ({
   const [lastItemClearBusy, setLastItemClearBusy] = React.useState(false);
   const [lastItemEmptyEntering, setLastItemEmptyEntering] = React.useState(false);
   const lastItemTimerRef = React.useRef<number | null>(null);
+  const listContainerRef = React.useRef<HTMLDivElement>(null);
   // Match --duration-motion-slow on .motion-list-item-exit (default exitMs is too short).
-  const { requestExit, isExiting } = useExitingIds(MOTION_ENTER_MS);
+  const { requestExit, isExiting, exitingIds } = useExitingIds(MOTION_ENTER_MS);
   const { beginAfterModalClose, listExiting, emptyEntering, clearBusy } = useClearListSequence(() => {
     onClearToDownloadRequests?.();
   });
@@ -59,6 +62,15 @@ export const DJDashboard: React.FC<DJDashboardProps> = ({
   const showListExiting = listExiting || remoteListExiting;
   const showEmptyEntering =
     emptyEntering || remoteEmptyEntering || lastItemEmptyEntering;
+
+  const displayIds = displayToDownload.map((r) => r.id);
+  const insertMotionEnabled = !showListExiting && !listArriving;
+  const { isEntering, enteringIds } = useEnteringIds(displayIds, insertMotionEnabled);
+  useListFlipMotion(
+    listContainerRef,
+    displayIds,
+    insertMotionEnabled && enteringIds.size === 0 && exitingIds.size === 0
+  );
 
   const handleClearAll = () => {
     setConfirmClearToDownload(false);
@@ -131,6 +143,7 @@ export const DJDashboard: React.FC<DJDashboardProps> = ({
         </div>
       ) : (
         <div
+          ref={listContainerRef}
           className={cn(
             'flex flex-col',
             showListExiting && 'motion-panel-exit',
@@ -140,12 +153,17 @@ export const DJDashboard: React.FC<DJDashboardProps> = ({
           {displayToDownload.map((r, index) => {
             const hasGapBelow = index < displayToDownload.length - 1;
             const exiting = isExiting(r.id);
+            const entering = isEntering(r.id);
             return (
               <div
                 key={r.id}
-                className={cn(exiting && 'motion-list-item-exit')}
+                data-list-id={r.id}
+                className={cn(
+                  exiting && 'motion-list-item-exit',
+                  entering && 'motion-list-item-enter'
+                )}
               >
-                <div className={cn(exiting && 'motion-list-item-enter-clip')}>
+                <div className={cn((entering || exiting) && 'motion-list-item-enter-clip')}>
                   <div className={cn(hasGapBelow && 'pb-2.5')}>
                     <div className="rounded-xl border border-border/80 bg-card px-4 py-3 flex items-center justify-between gap-3 shadow-xs">
                       <div className="min-w-0 flex-1">

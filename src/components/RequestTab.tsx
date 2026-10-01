@@ -22,6 +22,7 @@ import {
   usePresence,
   useRemoteListClear,
   useSortChangeMotion,
+  useSwapMotion,
   MOTION_ENTER_MS,
   prefersReducedMotion,
 } from '../hooks/useMotionPresence';
@@ -363,6 +364,16 @@ export const RequestTab: React.FC<RequestTabProps> = ({
     listMotionClass: sortListMotionClass,
     sortMotionBusy,
   } = useSortChangeMotion(effectiveSortBy);
+  const filterKey = `${filterStatus}\0${searchQuery}`;
+  const {
+    displayValue: displayFilterKey,
+    motionClass: filterMotionClass,
+    busy: filterMotionBusy,
+  } = useSwapMotion(filterKey);
+  const filterSep = displayFilterKey.indexOf('\0');
+  const displayFilterStatus =
+    filterSep === -1 ? displayFilterKey : displayFilterKey.slice(0, filterSep);
+  const displaySearchQuery = filterSep === -1 ? '' : displayFilterKey.slice(filterSep + 1);
   const listContainerRef = React.useRef<HTMLDivElement>(null);
 
   const needsMeta = needsMatchedTrackMeta(visibleFields);
@@ -536,11 +547,11 @@ export const RequestTab: React.FC<RequestTabProps> = ({
     // Hide played/declined from guests when the DJ has disabled showing them
     if (!isOwner && !showPlayedDeclined && (r.status === 'played' || r.status === 'declined'))
       return false;
-    if (filterStatus === 'pending' && r.status !== 'pending') return false;
-    if (filterStatus === 'played' && r.status !== 'played') return false;
-    if (filterStatus === 'declined' && r.status !== 'declined') return false;
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
+    if (displayFilterStatus === 'pending' && r.status !== 'pending') return false;
+    if (displayFilterStatus === 'played' && r.status !== 'played') return false;
+    if (displayFilterStatus === 'declined' && r.status !== 'declined') return false;
+    if (displaySearchQuery.trim()) {
+      const q = displaySearchQuery.toLowerCase();
       return r.title.toLowerCase().includes(q) || r.artist.toLowerCase().includes(q);
     }
     return true;
@@ -565,7 +576,11 @@ export const RequestTab: React.FC<RequestTabProps> = ({
 
   const filteredIds = filteredRequests.map((r) => r.id);
   const insertMotionEnabled =
-    !loaderPresent && !showListExiting && !listArriving && !sortMotionBusy;
+    !loaderPresent &&
+    !showListExiting &&
+    !listArriving &&
+    !sortMotionBusy &&
+    !filterMotionBusy;
   const { isEntering, enteringIds, markEntering } = useEnteringIds(
     filteredIds,
     insertMotionEnabled
@@ -578,6 +593,13 @@ export const RequestTab: React.FC<RequestTabProps> = ({
     filteredIds,
     insertMotionEnabled && enteringIds.size === 0 && exitingIds.size === 0
   );
+
+  const panelSwapClass =
+    !showListExiting && !listArriving
+      ? sortListMotionClass || filterMotionClass
+      : undefined;
+  const showFilterEmptyEntering =
+    Boolean(filterMotionClass === 'motion-panel-enter') && filteredRequests.length === 0;
 
   const getStatusBadge = (status: RequestStatus) => {
     switch (status) {
@@ -715,7 +737,8 @@ export const RequestTab: React.FC<RequestTabProps> = ({
         <div
           className={cn(
             'bg-card/50 border border-border/80 rounded-2xl p-8 text-center my-2 space-y-2',
-            showEmptyEntering && 'motion-panel-enter'
+            (showEmptyEntering || showFilterEmptyEntering) && 'motion-panel-enter',
+            filterMotionClass === 'motion-panel-exit' && 'motion-panel-exit'
           )}
         >
           <Music2 className="w-10 h-10 text-muted-foreground mx-auto" />
@@ -730,7 +753,7 @@ export const RequestTab: React.FC<RequestTabProps> = ({
             'flex flex-col',
             showListExiting && 'motion-panel-exit',
             listArriving && 'motion-panel-enter',
-            !showListExiting && !listArriving && sortListMotionClass
+            panelSwapClass
           )}
         >
           {filteredRequests.map((req, index) => {

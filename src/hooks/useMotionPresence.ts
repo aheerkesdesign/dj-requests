@@ -242,30 +242,30 @@ export function useArriveFromEmpty(count: number, settled: boolean) {
 }
 
 /**
- * Tab-style list fade when the sort key changes: exit → swap order → enter.
- * `displaySortBy` lags behind during the exit so the old order stays visible.
+ * Exit → swap → enter when `value` changes. `displayValue` lags during exit
+ * so the outgoing UI stays on screen for the fade.
  */
-export function useSortChangeMotion<T extends string>(sortBy: T) {
-  const [displaySortBy, setDisplaySortBy] = useState(sortBy);
+export function useSwapMotion<T>(value: T) {
+  const [displayValue, setDisplayValue] = useState(value);
   const [phase, setPhase] = useState<'idle' | 'exit' | 'enter'>('idle');
 
   useEffect(() => {
-    if (sortBy === displaySortBy) return;
+    if (Object.is(value, displayValue)) return;
 
     if (prefersReducedMotion()) {
-      setDisplaySortBy(sortBy);
+      setDisplayValue(value);
       setPhase('idle');
       return;
     }
 
     setPhase('exit');
     const timer = window.setTimeout(() => {
-      setDisplaySortBy(sortBy);
+      setDisplayValue(value);
       setPhase('enter');
     }, MOTION_EXIT_MS);
 
     return () => window.clearTimeout(timer);
-  }, [sortBy, displaySortBy]);
+  }, [value, displayValue]);
 
   useEffect(() => {
     if (phase !== 'enter') return;
@@ -273,7 +273,7 @@ export function useSortChangeMotion<T extends string>(sortBy: T) {
     return () => window.clearTimeout(timer);
   }, [phase]);
 
-  const listMotionClass =
+  const motionClass =
     phase === 'exit'
       ? 'motion-panel-exit'
       : phase === 'enter'
@@ -281,10 +281,77 @@ export function useSortChangeMotion<T extends string>(sortBy: T) {
         : undefined;
 
   return {
-    displaySortBy,
-    listMotionClass,
+    displayValue,
+    motionClass,
+    /** True while exit/enter is in progress (FLIP / inserts should stay off). */
+    busy: phase !== 'idle',
+  };
+}
+
+/**
+ * Tab-style list fade when the sort key changes: exit → swap order → enter.
+ * `displaySortBy` lags behind during the exit so the old order stays visible.
+ */
+export function useSortChangeMotion<T extends string>(sortBy: T) {
+  const { displayValue, motionClass, busy } = useSwapMotion(sortBy);
+  return {
+    displaySortBy: displayValue,
+    listMotionClass: motionClass,
     /** True while the list is fading for a sort change (FLIP should stay off). */
-    sortMotionBusy: phase !== 'idle',
+    sortMotionBusy: busy,
+  };
+}
+
+/**
+ * When `visible` flips to false, keep the last non-empty `items` on screen for
+ * one exit duration so callers can fade them out before showing a loader/empty.
+ * Detection runs during render so the outgoing list is present on the first paint.
+ */
+export function useExitHold<T>(items: T[], visible: boolean) {
+  const lastItemsRef = useRef(items);
+  const wasVisibleRef = useRef(visible);
+  const [snapshot, setSnapshot] = useState<T[] | null>(null);
+  const [holding, setHolding] = useState(false);
+
+  if (visible && items.length > 0) {
+    lastItemsRef.current = items;
+  }
+
+  let holdingThisRender = holding;
+  let snapshotThisRender = snapshot;
+
+  if (visible) {
+    wasVisibleRef.current = true;
+    if (holding || snapshot !== null) {
+      holdingThisRender = false;
+      snapshotThisRender = null;
+      setHolding(false);
+      setSnapshot(null);
+    }
+  } else if (wasVisibleRef.current && lastItemsRef.current.length > 0 && !holding) {
+    wasVisibleRef.current = false;
+    if (!prefersReducedMotion()) {
+      holdingThisRender = true;
+      snapshotThisRender = lastItemsRef.current;
+      setHolding(true);
+      setSnapshot(lastItemsRef.current);
+    }
+  } else {
+    wasVisibleRef.current = false;
+  }
+
+  useEffect(() => {
+    if (!holding) return;
+    const timer = window.setTimeout(() => {
+      setSnapshot(null);
+      setHolding(false);
+    }, MOTION_EXIT_MS);
+    return () => window.clearTimeout(timer);
+  }, [holding]);
+
+  return {
+    displayItems: holdingThisRender && snapshotThisRender ? snapshotThisRender : items,
+    holding: holdingThisRender,
   };
 }
 
