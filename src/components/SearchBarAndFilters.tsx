@@ -46,7 +46,25 @@ export const SearchBarAndFilters: React.FC<SearchBarAndFiltersProps> = ({
   const [sortOpen, setSortOpen] = React.useState(false);
   const sortRef = React.useRef<HTMLDivElement>(null);
   const sortButtonRef = React.useRef<HTMLButtonElement>(null);
+  const searchFieldRef = React.useRef<HTMLDivElement>(null);
+  const [useShortPlaceholder, setUseShortPlaceholder] = React.useState(false);
   const { present: sortPresent, panelClassName: sortMenuMotionClass } = usePresence(sortOpen);
+
+  React.useEffect(() => {
+    const el = searchFieldRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const update = (width: number) => {
+      // Long placeholder needs ~220px of input width after icon/padding.
+      setUseShortPlaceholder(width < 220);
+    };
+    update(el.getBoundingClientRect().width);
+    const ro = new ResizeObserver((entries) => {
+      const width = entries[0]?.contentRect.width;
+      if (typeof width === 'number') update(width);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   const activeSortLabel =
     sortMenu?.options.find((o) => o.value === sortMenu.value)?.label ?? t('search.sortBy');
@@ -158,13 +176,15 @@ export const SearchBarAndFilters: React.FC<SearchBarAndFiltersProps> = ({
   return (
     <div className="space-y-2.5">
       <div className="flex items-center gap-2">
-        <div className="search-glow relative flex-1 rounded-xl">
+        <div ref={searchFieldRef} className="search-glow relative flex-1 rounded-xl">
           <Search className="pointer-events-none absolute left-3.5 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder={t('search.placeholder')}
+            placeholder={
+              useShortPlaceholder ? t('search.placeholderShort') : t('search.placeholder')
+            }
             className="h-11 w-full rounded-xl border border-border bg-card py-2.5 pl-10 pr-9 text-sm text-foreground outline-none motion-colors placeholder:text-muted-foreground focus:border-primary/50 focus:ring-1 focus:ring-primary/40"
           />
           {searchQuery && (

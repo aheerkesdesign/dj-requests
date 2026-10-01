@@ -324,6 +324,7 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
         onClose={() => setIsShareOpen(false)}
         library={currentLibrary}
         showDjTips={librarySettings.showDjTips}
+        isOwner={isOwner}
       />
 
       {isOwner && (

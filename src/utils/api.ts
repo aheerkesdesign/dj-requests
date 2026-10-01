@@ -138,7 +138,7 @@ export async function upsertMyLibraryCatalog(
   const playlists = libraryData.playlists || [];
   const payload: LibraryUpdate & { owner_id: string } = {
     owner_id: userId,
-    name: libraryData.name || 'Mijn USB Bibliotheek',
+    name: libraryData.name || 'Mijn USB-bibliotheek',
     description: libraryData.description || '',
     tracks: [] as Json,
     playlists: playlists as unknown as Json,

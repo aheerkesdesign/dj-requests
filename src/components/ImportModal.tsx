@@ -62,7 +62,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({
       try {
         const preview = parseRekordboxXML(
           text,
-          currentLibrary?.name || 'Mijn USB Bibliotheek',
+          currentLibrary?.name || 'Mijn USB-bibliotheek',
           currentLibrary?.djName || 'DJ'
         );
         setParsedPreview(preview);
@@ -135,7 +135,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({
     try {
       const finalLibrary = parseRekordboxXML(
         xmlContent,
-        currentLibrary?.name || 'Mijn USB Bibliotheek',
+        currentLibrary?.name || 'Mijn USB-bibliotheek',
         currentLibrary?.djName || 'DJ'
       );
       finalLibrary.logoUrl = currentLibrary?.logoUrl;

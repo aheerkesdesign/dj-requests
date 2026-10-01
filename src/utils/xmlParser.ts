@@ -155,8 +155,8 @@ export function parseRekordboxXML(xmlContent: string, libraryName: string = 'Mij
 
   trackElements.forEach((el, index) => {
     const trackId = el.getAttribute('TrackID') || `${index + 1}`;
-    const name = el.getAttribute('Name') || 'Onbekend Nummer';
-    const artist = el.getAttribute('Artist') || 'Onbekende Artiest';
+    const name = el.getAttribute('Name') || 'Onbekend nummer';
+    const artist = el.getAttribute('Artist') || 'Onbekende artiest';
     const composer = el.getAttribute('Composer') || '';
     const albumRaw = el.getAttribute('Album') || '';
     const album = hasPresentMetaValue(albumRaw) ? albumRaw.trim() : '';

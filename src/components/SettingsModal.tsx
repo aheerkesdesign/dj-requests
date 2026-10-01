@@ -37,8 +37,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const { t, locale, setLocale } = useI18n();
   const [prefs, setPrefs] = useState<TrackDisplayPrefs>(DEFAULT_TRACK_DISPLAY_PREFS);
   const [settings, setSettings] = useState<LibrarySettings>(DEFAULT_LIBRARY_SETTINGS);
+  const [draftLocale, setDraftLocale] = useState(locale);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
+  /** Tips UI in this modal follows the last saved value, not the draft checkbox. */
+  const [activeShowDjTips, setActiveShowDjTips] = useState(true);
 
   // Collapsible sections
   const [displayOpen, setDisplayOpen] = useState(true);
@@ -50,8 +53,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   // update mid-save (that was clearing the "Saving..." button label).
   useEffect(() => {
     if (!isOpen) return;
+    const normalizedSettings = normalizeLibrarySettings(librarySettings);
     setPrefs(normalizeTrackDisplayPrefs(trackDisplayPrefs));
-    setSettings(normalizeLibrarySettings(librarySettings));
+    setSettings(normalizedSettings);
+    setActiveShowDjTips(normalizedSettings.showDjTips);
+    setDraftLocale(locale);
     setError('');
     setIsSaving(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally only on open
@@ -83,6 +89,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     setError('');
     try {
       await onSavePrefs(normalizeTrackDisplayPrefs(prefs), settings);
+      if (draftLocale !== locale) setLocale(draftLocale);
       onClose();
     } catch (err: unknown) {
       setError(errorMessage(err, t('settings.saveError')));
@@ -202,7 +209,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             </div>
             <div>
               <h3 className="font-bold text-sm text-foreground">{t('settings.title')}</h3>
-              {settings.showDjTips && (
+              {activeShowDjTips && (
                 <p className="text-[11px] text-muted-foreground">{t('settings.subtitle')}</p>
               )}
             </div>
@@ -347,13 +354,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   <div className="flex items-center gap-2 flex-wrap">
                     {(['nl', 'en'] as const).map((val) => {
                       const label = val === 'nl' ? t('settings.localeNl') : t('settings.localeEn');
-                      const active = locale === val;
+                      const active = draftLocale === val;
                       return (
                         <button
                           key={val}
                           type="button"
                           disabled={!allowEdit}
-                          onClick={() => allowEdit && setLocale(val)}
+                          onClick={() => allowEdit && setDraftLocale(val)}
                           className={`px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
                             active
                               ? 'bg-primary/20 border-primary/60 text-primary'

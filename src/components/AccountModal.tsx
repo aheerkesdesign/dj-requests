@@ -302,7 +302,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
                 <div className="flex items-center gap-3 bg-background/90 border border-border p-3 rounded-xl">
                   {logoUrl ? (
                     <div className="w-12 h-12 rounded-xl overflow-hidden bg-card border border-border shrink-0 p-0.5 flex items-center justify-center">
-                      <img src={logoUrl} alt="DJ Logo Preview" className="w-full h-full object-contain rounded-lg" />
+                      <img src={logoUrl} alt="DJ-logo voorbeeld" className="w-full h-full object-contain rounded-lg" />
                     </div>
                   ) : (
                     <div className="w-12 h-12 rounded-xl bg-card border border-dashed border-border shrink-0 flex items-center justify-center text-muted-foreground">

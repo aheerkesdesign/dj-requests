@@ -15,7 +15,7 @@ export const nl = {
 
   // Header
   'header.backToStart': 'Terug naar startscherm',
-  'header.libraryOf': "{name}'s Bibliotheek",
+  'header.libraryOf': 'Bibliotheek van {name}',
   'header.library': 'Bibliotheek',
   'header.shareTitle': 'Delen met anderen',
   'header.shareAria': 'Bibliotheek delen',
@@ -51,6 +51,7 @@ export const nl = {
 
   // Search
   'search.placeholder': 'Zoek op titel of artiest...',
+  'search.placeholderShort': 'Zoeken...',
   'search.sortBy': 'Sorteren:',
 
   // Track list
@@ -68,7 +69,7 @@ export const nl = {
   'trackCard.request': 'Vraag aan',
 
   // Request modal
-  'requestModal.title': 'Nummer Aanvragen',
+  'requestModal.title': 'Nummer aanvragen',
   'requestModal.subtitle': 'Staat niet op de USB? Vraag het aan voor de downloadlijst',
   'requestModal.titleRequired': 'Vul de titel van het nummer in.',
   'requestModal.submitError': 'Fout bij het versturen van je verzoek.',
@@ -77,7 +78,7 @@ export const nl = {
   'requestModal.artistLabel': 'Artiest',
   'requestModal.artistPlaceholder': 'Artiest...',
   'requestModal.submitting': 'Bezig met versturen...',
-  'requestModal.submit': 'Vraag Aan',
+  'requestModal.submit': 'Vraag aan',
 
   // Request tab
   'requests.played': 'Gedraaid',
@@ -117,11 +118,11 @@ export const nl = {
   'account.nameRequired': 'Voer a.u.b. een geldige DJ-naam in.',
   'account.slugInvalid': 'Slug mag alleen kleine letters, cijfers en streepjes bevatten.',
   'account.saveError': 'Kon account niet opslaan.',
-  'account.djName': 'DJ Naam:',
+  'account.djName': 'DJ-naam:',
   'account.djNamePlaceholder': 'bijv. DJ Alex',
   'account.slug': 'Publieke URL:',
   'account.slugHint': 'Dit is de unieke link die je publiek deelt met je publiek.',
-  'account.logo': 'DJ Logo:',
+  'account.logo': 'DJ-logo:',
   'account.removeLogo': 'Logo verwijderen',
   'account.changeLogo': 'Logo wijzigen',
   'account.chooseImage': 'Afbeelding kiezen',
@@ -133,17 +134,17 @@ export const nl = {
   'account.choosePhoto': 'Foto kiezen',
   'account.startImageHint':
     'Dit ziet je publiek op de startpagina na het scannen van de QR-code.',
-  'account.socials': 'Socials & Links (voor op het startscherm):',
-  'account.socialInstagram': 'Instagram URL',
-  'account.socialTiktok': 'TikTok URL',
-  'account.socialYoutube': 'YouTube URL',
-  'account.socialFacebook': 'Facebook URL',
-  'account.socialX': 'X URL',
-  'account.socialSpotify': 'Spotify URL',
-  'account.socialSoundcloud': 'SoundCloud URL',
-  'account.socialMixcloud': 'Mixcloud URL',
-  'account.socialWebsite': 'Website / Linktree URL',
-  'account.save': 'Account Opslaan',
+  'account.socials': 'Socials & links (voor op het startscherm):',
+  'account.socialInstagram': 'Instagram-URL',
+  'account.socialTiktok': 'TikTok-URL',
+  'account.socialYoutube': 'YouTube-URL',
+  'account.socialFacebook': 'Facebook-URL',
+  'account.socialX': 'X-URL',
+  'account.socialSpotify': 'Spotify-URL',
+  'account.socialSoundcloud': 'SoundCloud-URL',
+  'account.socialMixcloud': 'Mixcloud-URL',
+  'account.socialWebsite': 'Website / Linktree-URL',
+  'account.save': 'Account opslaan',
 
   // Import / library
   'import.title': 'Bibliotheek importeren',
@@ -153,7 +154,7 @@ export const nl = {
   'import.loginToUpload': 'Log in op het dashboard om een XML te uploaden.',
   'import.uploadRequired': 'Upload eerst een Rekordbox XML bestand.',
   'import.saveError': 'Kon bibliotheek niet opslaan op de server.',
-  'import.status': 'Huidige Bibliotheek Status:',
+  'import.status': 'Huidige bibliotheekstatus:',
   'import.tracks': 'Nummers:',
   'import.playlists': 'Afspeellijsten:',
   'import.howTitle': 'Hoe werkt het uploaden?',
@@ -164,9 +165,9 @@ export const nl = {
     'Let op: Er is altijd 1 actieve bibliotheek. Bij het uploaden worden alle oude nummers vervangen.',
   'import.selectFile': 'Sleep rekordbox.xml hierheen of kies een bestand',
   'import.dropHere': 'Laat het bestand hier los',
-  'import.chooseFile': 'Bestand Kiezen',
-  'import.xmlParsed': 'XML Geanalyseerd!',
-  'import.totalTracks': 'Totaal Nummers:',
+  'import.chooseFile': 'Bestand kiezen',
+  'import.xmlParsed': 'XML geanalyseerd!',
+  'import.totalTracks': 'Totaal nummers:',
   'import.uploading': 'Bezig met uploaden...',
   'import.saveChanges': 'Wijzigingen opslaan',
 
@@ -182,13 +183,13 @@ export const nl = {
   'settings.fieldArtist': 'Artiest',
   'settings.fieldAlbum': 'Album',
   'settings.fieldBpm': 'BPM',
-  'settings.fieldKey': 'Toonsoort / Key',
+  'settings.fieldKey': 'Toonsoort / key',
   'settings.fieldGenre': 'Genre',
   'settings.fieldDuration': 'Duur',
   'settings.fieldYear': 'Jaar',
   'settings.sectionRequests': 'Verzoekjes',
   'settings.enableDownloadRequests': 'Downloadverzoeken inschakelen',
-  'settings.enableDownloadRequestsHint': 'Gasten kunnen nummers aanvragen die nog niet op je USB staan. Deze verschijnen in je Downloads.',
+  'settings.enableDownloadRequestsHint': 'Gasten kunnen nummers aanvragen die nog niet op je USB staan. Deze verschijnen bij Downloads.',
   'settings.requestButtonStyle': 'Aanvraagknop',
   'settings.requestButtonStyleHint': 'Kies hoe de aanvraagknop bij elk nummer eruitziet.',
   'settings.requestButtonStyleText': 'Knop met tekst',
@@ -199,8 +200,7 @@ export const nl = {
   'settings.showPlayedDeclined': 'Gedraaid / geweigerd tonen aan gasten',
   'settings.showPlayedDeclinedHint': 'Gasten zien ook verzoekjes die al gedraaid of geweigerd zijn.',
   'settings.showDjTips': 'Tips tonen',
-  'settings.showDjTipsHint':
-    'Toont uitlegtips bij Downloads, verzoekjes, bibliotheek-upload, playlists filteren, delen, account en instellingen.',
+  'settings.showDjTipsHint': 'Toont uitlegtips in het DJ-dashboard',
   'settings.sectionLanguage': 'Taal',
   'settings.djLocale': 'Dashboardtaal',
   'settings.djLocaleHint': 'De taal die jij als DJ gebruikt',
@@ -217,6 +217,8 @@ export const nl = {
   'share.title': 'Link delen',
   'share.body':
     'Laat anderen door je nummers zoeken en verzoekjes doen op hun mobiel!',
+  'share.bodyGuest':
+    'Deel deze code zelf met anderen, zodat zij ook kunnen zoeken en verzoekjes doen!',
   'share.scan': 'Scan om te openen',
 
   // Playlist filter
@@ -227,7 +229,7 @@ export const nl = {
   'playlist.tracks': 'nummers',
   'playlist.selectedTracks': '{count} nummers geselecteerd',
   'playlist.selectedTrack': '{count} nummer geselecteerd',
-  'playlist.filterTitle': 'Playlists Filteren',
+  'playlist.filterTitle': 'Playlists filteren',
   'playlist.filterSubtitle':
     'Kies welke mappen en afspeellijsten zichtbaar zijn in de bibliotheek',
   'playlist.deselectAll': 'Alles deselecteren',
@@ -357,6 +359,7 @@ export const en: { [K in keyof typeof nl]: string } = {
   'public.loginToUpload': 'You must be logged in to upload a library.',
 
   'search.placeholder': 'Search by title or artist...',
+  'search.placeholderShort': 'Search...',
   'search.sortBy': 'Sort:',
 
   'tracks.noneForQuery': 'No tracks found for "{query}"',
@@ -497,8 +500,7 @@ export const en: { [K in keyof typeof nl]: string } = {
   'settings.showPlayedDeclined': 'Show played / declined to guests',
   'settings.showPlayedDeclinedHint': 'Guests also see requests that were already played or declined.',
   'settings.showDjTips': 'Show tips',
-  'settings.showDjTipsHint':
-    'Shows instructional tips on Downloads, requests, library upload, playlist filtering, sharing, account, and settings.',
+  'settings.showDjTipsHint': 'Shows instructional tips in the DJ dashboard',
   'settings.sectionLanguage': 'Language',
   'settings.djLocale': 'Dashboard language',
   'settings.djLocaleHint': 'The language you use as DJ',
@@ -514,6 +516,8 @@ export const en: { [K in keyof typeof nl]: string } = {
   'share.title': 'Share link',
   'share.body':
     'Let others search your tracks and submit requests on their phone!',
+  'share.bodyGuest':
+    'Share this code yourself with others so they can search and request songs too!',
   'share.scan': 'Scan to open',
 
   'playlist.openFolder': 'Open folder',

@@ -77,7 +77,7 @@ export const Header: React.FC<HeaderProps> = ({
               >
                 <img
                   src={currentLibrary?.logoUrl || '/favicon.png'}
-                  alt={currentLibrary?.djName || 'DJ Logo'}
+                  alt={currentLibrary?.djName || 'DJ-logo'}
                   className="h-full w-full rounded-lg object-contain"
                 />
               </div>

@@ -10,6 +10,8 @@ interface ShareModalProps {
   onClose: () => void;
   library: USBLibrary | null;
   showDjTips?: boolean;
+  /** Guests get copy that encourages sharing the code themselves. */
+  isOwner?: boolean;
 }
 
 export const ShareModal: React.FC<ShareModalProps> = ({
@@ -17,6 +19,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
   onClose,
   library,
   showDjTips = true,
+  isOwner = true,
 }) => {
   const { t } = useI18n();
   const [copied, setCopied] = React.useState(false);
@@ -59,9 +62,10 @@ export const ShareModal: React.FC<ShareModalProps> = ({
           <div className="text-center space-y-3">
             <div className="space-y-1">
               <h4 className="font-bold text-primary text-sm">{library.djName || library.name}</h4>
-              {showDjTips && (
+              {/* Guests always see share copy; DJ tips only when enabled. */}
+              {(!isOwner || showDjTips) && (
                 <p className="text-xs text-muted-foreground">
-                  {t('share.body')}
+                  {t(isOwner ? 'share.body' : 'share.bodyGuest')}
                 </p>
               )}
               {slug && (
