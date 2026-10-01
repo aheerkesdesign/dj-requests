@@ -420,14 +420,14 @@ export const PlaylistFilterModal: React.FC<PlaylistFilterModalProps> = ({
         </div>
 
         {/* Footer Actions */}
-        <div className="px-5 py-3.5 border-t border-border bg-card/90 flex items-center justify-between gap-2.5">
-          <p className="text-xs font-medium text-muted-foreground shrink-0">
+        <div className="px-5 py-3.5 border-t border-border bg-card/90 flex flex-wrap items-center justify-end gap-x-2.5 gap-y-2">
+          <p className="min-w-max grow whitespace-nowrap text-xs font-medium text-muted-foreground">
             {t(
               selectedTrackCount === 1 ? 'playlist.selectedTrack' : 'playlist.selectedTracks',
               { count: selectedTrackCount }
             )}
           </p>
-          <div className="flex items-center gap-2.5">
+          <div className="flex shrink-0 items-center gap-2.5">
             <button
               type="button"
               onClick={onClose}
