@@ -97,9 +97,6 @@ export const SearchBarAndFilters: React.FC<SearchBarAndFiltersProps> = ({
 
     const to = btn.getBoundingClientRect().width;
     if (Math.abs(to - from) < 1) return;
-    // Growing from a short label to a long one: don't tween from the old
-    // narrow width — that clips/truncates the new word mid-transition.
-    if (to > from) return;
 
     btn.style.width = `${from}px`;
     void btn.offsetWidth;
