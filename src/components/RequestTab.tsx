@@ -97,7 +97,6 @@ interface SwipeableRequestCardProps {
 }
 
 const SWIPE_THRESHOLD = 70;
-const SWIPE_CLAMP = 140;
 const SWIPE_COMMIT_MS = 250;
 
 const SwipeableRequestCard: React.FC<SwipeableRequestCardProps> = ({
@@ -139,16 +138,14 @@ const SwipeableRequestCard: React.FC<SwipeableRequestCardProps> = ({
   }, []);
 
   const handleStart = (clientX: number) => {
-    if (!isOwner || isCommitting) return;
+    if (!isOwner || isCommitting || req.status === 'played' || req.status === 'declined') return;
     startXRef.current = clientX;
     setIsSwiping(true);
   };
 
   const handleMove = (clientX: number) => {
     if (!isSwiping || !isOwner || isCommitting) return;
-    const diffX = clientX - startXRef.current;
-    const clampedX = Math.max(-SWIPE_CLAMP, Math.min(SWIPE_CLAMP, diffX));
-    setOffsetX(clampedX);
+    setOffsetX(clientX - startXRef.current);
   };
 
   const finishCommit = React.useCallback(() => {
@@ -216,8 +213,9 @@ const SwipeableRequestCard: React.FC<SwipeableRequestCardProps> = ({
   const swipeProgress = Math.min(1, Math.abs(offsetX) / SWIPE_THRESHOLD);
   const swipeRight = offsetX > 0;
   const swipeLeft = offsetX < 0;
-  const playedHintOpacity = swipeRight ? 0.3 + 0.7 * swipeProgress : 0.3;
-  const declinedHintOpacity = swipeLeft ? 0.3 + 0.7 * swipeProgress : 0.3;
+  // Hide the opposite hint immediately so it never peeks out during the swipe.
+  const playedHintOpacity = swipeRight ? 0.3 + 0.7 * swipeProgress : 0;
+  const declinedHintOpacity = swipeLeft ? 0.3 + 0.7 * swipeProgress : 0;
 
   let cardStyle = 'bg-card border-border/80 hover:border-border';
   if (isPlayed && swipeProgress === 0) {
@@ -273,7 +271,7 @@ const SwipeableRequestCard: React.FC<SwipeableRequestCardProps> = ({
         }}
         className={cn(
           'relative z-10 rounded-xl border px-4 py-3 flex items-center justify-between gap-3 shadow-xs overflow-hidden',
-          isOwner && !isCommitting ? 'cursor-grab active:cursor-grabbing' : '',
+          isOwner && !isCommitting && !isMuted ? 'cursor-grab active:cursor-grabbing' : '',
           cardStyle
         )}
       >
