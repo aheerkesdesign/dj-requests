@@ -398,12 +398,10 @@ export const RequestTab: React.FC<RequestTabProps> = ({
     ? matchedByRequestId
     : publishedRef.current?.matchedByRequestId;
 
-  const awaitingMeta =
-    !loading &&
-    needsMeta &&
-    !matchingReady &&
-    requests.some((r) => r.kind === 'playable');
-  const showLoader = loading || awaitingMeta;
+  // Spinner only for the initial requests fetch. While optional meta matches in
+  // the background, keep the last published list (or the empty state) on screen
+  // until the new rows are ready to appear with their meta.
+  const showLoader = loading;
   const { present: loaderPresent, phase: loaderPhase } = usePresence(showLoader);
 
   const sortOptions = React.useMemo(() => {
@@ -720,7 +718,7 @@ export const RequestTab: React.FC<RequestTabProps> = ({
         </div>
       )}
 
-      {/* Hold new/updated rows until catalog matches so optional meta arrives with them */}
+      {/* Spinner only during the initial requests fetch */}
       {loaderPresent ? (
         <div
           className={cn(

@@ -154,34 +154,38 @@ export function useClearListSequence(onClear: () => void) {
 /**
  * When `items` drops from non-empty to empty without a local clear sequence,
  * keep the previous snapshot on screen for a fade-out, then fade the empty state in.
+ * Detection runs during render so the outgoing list is present on the first paint
+ * (same idea as useExitHold) — otherwise remotes flash empty before the fade starts.
  */
 export function useRemoteListClear<T>(items: T[], localBusy: boolean) {
   const prevRef = useRef(items);
   const [snapshot, setSnapshot] = useState<T[] | null>(null);
   const [phase, setPhase] = useState<'idle' | 'exit' | 'empty-enter'>('idle');
 
-  useEffect(() => {
-    if (localBusy) {
-      prevRef.current = items;
-      if (phase !== 'idle') setPhase('idle');
-      if (snapshot !== null) setSnapshot(null);
-      return;
-    }
+  let phaseThisRender = phase;
+  let snapshotThisRender = snapshot;
 
-    if (phase === 'idle' && prevRef.current.length > 0 && items.length === 0) {
-      if (prefersReducedMotion()) {
-        prevRef.current = items;
-        return;
-      }
-      setSnapshot(prevRef.current);
+  if (localBusy) {
+    prevRef.current = items;
+    if (phase !== 'idle' || snapshot !== null) {
+      phaseThisRender = 'idle';
+      snapshotThisRender = null;
+      setPhase('idle');
+      setSnapshot(null);
+    }
+  } else if (phase === 'idle' && prevRef.current.length > 0 && items.length === 0) {
+    if (prefersReducedMotion()) {
+      prevRef.current = items;
+    } else {
+      const held = prevRef.current;
+      phaseThisRender = 'exit';
+      snapshotThisRender = held;
       setPhase('exit');
-      return;
+      setSnapshot(held);
     }
-
-    if (phase === 'idle') {
-      prevRef.current = items;
-    }
-  }, [items, localBusy, phase, snapshot]);
+  } else if (phase === 'idle') {
+    prevRef.current = items;
+  }
 
   useEffect(() => {
     if (phase === 'exit') {
@@ -200,9 +204,9 @@ export function useRemoteListClear<T>(items: T[], localBusy: boolean) {
   }, [phase]);
 
   return {
-    displayItems: snapshot ?? items,
-    listExiting: phase === 'exit',
-    emptyEntering: phase === 'empty-enter',
+    displayItems: snapshotThisRender ?? items,
+    listExiting: phaseThisRender === 'exit',
+    emptyEntering: phaseThisRender === 'empty-enter',
   };
 }
 

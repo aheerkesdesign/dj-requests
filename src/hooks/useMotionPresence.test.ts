@@ -133,6 +133,7 @@ describe('useRemoteListClear', () => {
   it('keeps the previous list while fading out a remote clear', () => {
     vi.useFakeTimers();
     expect(render(['a', 'b'])).toMatchObject({ count: '2', exiting: 'no' });
+    // First paint after remote empty must already hold the list (render-time detect).
     expect(render([])).toMatchObject({ count: '2', exiting: 'yes', emptyEnter: 'no' });
 
     act(() => {
