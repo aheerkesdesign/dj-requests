@@ -77,13 +77,19 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
 
   const {
     matchedByRequestId,
-    matchingReady,
+    settledIds,
     handleSubmitRequest,
     handleUpdateStatus,
     handleDeleteRequest,
     handleClearToDownloadRequests,
     handleClearVerzoekjes,
-  } = useRequestsState({ currentLibrary, isOwner, requests, setRequests });
+  } = useRequestsState({
+    currentLibrary,
+    isOwner,
+    requestsReady,
+    requests,
+    setRequests,
+  });
 
   const {
     filters,
@@ -256,7 +262,7 @@ export default function PublicDjPage({ ownerMode = false }: PublicDjPageProps) {
                   <RequestTab
                     requests={requests}
                     matchedByRequestId={matchedByRequestId}
-                    matchingReady={matchingReady}
+                    settledIds={settledIds}
                     loading={!requestsReady}
                     onOpenRequestModal={() => handleOpenRequestPrefilled()}
                     isOwner={isOwner}

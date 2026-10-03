@@ -70,8 +70,12 @@ const OPTIONAL_SORT_LABEL_KEYS: Record<
 interface RequestTabProps {
   requests: TrackRequest[];
   matchedByRequestId?: Map<string, Track>;
-  /** False while catalog matches for optional BPM/key/album fields are still loading. */
-  matchingReady?: boolean;
+  /**
+   * Playable request ids whose catalog match has finished (hit or miss).
+   * When optional meta fields are shown, rows appear as each id settles —
+   * already-ready rows are not held back for slower siblings.
+   */
+  settledIds?: Set<string>;
   /** True until the initial requests fetch finishes. */
   loading?: boolean;
   onOpenRequestModal: () => void;
@@ -330,10 +334,12 @@ const SwipeableRequestCard: React.FC<SwipeableRequestCardProps> = ({
   );
 };
 
+const EMPTY_SETTLED_IDS = new Set<string>();
+
 export const RequestTab: React.FC<RequestTabProps> = ({
   requests,
   matchedByRequestId,
-  matchingReady = true,
+  settledIds = EMPTY_SETTLED_IDS,
   loading = false,
   onOpenRequestModal,
   isOwner,
@@ -375,33 +381,61 @@ export const RequestTab: React.FC<RequestTabProps> = ({
   const listContainerRef = React.useRef<HTMLDivElement>(null);
 
   const needsMeta = needsMatchedTrackMeta(visibleFields);
-  // Keep the last fully-matched list on screen while new matches load — no spinner,
-  // and never flash a row before BPM/album/key/etc. are ready.
-  // Exception: an empty request list must publish immediately. Holding a stale
-  // non-empty snapshot after clear would remount the empty state too late and
-  // skip the empty-enter fade.
-  // Never publish while the initial fetch is still in flight — that would lock in
-  // an empty snapshot and flash "geen verzoekjes" instead of the loader.
+  // Publish rows as each catalog match settles. Already-visible rows stay on
+  // screen; not-yet-matched newcomers wait without blocking siblings.
+  // Empty lists publish immediately so clear → empty-enter motion still runs.
+  // While the initial fetch is in flight, do not lock in an empty snapshot.
   const publishedRef = React.useRef<{
     requests: TrackRequest[];
     matchedByRequestId?: Map<string, Track>;
   } | null>(null);
-  const publishNow =
-    !loading && (!needsMeta || matchingReady || requests.length === 0);
-  if (publishNow) {
-    publishedRef.current = { requests, matchedByRequestId };
-  }
-  const listRequests = publishNow
-    ? requests
-    : (publishedRef.current?.requests ?? []);
-  const listMatched = publishNow
-    ? matchedByRequestId
-    : publishedRef.current?.matchedByRequestId;
 
-  // Spinner only for the initial requests fetch. While optional meta matches in
-  // the background, keep the last published list (or the empty state) on screen
-  // until the new rows are ready to appear with their meta.
-  const showLoader = loading;
+  const isMetaReady = (req: TrackRequest) =>
+    !needsMeta ||
+    req.kind !== 'playable' ||
+    settledIds.has(req.id) ||
+    Boolean(matchedByRequestId?.has(req.id));
+
+  if (!loading) {
+    if (requests.length === 0) {
+      publishedRef.current = { requests, matchedByRequestId };
+    } else {
+      const prev = publishedRef.current;
+      const prevIds = new Set(prev?.requests.map((r) => r.id) ?? []);
+      const nextRequests = requests.filter((r) => prevIds.has(r.id) || isMetaReady(r));
+      const nextMatched = new Map<string, Track>();
+
+      for (const req of nextRequests) {
+        const fresh = matchedByRequestId?.get(req.id);
+        if (fresh) {
+          nextMatched.set(req.id, fresh);
+          continue;
+        }
+        // Keep prior meta for already-visible rows while they rematch (e.g. library switch).
+        if (!isMetaReady(req)) {
+          const held = prev?.matchedByRequestId?.get(req.id);
+          if (held) nextMatched.set(req.id, held);
+        }
+      }
+
+      publishedRef.current = {
+        requests: nextRequests,
+        matchedByRequestId: nextMatched,
+      };
+    }
+  }
+
+  const listRequests = publishedRef.current?.requests ?? [];
+  const listMatched = publishedRef.current?.matchedByRequestId;
+
+  // Spinner for the initial requests fetch, and while the first meta-ready row
+  // is not available yet (avoid flashing the empty state before anything can show).
+  const showLoader =
+    loading ||
+    (needsMeta &&
+      requests.length > 0 &&
+      listRequests.length === 0 &&
+      requests.some((r) => r.kind === 'playable' && !isMetaReady(r)));
   const { present: loaderPresent, phase: loaderPhase } = usePresence(showLoader);
 
   const sortOptions = React.useMemo(() => {

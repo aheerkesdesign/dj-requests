@@ -14,6 +14,8 @@ import { findTrackInLibrary } from '../utils/library';
 interface UseRequestsStateArgs {
   currentLibrary: USBLibrary | null;
   isOwner: boolean;
+  /** False until the initial requests fetch for the current library finishes. */
+  requestsReady: boolean;
   requests: TrackRequest[];
   setRequests: Dispatch<SetStateAction<TrackRequest[]>>;
 }
@@ -32,9 +34,42 @@ function playableUnmatchedKey(
     .join('\n');
 }
 
+function applyMatchResults(
+  toMatch: TrackRequest[],
+  tracks: Track[],
+  setMatchedByRequestId: Dispatch<SetStateAction<Map<string, Track>>>,
+  setSettledIds: Dispatch<SetStateAction<Set<string>>>
+) {
+  setMatchedByRequestId((prev) => {
+    let changed = false;
+    const next = new Map(prev);
+    for (const req of toMatch) {
+      if (next.has(req.id)) continue;
+      const track = findTrackInLibrary(req, tracks);
+      if (track) {
+        next.set(req.id, track);
+        changed = true;
+      }
+    }
+    return changed ? next : prev;
+  });
+  setSettledIds((prev) => {
+    let changed = false;
+    const next = new Set(prev);
+    for (const req of toMatch) {
+      if (!next.has(req.id)) {
+        next.add(req.id);
+        changed = true;
+      }
+    }
+    return changed ? next : prev;
+  });
+}
+
 export function useRequestsState({
   currentLibrary,
   isOwner,
+  requestsReady,
   requests,
   setRequests,
 }: UseRequestsStateArgs) {
@@ -46,6 +81,13 @@ export function useRequestsState({
   const requestsRef = useRef(requests);
   requestsRef.current = requests;
   const matchedLibraryIdRef = useRef<string | null>(null);
+  /** Request ids with a match RPC already in flight (avoids duplicate calls). */
+  const inFlightMatchIdsRef = useRef<Set<string>>(new Set());
+  /**
+   * After the first match pass for a library (batch on initial load), further
+   * arrivals are matched one-by-one so rows can appear incrementally.
+   */
+  const initialMatchDoneRef = useRef(false);
 
   const libraryId = currentLibrary?.id ?? null;
 
@@ -54,17 +96,12 @@ export function useRequestsState({
     [requests, matchedByRequestId, settledIds]
   );
 
-  /** True once every playable request is linked or match was attempted. */
-  const matchingReady =
-    !libraryId ||
-    requests
-      .filter((r) => r.kind === 'playable')
-      .every((r) => matchedByRequestId.has(r.id) || settledIds.has(r.id));
-
   // Drop cache entries for deleted requests; reset when library changes.
   useEffect(() => {
     if (!libraryId) {
       matchedLibraryIdRef.current = null;
+      inFlightMatchIdsRef.current.clear();
+      initialMatchDoneRef.current = false;
       setMatchedByRequestId(new Map());
       setSettledIds(new Set());
       return;
@@ -72,6 +109,8 @@ export function useRequestsState({
 
     if (matchedLibraryIdRef.current !== libraryId) {
       matchedLibraryIdRef.current = libraryId;
+      inFlightMatchIdsRef.current.clear();
+      initialMatchDoneRef.current = false;
       setMatchedByRequestId(new Map());
       setSettledIds(new Set());
       return;
@@ -98,54 +137,89 @@ export function useRequestsState({
     });
   }, [libraryId, requests]);
 
-  // Server-match only playable requests that are not already linked.
+  // Initial load: one batch RPC. Later arrivals (realtime): one RPC per request
+  // so already-matched rows can show without waiting for siblings.
   useEffect(() => {
-    if (!libraryId || !unmatchedKey) return;
+    if (!libraryId || !requestsReady) return;
 
-    let cancelled = false;
-    const idsToMatch = new Set(unmatchedKey.split('\n').filter(Boolean));
+    if (!unmatchedKey) {
+      initialMatchDoneRef.current = true;
+      return;
+    }
 
-    void (async () => {
-      try {
-        const toMatch = requestsRef.current.filter((r) => idsToMatch.has(r.id));
-        if (toMatch.length === 0) return;
+    const idsToMatch = unmatchedKey.split('\n').filter(Boolean);
+    const libraryIdForMatch = libraryId;
+    const useBatch = !initialMatchDoneRef.current;
 
-        const tracks = await matchRequestTracks(
-          libraryId,
-          toMatch.map((request) => ({ title: request.title, artist: request.artist }))
-        );
-        if (cancelled) return;
+    if (useBatch) {
+      const alreadyInFlight = idsToMatch.some((id) => inFlightMatchIdsRef.current.has(id));
+      if (alreadyInFlight) return;
 
-        setMatchedByRequestId((prev) => {
-          const next = new Map(prev);
-          for (const req of toMatch) {
-            if (next.has(req.id)) continue;
-            const track = findTrackInLibrary(req, tracks);
-            if (track) next.set(req.id, track);
+      for (const id of idsToMatch) inFlightMatchIdsRef.current.add(id);
+
+      void (async () => {
+        try {
+          const toMatch = requestsRef.current.filter((r) => idsToMatch.includes(r.id));
+          if (toMatch.length === 0) return;
+
+          const tracks = await matchRequestTracks(
+            libraryIdForMatch,
+            toMatch.map((request) => ({ title: request.title, artist: request.artist }))
+          );
+
+          if (matchedLibraryIdRef.current !== libraryIdForMatch) return;
+
+          applyMatchResults(toMatch, tracks, setMatchedByRequestId, setSettledIds);
+        } catch (err) {
+          console.error(err);
+          if (matchedLibraryIdRef.current !== libraryIdForMatch) return;
+          setSettledIds((prev) => {
+            const next = new Set(prev);
+            for (const id of idsToMatch) next.add(id);
+            return next;
+          });
+        } finally {
+          for (const id of idsToMatch) inFlightMatchIdsRef.current.delete(id);
+          if (matchedLibraryIdRef.current === libraryIdForMatch) {
+            initialMatchDoneRef.current = true;
           }
-          return next;
-        });
-        setSettledIds((prev) => {
-          const next = new Set(prev);
-          for (const id of idsToMatch) next.add(id);
-          return next;
-        });
-      } catch (err) {
-        console.error(err);
-        if (cancelled) return;
-        setSettledIds((prev) => {
-          const next = new Set(prev);
-          for (const id of idsToMatch) next.add(id);
-          return next;
-        });
-      }
-    })();
+        }
+      })();
+      return;
+    }
 
-    return () => {
-      cancelled = true;
-    };
-  }, [libraryId, unmatchedKey]);
+    for (const id of idsToMatch) {
+      if (inFlightMatchIdsRef.current.has(id)) continue;
+      inFlightMatchIdsRef.current.add(id);
 
+      void (async () => {
+        try {
+          const req = requestsRef.current.find((r) => r.id === id);
+          if (!req) return;
+
+          const tracks = await matchRequestTracks(libraryIdForMatch, [
+            { title: req.title, artist: req.artist },
+          ]);
+
+          if (matchedLibraryIdRef.current !== libraryIdForMatch) return;
+          if (!requestsRef.current.some((r) => r.id === id)) return;
+
+          applyMatchResults([req], tracks, setMatchedByRequestId, setSettledIds);
+        } catch (err) {
+          console.error(err);
+          if (matchedLibraryIdRef.current !== libraryIdForMatch) return;
+          setSettledIds((prev) => {
+            if (prev.has(id)) return prev;
+            const next = new Set(prev);
+            next.add(id);
+            return next;
+          });
+        } finally {
+          inFlightMatchIdsRef.current.delete(id);
+        }
+      })();
+    }
+  }, [libraryId, requestsReady, unmatchedKey]);
   /**
    * Submit a request with an explicit kind from the UI intent:
    * - playable: guest tapped "request" on a catalog track (pass that track to skip rematch)
@@ -231,7 +305,8 @@ export function useRequestsState({
 
   return {
     matchedByRequestId,
-    matchingReady,
+    /** Playable request ids whose catalog match has finished (hit or miss). */
+    settledIds,
     handleSubmitRequest,
     handleUpdateStatus,
     handleDeleteRequest,
